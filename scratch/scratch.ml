@@ -9,8 +9,16 @@ open Z3;;
 module List = Lst;;
 module Array = Arr;;
 
-(* No other functions in this file, just a main function that does what we
- * need *)
+(** Wrap a func_decl so it is callable. Sadly all the variadic arg methods
+ * I could find for OCaml are crazy complicated (don't want to encode church
+ * numerals), so still needs list **)
+let mk_function (f : FuncDecl.func_decl) = 
+    let wrapped_f (vals : Expr.expr list) =
+        (FuncDecl.apply f vals) in
+    wrapped_f
+;;
+
+(* Entry point *)
 let _ = (
     (* Make a Z3 context *)
     let context = mk_context([("model", "true"); ("proof", "true")]) in
@@ -19,17 +27,20 @@ let _ = (
     (* Declare variables *)
     let vara = Expr.mk_const_s context "a" endpoint in
     let varb = Expr.mk_const_s context "b" endpoint in
+    (* Some definitions to make our lives easier 
+     * TODO: Consider putting into an object *)
+    let mk_eq = Boolean.mk_eq context in
+    let mk_not = Boolean.mk_not context in
     (* Declare a function *)
-    let f = (FuncDecl.mk_func_decl_s context "f" [endpoint] endpoint) in
+    let f = (mk_function (FuncDecl.mk_func_decl_s context "f" [endpoint]
+                                endpoint)) in
     (* Create a solver *)
     let solver = Solver.mk_solver context None in
         (* Add some constraints *)
-        (Solver.add solver [(Boolean.mk_eq context (FuncDecl.apply f
-                                          [(FuncDecl.apply f [vara])]) 
-                                                    vara);
-                           (Boolean.mk_eq context (FuncDecl.apply f [vara]) 
-                                                    varb);
-                           (Boolean.mk_not context (Boolean.mk_eq context vara varb))]);
+        (Solver.add solver [(mk_eq (f [(f [vara])]) 
+                                              vara);
+                           (mk_eq (f [vara]) varb);
+                           (mk_not (mk_eq vara varb))]);
         (* Check satisfiability *)
         let q = (Solver.check solver []) in
         if q != Solver.SATISFIABLE then
