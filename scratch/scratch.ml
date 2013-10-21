@@ -3,11 +3,7 @@
 
 (** Unfortunately Z3 aliases Array and List. Z3s version continue to be
  * accessible using Z3Array and Z3List **)
-module Arr = Array;;
-module Lst = List;;
 open Z3;;
-module List = Lst;;
-module Array = Arr;;
 
 (** Wrap a func_decl so it is callable. Sadly all the variadic arg methods
  * I could find for OCaml are crazy complicated (don't want to encode church
@@ -17,12 +13,12 @@ let mk_function (f : FuncDecl.func_decl) =
         (FuncDecl.apply f vals) in
     wrapped_f
 ;;
+let context = mk_context([("model", "true"); ("proof", "true")]);;
 
 (* Entry point *)
 let _ = (
     (* Make a Z3 context *)
-    let context = mk_context([("model", "true"); ("proof", "true")]) in
-    (* Define a new Sort *)
+        (* Define a new Sort *)
     let endpoint = (Sort.mk_uninterpreted_s context "Endpoint") in
     (* Declare variables *)
     let vara = Expr.mk_const_s context "a" endpoint in
