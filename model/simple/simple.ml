@@ -13,14 +13,24 @@ let mk_function (f : FuncDecl.func_decl) =
         (FuncDecl.apply f vals) in
     wrapped_f
 ;;
-let context = mk_context([("model", "true"); ("proof", "true")]);;
-let nil_con = Datatype.mk_constructor context 
-                (Symbol.mk_string context "nil")
-                (Symbol.mk_string context "is_nil")
+let context = (mk_context [("model", "true"); ("proof", "true")]);;
+let addr = (Sort.mk_uninterpreted_s context "Address");;
+(*let packet = (Datatype.mk_sort_s context "Packet" [
+               (Datatype.mk_constructor_s context 
+                "mk_packet" 
+                (Symbol.mk_string context  "boom")
+                (List.map (Symbol.mk_string context) [])
                 []
-                []
-                [];;
-
+                [])]);;
+*)
+(*let packet = (Datatype.mk_sort_s context "Packet"
+              [(Datatype.mk_constructor context
+                (Symbol.mk_string context "mk_packet")
+                (Symbol.mk_string context "is_packet")
+                [(Symbol.mk_string context "src")]
+                [(Arithmetic.Integer.mk_sort context)]
+                [0])]);;*)
+                 
 (* Entry point *)
 let _ = (
     (* Make a Z3 context *)
@@ -33,6 +43,10 @@ let _ = (
      * TODO: Consider putting into an object *)
     let mk_eq = Boolean.mk_eq context in
     let mk_not = Boolean.mk_not context in
+    let constructor = (Datatype.mk_constructor context 
+                (Symbol.mk_string context "mk_packet")
+                (Symbol.mk_string context "is_packet")
+                [] [] []) in 
     (* Declare a function *)
     let f = (mk_function (FuncDecl.mk_func_decl_s context "f" [endpoint]
                                 endpoint)) in

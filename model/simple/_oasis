@@ -1,0 +1,14 @@
+OASISFormat: 0.3
+Name:        Simple network model
+Version:     1.0
+Synopsis:    Something or the other
+Authors:     Aurojit Panda
+License:     BSD3
+
+Executable simple
+  Path:       .
+  BuildTools: ocamlbuild
+  MainIs:     simple.ml
+  BuildDepends: z3  
+  ByteOpt: -custom
+  CompiledObject: byte

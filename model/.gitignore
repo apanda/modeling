@@ -1,0 +1,9 @@
+setup.data
+setup.ml
+_tags
+myocamlbuild.ml
+*.native
+*swp
+*.byte
+*/_build/
+*.log
