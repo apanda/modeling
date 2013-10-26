@@ -11,4 +11,4 @@ Executable simple
   MainIs:     simple.ml
   BuildDepends: z3  
   ByteOpt: -custom
-  CompiledObject: byte
+  CompiledObject: best
