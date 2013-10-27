@@ -1,0 +1,352 @@
+[ForAll([eh1, ad1],
+        hostHasAddr(eh1, ad1) == (addrToHost(ad1) == eh1)),
+ ForAll(eh1, Exists(ad1, hostHasAddr(eh1, ad1))),
+ ForAll([eh1, eh2, p],
+        recv(eh1, eh2, p) == send(eh1, eh2, p)),
+ ForAll([eh1, eh2, p],
+        Implies(recv(eh1, eh2, p),
+                Exists(eh3, send(origin(p), eh3, p)))),
+ addrToHost(addr_a) == a,
+ addrToHost(addr_b) == b,
+ ForAll(free_addr,
+        hostHasAddr(a, free_addr) == (free_addr == addr_a)),
+ ForAll(free_addr,
+        hostHasAddr(b, free_addr) == (free_addr == addr_b)),
+ ForAll(free_addr,
+        hostHasAddr(c, free_addr) == (free_addr == addr_c)),
+ ForAll(free_addr,
+        hostHasAddr(d, free_addr) == (free_addr == addr_d)),
+ ForAll([eh, p],
+        Implies(recv(eh, a, p), hostHasAddr(a, dest(p)))),
+ ForAll([eh, p],
+        Implies(send(a, eh, p), hostHasAddr(a, src(p)))),
+ ForAll([eh, p],
+        Implies(recv(eh, b, p), hostHasAddr(b, dest(p)))),
+ ForAll([eh, p],
+        Implies(send(b, eh, p), hostHasAddr(b, src(p)))),
+ ForAll([eh, p],
+        Implies(recv(eh, c, p), hostHasAddr(c, dest(p)))),
+ ForAll([eh, p],
+        Implies(send(c, eh, p), hostHasAddr(c, src(p)))),
+ ForAll([eh, p],
+        Implies(recv(eh, d, p), hostHasAddr(d, dest(p)))),
+ ForAll([eh, p],
+        Implies(send(d, eh, p), hostHasAddr(d, src(p)))),
+ ForAll([temp_eh, p],
+        Implies(send(a, temp_eh, p), temp_eh == fw_eh)),
+ ForAll([temp_eh, p],
+        Implies(send(b, temp_eh, p), temp_eh == fw_eh)),
+ ForAll([temp_eh, p],
+        Implies(send(c, temp_eh, p), temp_eh == fw_eh)),
+ ForAll([temp_eh, p],
+        Implies(send(d, temp_eh, p), temp_eh == fw_eh)),
+ ForAll([temp_eh, p],
+        Implies(send(fw_eh, temp_eh, p),
+                Not(Or(And(src(p) == addr_a,
+                           dest(p) == addr_b),
+                       And(src(p) == addr_b,
+                           dest(p) == addr_a),
+                       And(src(p) == addr_c,
+                           dest(p) == addr_d),
+                       And(src(p) == addr_d,
+                           dest(p) == addr_c))))),
+ Exists(eh, recv(eh, b, p)),
+ origin(p) == c,
+ Exists(eh, recv(eh, c, p2)),
+ origin(p2) == b]
+====================================================================================
+sat
+;; universe for Address:
+;;   Address!val!8 Address!val!5 Address!val!25 Address!val!13 Address!val!4 Address!val!0 Address!val!17 Address!val!27 Address!val!22 Address!val!7 Address!val!6 Address!val!20 Address!val!10 Address!val!26 Address!val!9 Address!val!16 Address!val!23 Address!val!19 Address!val!15 Address!val!11 Address!val!1 Address!val!14 Address!val!21 Address!val!18 Address!val!2 Address!val!12 Address!val!3 Address!val!24 
+;; -----------
+;; definitions for universe elements:
+(declare-fun Address!val!8 () Address)
+(declare-fun Address!val!5 () Address)
+(declare-fun Address!val!25 () Address)
+(declare-fun Address!val!13 () Address)
+(declare-fun Address!val!4 () Address)
+(declare-fun Address!val!0 () Address)
+(declare-fun Address!val!17 () Address)
+(declare-fun Address!val!27 () Address)
+(declare-fun Address!val!22 () Address)
+(declare-fun Address!val!7 () Address)
+(declare-fun Address!val!6 () Address)
+(declare-fun Address!val!20 () Address)
+(declare-fun Address!val!10 () Address)
+(declare-fun Address!val!26 () Address)
+(declare-fun Address!val!9 () Address)
+(declare-fun Address!val!16 () Address)
+(declare-fun Address!val!23 () Address)
+(declare-fun Address!val!19 () Address)
+(declare-fun Address!val!15 () Address)
+(declare-fun Address!val!11 () Address)
+(declare-fun Address!val!1 () Address)
+(declare-fun Address!val!14 () Address)
+(declare-fun Address!val!21 () Address)
+(declare-fun Address!val!18 () Address)
+(declare-fun Address!val!2 () Address)
+(declare-fun Address!val!12 () Address)
+(declare-fun Address!val!3 () Address)
+(declare-fun Address!val!24 () Address)
+;; cardinality constraint:
+(forall ((x Address))
+        (or (= x Address!val!8)
+            (= x Address!val!5)
+            (= x Address!val!25)
+            (= x Address!val!13)
+            (= x Address!val!4)
+            (= x Address!val!0)
+            (= x Address!val!17)
+            (= x Address!val!27)
+            (= x Address!val!22)
+            (= x Address!val!7)
+            (= x Address!val!6)
+            (= x Address!val!20)
+            (= x Address!val!10)
+            (= x Address!val!26)
+            (= x Address!val!9)
+            (= x Address!val!16)
+            (= x Address!val!23)
+            (= x Address!val!19)
+            (= x Address!val!15)
+            (= x Address!val!11)
+            (= x Address!val!1)
+            (= x Address!val!14)
+            (= x Address!val!21)
+            (= x Address!val!18)
+            (= x Address!val!2)
+            (= x Address!val!12)
+            (= x Address!val!3)
+            (= x Address!val!24)))
+;; -----------
+(define-fun addr_b () Address
+  Address!val!23)
+(define-fun p () Packet
+  (packet Address!val!22 Address!val!23 c))
+(define-fun addr_a () Address
+  Address!val!15)
+(define-fun eh!2 () Endhost
+  fw_eh)
+(define-fun p2 () Packet
+  (packet Address!val!23 Address!val!22 b))
+(define-fun addr_c () Address
+  Address!val!22)
+(define-fun addr_d () Address
+  Address!val!24)
+(define-fun eh!3 () Endhost
+  fw_eh)
+(define-fun addrToHost ((x!1 Address)) Endhost
+  (ite (= x!1 Address!val!22) c
+  (ite (= x!1 Address!val!24) d
+  (ite (= x!1 Address!val!23) b
+  (ite (= x!1 Address!val!15) a
+    fw_eh)))))
+(define-fun hostHasAddr ((x!1 Endhost) (x!2 Address)) Bool
+  (ite (and (= x!1 c) (= x!2 Address!val!22)) true
+  (ite (and (= x!1 a) (= x!2 Address!val!24)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!24)) true
+  (ite (and (= x!1 a) (= x!2 Address!val!3)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!2)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!6)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!0)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!3)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!5)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!0)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!7)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!9)) false
+  (ite (and (= x!1 fw_eh) (= x!2 Address!val!27)) true
+  (ite (and (= x!1 a) (= x!2 Address!val!8)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!5)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!10)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!9)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!2)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!3)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!11)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!1)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!0)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!1)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!9)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!14)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!5)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!3)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!18)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!19)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!6)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!11)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!12)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!7)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!18)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!8)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!10)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!2)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!5)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!21)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!12)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!1)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!14)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!19)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!18)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!21)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!4)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!17)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!13)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!16)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!11)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!2)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!23)) true
+  (ite (and (= x!1 c) (= x!2 Address!val!19)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!4)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!17)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!13)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!16)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!21)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!12)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!6)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!7)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!14)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!8)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!20)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!23)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!9)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!11)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!20)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!23)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!20)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!4)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!17)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!13)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!16)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!10)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!14)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!7)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!1)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!15)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!6)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!8)) false
+  (ite (and (= x!1 a) (= x!2 Address!val!15)) true
+  (ite (and (= x!1 d) (= x!2 Address!val!4)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!19)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!10)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!17)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!18)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!0)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!13)) false
+  (ite (and (= x!1 b) (= x!2 Address!val!15)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!12)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!16)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!20)) false
+  (ite (and (= x!1 c) (= x!2 Address!val!15)) false
+  (ite (and (= x!1 d) (= x!2 Address!val!21)) false
+    (= (addrToHost x!2) x!1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+(define-fun eh3!1!628 ((x!1 Packet)) Endhost
+  (ite (= x!1 (packet Address!val!22 Address!val!23 c)) fw_eh
+  (ite (= x!1 (packet Address!val!23 Address!val!22 b)) fw_eh
+    a)))
+(define-fun k!626 ((x!1 Endhost)) Endhost
+  (ite (= x!1 fw_eh) fw_eh
+  (ite (= x!1 b) b
+  (ite (= x!1 c) c
+  (ite (= x!1 a) a
+    d)))))
+(define-fun send!627 ((x!1 Endhost) (x!2 Endhost) (x!3 Packet)) Bool
+  (ite (and (= x!1 fw_eh)
+            (= x!2 b)
+            (= x!3 (packet Address!val!22 Address!val!23 c)))
+    true
+  (ite (and (= x!1 c)
+            (= x!2 fw_eh)
+            (= x!3 (packet Address!val!22 Address!val!23 c)))
+    true
+  (ite (and (= x!1 fw_eh)
+            (= x!2 c)
+            (= x!3 (packet Address!val!23 Address!val!22 b)))
+    true
+  (ite (and (= x!1 b)
+            (= x!2 fw_eh)
+            (= x!3 (packet Address!val!23 Address!val!22 b)))
+    true
+    false)))))
+(define-fun k!623 ((x!1 Packet)) Packet
+  (ite (= x!1 (packet Address!val!22 Address!val!23 c))
+    (packet Address!val!22 Address!val!23 c)
+  (ite (= x!1 (packet Address!val!2 Address!val!4 fw_eh))
+    (packet Address!val!2 Address!val!4 fw_eh)
+  (ite (= x!1 (packet Address!val!8 Address!val!9 fw_eh))
+    (packet Address!val!8 Address!val!9 fw_eh)
+  (ite (= x!1 (packet Address!val!1 Address!val!11 a))
+    (packet Address!val!1 Address!val!11 a)
+  (ite (= x!1 (packet Address!val!18 Address!val!19 a))
+    (packet Address!val!18 Address!val!19 a)
+  (ite (= x!1 (packet Address!val!25 Address!val!26 a))
+    (packet Address!val!25 Address!val!26 a)
+  (ite (= x!1 (packet Address!val!12 Address!val!17 fw_eh))
+    (packet Address!val!12 Address!val!17 fw_eh)
+  (ite (= x!1 (packet Address!val!15 Address!val!20 fw_eh))
+    (packet Address!val!15 Address!val!20 fw_eh)
+  (ite (= x!1 (packet Address!val!19 Address!val!4 a))
+    (packet Address!val!19 Address!val!4 a)
+  (ite (= x!1 (packet Address!val!3 Address!val!16 fw_eh))
+    (packet Address!val!3 Address!val!16 fw_eh)
+  (ite (= x!1 (packet Address!val!18 Address!val!5 a))
+    (packet Address!val!18 Address!val!5 a)
+  (ite (= x!1 (packet Address!val!0 Address!val!5 fw_eh))
+    (packet Address!val!0 Address!val!5 fw_eh)
+  (ite (= x!1 (packet Address!val!12 Address!val!21 a))
+    (packet Address!val!12 Address!val!21 a)
+  (ite (= x!1 (packet Address!val!23 Address!val!22 b))
+    (packet Address!val!23 Address!val!22 b)
+  (ite (= x!1 (packet Address!val!0 Address!val!6 a))
+    (packet Address!val!0 Address!val!6 a)
+  (ite (= x!1 (packet Address!val!9 Address!val!7 a))
+    (packet Address!val!9 Address!val!7 a)
+  (ite (= x!1 (packet Address!val!9 Address!val!10 a))
+    (packet Address!val!9 Address!val!10 a)
+  (ite (= x!1 (packet Address!val!15 Address!val!20 a))
+    (packet Address!val!15 Address!val!20 a)
+  (ite (= x!1 (packet Address!val!13 Address!val!14 fw_eh))
+    (packet Address!val!13 Address!val!14 fw_eh)
+    (packet Address!val!3 Address!val!15 a)))))))))))))))))))))
+(define-fun k!624 ((x!1 Endhost)) Endhost
+  (ite (= x!1 d) d
+  (ite (= x!1 a) a
+  (ite (= x!1 c) c
+  (ite (= x!1 b) b
+    fw_eh)))))
+(define-fun send ((x!1 Endhost) (x!2 Endhost) (x!3 Packet)) Bool
+  (send!627 (k!624 x!1) (k!626 x!2) (k!623 x!3)))
+(define-fun ad1!0!630 ((x!1 Endhost)) Address
+  (ite (= x!1 a) Address!val!15
+  (ite (= x!1 d) Address!val!24
+  (ite (= x!1 b) Address!val!23
+  (ite (= x!1 fw_eh) Address!val!27
+    Address!val!22)))))
+(define-fun k!622 ((x!1 Endhost)) Endhost
+  (ite (= x!1 b) b
+  (ite (= x!1 a) a
+  (ite (= x!1 c) c
+  (ite (= x!1 d) d
+    fw_eh)))))
+(define-fun ad1!0 ((x!1 Endhost)) Address
+  (ad1!0!630 (k!622 x!1)))
+(define-fun eh3!1 ((x!1 Packet)) Endhost
+  (eh3!1!628 (k!623 x!1)))
+(define-fun recv!629 ((x!1 Endhost) (x!2 Endhost) (x!3 Packet)) Bool
+  (ite (and (= x!1 fw_eh)
+            (= x!2 b)
+            (= x!3 (packet Address!val!22 Address!val!23 c)))
+    true
+  (ite (and (= x!1 fw_eh)
+            (= x!2 c)
+            (= x!3 (packet Address!val!23 Address!val!22 b)))
+    true
+  (ite (and (= x!1 c)
+            (= x!2 fw_eh)
+            (= x!3 (packet Address!val!22 Address!val!23 c)))
+    true
+  (ite (and (= x!1 b)
+            (= x!2 fw_eh)
+            (= x!3 (packet Address!val!23 Address!val!22 b)))
+    true
+    false)))))
+(define-fun recv ((x!1 Endhost) (x!2 Endhost) (x!3 Packet)) Bool
+  (recv!629 (k!624 x!1) (k!626 x!2) (k!623 x!3)))
