@@ -39,7 +39,7 @@ def GetBaseConditions ():
     #                        z3.Exists([eh2], send(eh1, eh2, p))))) 
     return base_conditions
 
-def FirewallDenyRules (solver, fw, hosts, ada, adb):
+def FirewallDenyRules (solver, fw, hosts, rules):
     p = z3.Const('p', packet)
     eh = z3.Const('temp_eh', endhost)
     for host in hosts:
@@ -49,11 +49,17 @@ def FirewallDenyRules (solver, fw, hosts, ada, adb):
     #            z3.Implies(z3.And(address_to_host(packet.src(p)) != eh1,\
     #                              address_to_host (packet.dest(p)) !=eh2),\
     #            send(fw, address_to_host(packet.dest(p)), p)))))
+    if len(rules) == 0:
+        return
+    conditions = []
+    for rule in rules:
+        (ada, adb) = rule
+        conditions.append(z3.And(packet.src(p) == ada,
+                                    packet.dest(p) == adb))
+        conditions.append(z3.And(packet.src(p) == adb,
+                                    packet.dest(p) == ada))
     solver.add(z3.ForAll([eh, p], z3.Implies(send(fw, eh, p),
-                z3.Not(z3.Or(z3.And(packet.src(p) == ada,
-                                    packet.dest(p) == adb),
-                             z3.And(packet.src(p) == adb,
-                                    packet.dest(p) == ada))))))
+                z3.Not(z3.Or(conditions)))))
 
 solver = z3.Solver()
 base_conditions = GetBaseConditions ()
@@ -72,16 +78,20 @@ solver.add(z3.ForAll([addr], address_in_host(b, addr) == (addr == adb)))
 solver.add(z3.ForAll([addr], address_in_host(c, addr) == (addr == adc)))
 solver.add(z3.ForAll([addr], address_in_host(d, addr) == (addr == add)))
 p = z3.Const('p', packet)
-for h in [a,b,c]:
+for h in [a,b,c,d]:
     solver.add(z3.ForAll([eh, p], z3.Implies(recv(eh, h, p), address_in_host(h, packet.dest(p)))))
     solver.add(z3.ForAll([eh, p], z3.Implies(send(h, eh, p), address_in_host(h, packet.src(p)))))
-FirewallDenyRules(solver, fw_eh, [a, b, c, d], ada, adb)
+FirewallDenyRules(solver, fw_eh, [a, b, c, d], [(ada, adb), (adc, add)])
 solver.add(z3.Exists([eh], recv(eh, b, p)))
-solver.add(packet.origin(p) == d)
+solver.add(packet.origin(p) == c)
+p2 = z3.Const('p2', packet)
+solver.add(z3.Exists([eh], recv(eh, c, p2)))
+solver.add(packet.origin(p2) == b)
 print solver
 print "===================================================================================="
 result = solver.check ()
 print result
 if result == z3.sat:
-    print solver.model()
+    model = solver.model()
+    print model.sexpr()
 
