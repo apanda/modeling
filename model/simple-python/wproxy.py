@@ -3,6 +3,10 @@ A simplish model for a network.
 This is in Python since OCaml wasn't working
 """
 import z3
+from z3 import *
+def toSMT2Benchmark(f, status="unknown", name="benchmark", logic=""):
+    v = (Ast * 0)()
+    return z3.Z3_benchmark_to_smtlib_string(f.ctx_ref(), name, logic, status, "", 0, v, f.as_ast())
 packet = z3.Datatype('Packet')
 address = z3.DeclareSort('Address')
 endhost, (a, b, c, d, fw_eh, proxy) = z3.EnumSort('Endhost', ['a', 'b', 'c', 'd', 'fw_eh', 'proxy'])
@@ -10,7 +14,16 @@ packet.declare('packet', ('src', address), ('dest', address), ('origin', endhost
 packet = packet.create()
 address_in_host = z3.Function('hostHasAddr', endhost, address, z3.BoolSort ())
 address_to_host = z3.Function('addrToHost', address, endhost)
-z3.set_param('produce-proof', True)
+z3.set_param('proof', True)
+z3.set_param('unsat-core', True)
+z3.set_param('trace', True)
+z3.set_param('smt.mbqi', True)
+z3.set_param('smt.mbqi.max_iterations', 500000)
+z3.set_param('model.compact', True)
+z3.set_param('model.partial', True)
+z3.set_param('smt.pull_nested_quantifiers', True)
+#z3.set_param('auto-config', False)
+#z3.set_param('smt.mbqi', False)
 # send := src -> dst -> packet -> bool
 send = z3.Function('send', endhost, endhost, packet, z3.BoolSort ())
 # recv := src -> dst -> packet ->bool
@@ -75,12 +88,16 @@ def WebProxyRules (solver, proxy, adj):
     p2 = z3.Const('p2', packet)
     eh = z3.Const('temp_eh', endhost)
     eh2 = z3.Const('temp_eh2', endhost)
-    adjacency_constraint = z3.Or(map(lambda n: eh == n, adj))
-    # This is just about connectivity
-    solver.add(z3.ForAll([eh, p], z3.Implies(recv(eh, proxy, p),\
-                            adjacency_constraint)))
-    solver.add(z3.ForAll([eh, p], z3.Implies(send(proxy, eh, p),\
-                            adjacency_constraint)))
+    if len(adj) != 0:
+        adjacency_constraint = z3.Or(map(lambda n: eh == n, adj))
+        # This is just about connectivity
+        solver.add(z3.ForAll([eh, p], z3.Implies(recv(eh, proxy, p),\
+                                adjacency_constraint)))
+        solver.add(z3.ForAll([eh, p], z3.Implies(send(proxy, eh, p),\
+                                adjacency_constraint)))
+    else:
+        solver.add(z3.ForAll([eh, p], z3.Not(recv(eh, proxy, p))))
+        solver.add(z3.ForAll([eh, p], z3.Not(send(proxy, eh, p))))
     solver.add(z3.ForAll([eh, p], z3.Implies(send(proxy, eh, p), address_in_host(proxy, packet.src(p)))))
     solver.add(z3.ForAll([eh, p], z3.Implies(send(proxy, eh, p), z3.Exists([p2, eh2], 
                          z3.And(recv(eh2, proxy, p2),
@@ -118,24 +135,30 @@ solver.add(z3.ForAll([addr], address_in_host(c, addr) == (addr == adc)))
 solver.add(z3.ForAll([addr], address_in_host(d, addr) == (addr == add)))
 p = z3.Const('p', packet)
 
-EndHostRules(solver, [a,b], [proxy])
-EndHostRules(solver, [c,d], [fw_eh])
+#EndHostRules(solver, [a,b], [fw_eh])
+#EndHostRules(solver, [c,d], [fw_eh])
+#FirewallDenyRules(solver, fw_eh, [a,b,c,d], [(ada, adc), (adb, add)])
+#WebProxyRules(solver, proxy, [])
 
-#FirewallDenyRules(solver, fw_eh, [c,d,proxy], [(ada, adc), (adb, add)])
-#WebProxyRules(solver, proxy, [a,b,fw_eh])
+EndHostRules(solver, [a,b], [fw_eh])
+EndHostRules(solver, [c,d], [proxy])
 FirewallDenyRules(solver, fw_eh, [a, b, proxy], [(ada, adc), (adb, add)])
 WebProxyRules(solver, proxy, [c, d, fw_eh])
 
-solver.add(z3.Exists([eh], recv(eh, c, p)))
-solver.add(packet.origin(p) == a)
+solver.assert_and_track(z3.Exists([eh], recv(eh, c, p)), 'crec')
+solver.assert_and_track(packet.origin(p) == a, 'crec_origin')
 p2 = z3.Const('p2', packet)
-solver.add(z3.Exists([eh], recv(eh, d, p2)))
-solver.add(packet.origin(p2) == b)
-print solver
+solver.assert_and_track(z3.Exists([eh], recv(eh, d, p2)), 'drec')
+solver.assert_and_track(packet.origin(p2) == b, 'drec_origin')
+#print '\n'.join(map(toSMT2Benchmark, solver.assertions()))
 print "===================================================================================="
 result = solver.check ()
 print result
 if result == z3.sat:
     model = solver.model()
     print model.sexpr()
-
+elif result == z3.unknown:
+    print solver.reason_unknown()
+elif result == z3.unsat:
+    print solver.unsat_core()
+    print solver.model()

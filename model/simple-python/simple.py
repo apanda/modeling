@@ -103,4 +103,5 @@ print result
 if result == z3.sat:
     model = solver.model()
     print model
-
+elif result == z3.unknown:
+    print z3.reason_unknown()
