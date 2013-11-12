@@ -79,18 +79,16 @@ class NetworkModel:
                                          z3.Exists([eh3], self.send(self.addrToHost(self.packet.src(p)), eh3, p)))))
 
         # Turn off loopback, loopback makes me sad
-        # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
-        # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
+        # \forall e_1, e_2, p send(e_1, e_2, p) \implies e_1 \neq e_2
+        # \forall e_1, e_2, p recv(e_1, e_2, p) \implies e_1 \neq e_2
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
+        #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
     def setAddressMappingsExclusive (self, addrmap):
         """Constraints to ensure that a host has only the addresses in the map"""
         tempAddr = z3.Const("__setAdMapExclusive_address", self.address)
         for host, addr in addrmap.iteritems():
-            # addrToHost(h) = a_h
-            # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
             self.solver.add(self.addrToHost(self.addresses[addr]) == self.endhosts[host])
             self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.endhosts[host], tempAddr) == (tempAddr == \
                                     self.addresses[addr])))
@@ -105,8 +103,6 @@ class NetworkModel:
             p = z3.Const('__adjacency_packet_%s'%(node), self.packet)
             if len(adj) != 0:
                 adjacency_constraint = z3.Or(map(lambda n: eh == self.endhosts[n], adj))
-                # \forall e_1, p recv(e_1, h, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-                # \forall e_1, p send(h, e_1, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
                 self.solver.add(z3.ForAll([eh, p], z3.Implies(self.recv(eh, node, p),\
                                             adjacency_constraint)))
                 self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(node, eh, p),\
@@ -121,49 +117,33 @@ class NetworkModel:
         self.AdjacencyConstraint(map(lambda n: self.endhosts[n], hosts), adj)
         for h in hosts:
             h = self.endhosts[h]
-            # \forall e_1, p: recv(e_1, h, p) \Rightarrow hostHasAddr (h, p.dest)
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow hostHasAddr (h, p.src)
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow p.origin = h
-            #self.solver.add(z3.ForAll([eh, p], z3.Implies(self.recv(eh, h, p), self.hostHasAddr(h, self.packet.dest(p)))))
+            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.recv(eh, h, p), self.hostHasAddr(h, self.packet.dest(p)))))
             self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.hostHasAddr(h, self.packet.src(p)))))
             self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.packet.origin(p) == h)))
-    
-    def RoutingTable (self, node, routing_table):
-        """ Routing entries are of the form address -> endhost"""
-        p = z3.Const('__packet__Routing_%s'%(node), self.packet)
-        eh = z3.Const('__node__Routing_%s'%(node), self.endhost)
-        table = map(lambda (n1, n2): (self.addresses[n1], self.endhosts[n2]), routing_table.items())
-        node = self.endhosts[node]
-        for entry in table:
-            # \forall p: send(n, e[1], p) \iff p.dest == e[0]
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(z3.And(self.send(node, eh, p),
-                                               (self.packet.dest(p) == entry[0])), 
-                                               eh == entry[1])))
 
     def LearningFirewallRules (self, fw, adj, rules):
         fw_str = fw
         fw = self.endhosts[fw]
+        self.AdjacencyConstraint(fw, adj)
 
         # Model holes as a function
         cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.BoolSort())
+        p = z3.Const ('__fw_Packet_cache_%s'%(fw_str), self.packet)
         addr_a = z3.Const ('__fw_addr_cache_a_%s'%(fw_str), self.address)
         addr_b = z3.Const ('__fw_addr_cache_b_%s'%(fw_str), self.address)
+        eh = z3.Const ('__eh_cache_%s'%(fw_str), self.endhost)
 
         # Normal firewall rules (same as firewall deny rules, maybe we can combine them somehow) 
         p = z3.Const('__firewall_Packet_%s'%(fw_str), self.packet)
         eh = z3.Const('__firewall_endhost1_%s'%(fw_str), self.endhost)
         eh2 = z3.Const('__firewall_endhost2_%s'%(fw_str), self.endhost)
-
         # The firewall never invents self.packets
-        # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
-        self.AdjacencyConstraint(fw, adj)
         
         if len(rules) == 0:
             return
         conditions = []
-
-        # Firewall rules (These are unidirectional)
+        # Firewall rules
         for rule in rules:
             (ada, adb) = rule
             (ada, adb) = (self.addresses[ada], self.addresses[adb])
@@ -172,33 +152,30 @@ class NetworkModel:
             #conditions.append(z3.And(self.packet.src(p) == adb,
             #                            self.packet.dest(p) == ada))
 
-        # Constraints for what holes are punched 
-        # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
-        #                 p.src == a \land p.dest == b \land \neg(ACL(p))
+        # Constraints for what holes are punched (This is a bidirectional)
         self.solver.add(z3.ForAll([addr_a, addr_b], cached(addr_a, addr_b) ==\
                             z3.Exists([eh, p],\
                                 z3.And(self.send(fw, eh, p),\
-                                z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
-                                        z3.Not(z3.Or(conditions)))))))
+                                z3.Or(z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
+                                        z3.Not(z3.Or(conditions))),\
+                                     z3.And(self.packet.dest (p) == addr_a, self.packet.src(p) == addr_b,\
+                                     z3.Not(z3.Or(conditions))))))))
 
         # Actually enforce firewall rules
-        # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p)) 
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
-                    z3.Or(cached(self.packet.src(p), self.packet.dest(p)),\
-                        cached(self.packet.dest(p), self.packet.src(p)),\
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),
+                    z3.Or(cached(self.packet.src(p), self.packet.dest(p)),
                         z3.Not(z3.Or(conditions))))))
 
         
 
     def FirewallDenyRules (self, fw, adj, rules):
         fw = self.endhosts[fw]
+        self.AdjacencyConstraint(fw, adj)
         p = z3.Const('__firewall_Packet_%s'%(fw), self.packet)
         eh = z3.Const('__firewall_endhost1_%s'%(fw), self.endhost)
         eh2 = z3.Const('__firewall_endhost_%s'%(fw), self.endhost)
         # The firewall never invents self.packets
-        # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
-        self.AdjacencyConstraint(fw, adj)
         
         if len(rules) == 0:
             return
@@ -213,8 +190,6 @@ class NetworkModel:
             conditions.append(z3.And(self.packet.src(p) == adb,
                                         self.packet.dest(p) == ada))
         # Actually enforce firewall rules
-        # Actually enforce firewall rules
-        # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p)) 
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),
                     z3.Not(z3.Or(conditions)))))
 
@@ -225,16 +200,12 @@ class NetworkModel:
         eh2 = z3.Const('__webproxy_eh2_%s'%(proxy), self.endhost)
         proxy = self.endhosts[proxy]
         self.AdjacencyConstraint(proxy, adj)
-        # \forall e, p: send(w, e, p) \Rightarrow hostHasAddr(w, p.src)
-        # \forall e_1, p_1: send(w, e, p_1) \Rightarrow \exists e_2, p_2: recv(e_2, w, p_2) \land 
-        #                   p_2.origin == p_1.origin \land p_2.dest == p_1.dest \land hostHasAddr(p_2.origin, p_2.src)
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(proxy, eh, p), self.hostHasAddr(proxy, self.packet.src(p)))))
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(proxy, eh, p), z3.Exists([p2, eh2], 
                              z3.And(self.recv(eh2, proxy, p2),
                                  z3.And(z3.And(self.packet.origin(p2) == self.packet.origin(p),
                                         self.packet.dest(p2) == self.packet.dest(p),
                                         self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)))))))))
-
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
         eh = z3.Const('__reachability_last_Endhost_%s_%s'%(src, dest), self.endhost)
