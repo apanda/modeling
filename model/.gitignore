@@ -9,3 +9,5 @@ myocamlbuild.ml
 *.log
 *.sw*
 .z3-trace
+*.pyc
+core
