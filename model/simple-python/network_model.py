@@ -83,7 +83,7 @@ class NetworkModel:
         # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
+        #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
     def __saneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.node)
