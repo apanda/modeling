@@ -33,18 +33,26 @@ class NetworkModel:
         self.send = z3.Function('send', self.endhost, self.endhost, self.packet, z3.BoolSort ())
         # recv := src -> dst -> self.packet ->bool
         self.recv = z3.Function('recv', self.endhost, self.endhost, self.packet, z3.BoolSort ())
+        # Create a solver
         self.solver = z3.Solver()
+        # Install some basic conditions for the network.
         self.__baseCondition()
 
     def __setOptions (self):
         """ Set some z3 solver parameters """
+        # Produce proofs for model
         z3.set_param('proof', True)
+        # Produce core when unsat. I turned this off since this happened to be super slow for some reason.
         #z3.set_param('unsat-core', True)
-        z3.set_param('trace', True)
+        # Produce a trace for what z3 does.
+        #z3.set_param('trace', True)
+        # MBQI: Model based quantifier instantiation is on.
         z3.set_param('smt.mbqi', True)
+        # Timeout for MBQI, setting this to a larger number might be useful
         z3.set_param('smt.mbqi.max_iterations', 10000)
         z3.set_param('model.compact', True)
         #z3.set_param('model.partial', True)
+        # Simplify nested quantifiers.
         z3.set_param('smt.pull_nested_quantifiers', True)
 
     def __baseCondition (self):
@@ -72,6 +80,7 @@ class NetworkModel:
         # Turn off loopback, loopback makes me sad
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
+        #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
     def setAddressMappingsExclusive (self, addrmap):
         """Constraints to ensure that a host has only the addresses in the map"""
@@ -95,11 +104,65 @@ class NetworkModel:
             self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p),\
                                         adjacency_constraint)))
 
-    def FirewallDenyRules (self, fw, adj, rules):
-        p = z3.Const('__firewall_Packet', self.packet)
-        eh = z3.Const('__firewall_endhost1', self.endhost)
-        eh2 = z3.Const('__firewall_endhost2', self.endhost)
+    def LearningFirewallRules (self, fw, adj, rules):
+        fw_str = fw
         fw = self.endhosts[fw]
+        # Model holes as a function
+        cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.BoolSort())
+        p = z3.Const ('__fw_Packet_cache_%s'%(fw_str), self.packet)
+        addr_a = z3.Const ('__fw_addr_cache_a_%s'%(fw_str), self.address)
+        addr_b = z3.Const ('__fw_addr_cache_b_%s'%(fw_str), self.address)
+        eh = z3.Const ('__eh_cache_%s'%(fw_str), self.endhost)
+
+        # Normal firewall rules (same as firewall deny rules, maybe we can combine them somehow) 
+        p = z3.Const('__firewall_Packet_%s'%(fw_str), self.packet)
+        eh = z3.Const('__firewall_endhost1_%s'%(fw_str), self.endhost)
+        eh2 = z3.Const('__firewall_endhost2_%s'%(fw_str), self.endhost)
+        # The firewall never invents self.packets
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
+
+        adjacency_constraint = z3.Or(map(lambda n: eh == self.endhosts[n], adj))
+        # This is just about connectivity
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.recv(eh, fw, p),\
+                                adjacency_constraint)))
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
+                                adjacency_constraint)))
+
+        if len(rules) == 0:
+            return
+        conditions = []
+
+        # Firewall rules
+        for rule in rules:
+            (ada, adb) = rule
+            (ada, adb) = (self.addresses[ada], self.addresses[adb])
+            conditions.append(z3.And(self.packet.src(p) == ada,
+                                        self.packet.dest(p) == adb))
+            #conditions.append(z3.And(self.packet.src(p) == adb,
+            #                            self.packet.dest(p) == ada))
+
+        # Constraints for what holes are punched (This is a bidirectional)
+        self.solver.add(z3.ForAll([addr_a, addr_b], cached(addr_a, addr_b) ==\
+                            z3.Exists([eh, p],\
+                                z3.And(self.send(fw, eh, p),\
+                                z3.Or(z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
+                                        z3.Not(z3.Or(conditions))),\
+                                     z3.And(self.packet.dest (p) == addr_a, self.packet.src(p) == addr_b,\
+                                     z3.Not(z3.Or(conditions))))))))
+
+        # Actually enforce firewall rules
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),
+                    z3.Or(cached(self.packet.src(p), self.packet.dest(p)),
+                        z3.Not(z3.Or(conditions))))))
+
+        
+
+    def FirewallDenyRules (self, fw, adj, rules):
+        p = z3.Const('__firewall_Packet_%s'%(fw), self.packet)
+        eh = z3.Const('__firewall_endhost1_%s'%(fw), self.endhost)
+        eh2 = z3.Const('__firewall_endhost_%s'%(fw), self.endhost)
+        fw = self.endhosts[fw]
+        # The firewall never invents self.packets
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
         adjacency_constraint = z3.Or(map(lambda n: eh == self.endhosts[n], adj))
         # This is just about connectivity
@@ -110,7 +173,6 @@ class NetworkModel:
 
         if len(rules) == 0:
             return
-        # The firewall never invents self.packets
         conditions = []
 
         # Firewall rules
@@ -126,10 +188,10 @@ class NetworkModel:
                     z3.Not(z3.Or(conditions)))))
 
     def WebProxyRules (self, proxy, adj):
-        p = z3.Const('__webproxy_packet1', self.packet)
-        p2 = z3.Const('__webproxy_p2', self.packet)
-        eh = z3.Const('__webproxy_eh', self.endhost)
-        eh2 = z3.Const('__webproxy_eh2', self.endhost)
+        p = z3.Const('__webproxy_packet1_%s'%(proxy), self.packet)
+        p2 = z3.Const('__webproxy_p2_%s'%(proxy), self.packet)
+        eh = z3.Const('__webproxy_eh_%s'%(proxy), self.endhost)
+        eh2 = z3.Const('__webproxy_eh2_%s'%(proxy), self.endhost)
         proxy = self.endhosts[proxy]
         if len(adj) != 0:
             adjacency_constraint = z3.Or(map(lambda n: eh == self.endhosts[n], adj))
@@ -155,6 +217,7 @@ class NetworkModel:
         else:
             self.solver.add(z3.Exists([eh], self.recv(eh, self.endhosts[dest], p)))
         self.solver.add(self.packet.origin(p) == self.endhosts[src])
+
 def withProxyUnsat():
     print "Proxy UNSAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
@@ -167,6 +230,7 @@ def withProxyUnsat():
     model.CheckPacketReachability('a', 'c')
     model.CheckPacketReachability('b', 'd')
     return model
+
 def withProxySat():
     print "Proxy SAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
@@ -179,6 +243,7 @@ def withProxySat():
     model.CheckPacketReachability('a', 'd')
     model.CheckPacketReachability('b', 'c')
     return model
+
 def withoutProxy():
     print "No PROXY"
     model = NetworkModel(['a','b','c','d','fw_eh'],\
@@ -188,9 +253,60 @@ def withoutProxy():
     model.FirewallDenyRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adb', 'add')])
     model.CheckPacketReachability('a', 'b')
     return model
+
+def withoutProxyLearning():
+    print "No PROXY, Learning Firewall, SHOULD BE UNSAT"
+    model = NetworkModel(['a','b','c','d','fw_eh'],\
+                            ['ada', 'adb', 'adc', 'add', 'fwadd'])
+    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
+    model.EndHostRules(['a','b','c','d'],['fw_eh'])
+    model.LearningFirewallRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adc', 'ada'), ('adb', 'add')])
+    model.CheckPacketReachability('a', 'c')
+    return model
+
+def withProxyLearningCorrect():
+    print "Proxy, Learning Firwall (correct) SAT"
+    model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
+                            ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
+    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.EndHostRules(['a','b'],['proxy'])
+    model.EndHostRules(['c','d'],['fw_eh'])
+    model.LearningFirewallRules('fw_eh', ['c','d','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
+    model.WebProxyRules('proxy', ['fw_eh','a','b'])
+    model.CheckPacketReachability('a', 'd')
+    model.CheckPacketReachability('b', 'c')
+    return model
+
+def withProxyLearningCorrectUnsat():
+    print "Proxy, Learning Firwall (correct) UNSAT"
+    model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
+                            ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
+    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.EndHostRules(['a','b'],['proxy'])
+    model.EndHostRules(['c','d'],['fw_eh'])
+    model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
+    model.WebProxyRules('proxy', ['fw_eh','c','d'])
+    model.CheckPacketReachability('a', 'd')
+    model.CheckPacketReachability('b', 'c')
+    return model
+
+def withProxyLearningIncorrectSat():
+    print "Proxy, Learning Firwall (incorrect) SAT"
+    model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
+                            ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
+    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.EndHostRules(['a','b'],['proxy'])
+    model.EndHostRules(['c','d'],['fw_eh'])
+    model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add')])
+    model.WebProxyRules('proxy', ['fw_eh','c','d'])
+    model.CheckPacketReachability('a', 'd')
+    model.CheckPacketReachability('b', 'c')
+    return model
+
 if __name__ == "__main__":
-    model = withProxyUnsat()
+    model = withProxyLearningIncorrectSat()
     result =  model.solver.check ()
     print result
     if result == z3.sat:
         solution =  model.solver.model ()
+        print solution
