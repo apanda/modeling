@@ -1,0 +1,109 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath,amsthm,url,subfigure, multirow,hyperref}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{enumerate}
+
+\usepackage{gensymb}
+\newcommand\eat[1]{}
+
+\begin{document}
+\eat{
+\section{Plan}
+At a high level the idea (was/is at this point/might be) is:
+\begin{itemize}
+\item Somehow get our hands on a model of all (most) middleboxes in the
+network. This might be computed using program analysis or be provided by
+someone etc.
+\item Hook up middleboxes as a network, verify that some high level policies (for instance isolation) holds given the model. 
+\item If step 2 reveals that things are peachy, generate some packets to verify that the model itself is actually behaving reasonably.
+\item Prosper.
+\end{itemize}
+
+For now we (I) are focusing on step 2. In particular the plan is to generate models for a variety of middleboxes and
+see what we could do with this. Since I was having a hard time actually doing the model generation (I did not know what
+part of the model was relevant, amount of detail required, etc.), I decided to generate only two models and try and
+actually prove something in a simple network.
+
+For what follows, most of the proofs and such were generated using \href{http://z3.codeplex.com/}{Z3} a SMT solver from
+MSR.
+
+\section{Middleboxes so Far}
+This is a list of middle boxes modeled so far:
+\begin{itemize}
+\item Packet Filters (simple ACL firewalls)
+\item Stateful firewalls
+\item Web proxies
+\item Learning switches.
+\end{itemize}
+
+\section{Results so Far}
+\begin{figure*}[!h]
+\begin{center}
+\subfigure[Firewall then Web Proxy]{
+    \centering
+    \includegraphics[width=0.47\textwidth]{./firewallwebproxy.pdf}
+    \label{fig:fwwp}
+}
+\subfigure[Webproxy then Firewall]{
+    \centering
+    \includegraphics[width=0.47\textwidth]{./webproxyfirewall.pdf}
+    \label{fig:wpfw}
+}
+\caption{Two topologies}
+\label{fig:topologies}
+\end{center}
+\end{figure*}
+Consider the two topologies in Figure~\ref{fig:topologies} and Firewall rules that disallow communication between
+endhosts $A, C$ and $B, D$. Globally we want to ensure that $B$ cannot ever induce a packet to be sent to $D$ and $A$
+cannot ever induce a packet to be sent to $C$. This policy is only enforceable in Figure~\ref{fig:fwwp} since the packet
+looses information that is required for enforcement when it goes through the web proxy.
+
+Currently we can generate counter examples for Figure~\ref{fig:wpfw} where the global policy does
+not hold. Similarly for Figure~\ref{fig:fwwp} it can prove that the global policy does hold (by showing that no packets
+satisfy the negation of the global constraints). 
+
+We can also generate results with stateful firewalls for the same topologies, where depend on firewall rules even Figure
+~\ref{fig:fwwp} can have a policy violation. Furthermore, we can even generate a counter example where the firewall is entirely 
+correct but we model the response part of the web proxy. In reality the only way to ensure isolation in either of these
+topologies is to either have firewalls on both sides of the proxy or model the end hosts as servers and clients, where servers
+never generate any requests.
+
+\section{Other Concerns}
+First-order logic with quantifiers ($\forall$ and $\exists$) is
+undecidable and will sometimes trip up the solver. Normally one tries to reexpress the constraints or add additional
+(redundant) constraints for the solver to work, but I haven't yet figured out what combination of constraints will help.
+This is generally a problem for this sort of thing, but on average proof that there is a bug can be gotten really
+quickly, but proving that there is no bug can take quite long.
+
+\section{What is New}
+A few things are different now:
+\begin{itemize}
+\item We actually account for things like routing tables now, so hooking into something like HSA should be simpler.
+\item Stateful middleboxes like learning firewalls (also learning switches, but at least for analyzing isolation they are
+not super interesting).
+\item A saner model (it is easier to analyze and figure out what is wrong).
+\end{itemize}
+
+\section{Next Steps}
+Now that most of the modeling seems to work quite well there were a few different things I was considering doing next:
+\begin{itemize}
+\item Add support for time: currently we flatten out time in some sense, and this will become a problem as we start generating 
+test since state changes depend on time. I think this should be simple.
+\item Model end hosts more richly to state what they would generate requests for. I feel a bit fishy doing this but then again without making
+    some assumptions about the behavior of everything we end up with models where isolation is always violated.
+\item In cases where we do not satisfy policy I should probably generate packets (or some semantic equivalent) that the network can
+actually be tested with. This is where things would get interesting/complex.
+\item Even in case where we do satisfy policy, it might be good to generate packets and some expected behavior to test that the model
+provided has some basis in reality. I imagine doing this exhaustively might be very hard.
+\item Hooking onto HSA or some other existing reachability thing: I changed things so that this should be easy, but I don't know what HSA output
+    looks like, so need some mechanical work for this.
+\item Maybe look at properties other than isolation, for instance the original learning switch performance bug that started this all.
+\item One realization that I Had while trying to fix bugs in this logic was that all of these policies are actually quite hard to implement in practice. The
+problem being that some of these problems are a lot harder when decomposed than not: for instance a web proxy that also enforces ACLs (for instance Squid) is 
+actually in a better position to improve isolation propoerties than a separate firewall and web proxy. I think the same is probably true for other of these kinds
+of middleboxes, and there is a question here that I am not quite sure about.
+\end{itemize} 
+}
+\input{model}
+\end{document}
