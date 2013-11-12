@@ -75,10 +75,10 @@ def withoutProxy():
     model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
     model.EndHostRules(['a','b','c','d'],['fw_eh'])
     model.FirewallDenyRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adb', 'add')])
-    model.RoutingTable('fw_eh', {'ada': 'fw_eh',\
-                                 'adb': 'fw_eh',\
-                                 'adc': 'fw_eh',\
-                                 'add': 'fw_eh'})
+    model.RoutingTable('fw_eh', {'ada': 'a',\
+                                 'adb': 'b',\
+                                 'adc': 'c',\
+                                 'add': 'd'})
     model.RoutingTable('a', {a: 'fw_eh'\
                     for a in ['ada', 'adb', 'adc', 'add', 'fwadd']})
     model.RoutingTable('b', {a: 'fw_eh'\
@@ -99,10 +99,10 @@ def withoutProxyLearning():
     model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
     model.EndHostRules(['a','b','c','d'],['fw_eh'])
     model.LearningFirewallRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adc', 'ada'), ('adb', 'add')])
-    model.RoutingTable('fw_eh', {'ada': 'fw_eh',\
-                                 'adb': 'fw_eh',\
-                                 'adc': 'fw_eh',\
-                                 'add': 'fw_eh'})
+    model.RoutingTable('fw_eh', {'ada': 'a',\
+                                 'adb': 'b',\
+                                 'adc': 'c',\
+                                 'add': 'd'})
     model.RoutingTable('a', {a: 'fw_eh'\
                     for a in ['ada', 'adb', 'adc', 'add', 'fwadd']})
     model.RoutingTable('b', {a: 'fw_eh'\
@@ -218,7 +218,7 @@ def withProxyLearningIncorrectSat():
 if __name__ == "__main__":
     funcs = [withProxyUnsat, withProxySat, withoutProxy, withoutProxyLearning, withProxyLearningCorrect,\
             withProxyLearningCorrectUnsat, withProxyLearningIncorrectSat]
-    # funcs = [withProxyUnsat]
+    #funcs = [withoutProxyLearning]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
