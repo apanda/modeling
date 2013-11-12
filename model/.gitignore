@@ -7,3 +7,5 @@ myocamlbuild.ml
 *.byte
 */_build/
 *.log
+*.sw*
+.z3-trace
