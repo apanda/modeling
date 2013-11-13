@@ -15,6 +15,7 @@ class NetworkModel:
         # Also addresses for these nodes
         self.address, self.address_list = z3.EnumSort('Address', addresses)
         self.addresses = dict(zip(addresses, self.address_list))
+        self.events, [self.send_event, self.recv_event] = z3.EnumSort('Events', ['__ev_send', '__ev_recv'])
 
         # Networks have packets
         packet = z3.Datatype('Packet')
@@ -32,7 +33,7 @@ class NetworkModel:
         # recv := src -> dst -> self.packet ->bool
         self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.BoolSort ())
         # Time at which packet is processed
-        self.etime = z3.Function('etime', self.node, self.packet, z3.IntSort ())
+        self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
         # Create a solver
         self.solver = z3.Solver()
         # Install some basic conditions for the network.
@@ -89,10 +90,12 @@ class NetworkModel:
         #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
         # Rules for time
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), z3.And(self.etime(eh2, p) > 0,\
-                            self.etime(eh2, p) > self.etime(eh1, p)))))
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), z3.And(self.etime(eh1, p) > 0,\
-                            self.etime(eh2, p) > self.etime(eh1, p)))))
+        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), z3.And(\
+                            self.etime(eh2, p, self.recv_event) > 0,\
+                            self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
+        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), 
+                            z3.And(self.etime(eh1, p, self.send_event) > 0,\
+                            self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
         # self.solver.add(z3.ForAll([eh1, eh2, eh3, p],\
         #                    z3.Not(z3.Or(self.recv(eh2, eh1, p), self.send(eh1, eh3, p))) ==\
         #                            (self.etime(eh1, p) == 0)))
@@ -203,16 +206,18 @@ class NetworkModel:
                             z3.Exists([eh, p],\
                                 z3.And(self.recv(eh, fw, p),\
                                 z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
-                                        ctime (addr_a, addr_b) == self.etime(fw, p),\
+                                        ctime (addr_a, addr_b) == self.etime(fw, p, self.recv_event),\
                                         z3.Not(z3.Or(conditions)))))))
 
         # Actually enforce firewall rules
         # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) 
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
                     z3.Or(z3.And(cached(self.packet.src(p), self.packet.dest(p)),\
-                                        ctime(self.packet.src(p), self.packet.dest(p)) <= self.etime(fw, p)),\
+                                        ctime(self.packet.src(p), self.packet.dest(p)) <=\
+                                                        self.etime(fw, p, self.recv_event)),\
                                  z3.And(cached(self.packet.dest(p), self.packet.src(p)),\
-                                        ctime(self.packet.dest(p), self.packet.src(p)) <= self.etime(fw, p))))))
+                                        ctime(self.packet.dest(p), self.packet.src(p)) <=\
+                                                        self.etime(fw, p, self.recv_event))))))
 
         
 
@@ -262,7 +267,8 @@ class NetworkModel:
                                  z3.And(z3.And(self.packet.origin(p2) == self.packet.origin(p),
                                         self.packet.dest(p2) == self.packet.dest(p),
                                         self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)),
-                                        self.etime(proxy, p) > self.etime(proxy, p2))))))))
+                                        self.etime(proxy, p, self.send_event) >=\
+                                                self.etime(proxy, p2, self.recv_event))))))))
 
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
