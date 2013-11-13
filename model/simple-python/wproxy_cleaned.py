@@ -216,9 +216,14 @@ def withProxyLearningIncorrectSat():
     return model
 
 if __name__ == "__main__":
-    funcs = [withProxyUnsat, withProxySat, withoutProxy, withoutProxyLearning, withProxyLearningCorrect,\
-            withProxyLearningCorrectUnsat, withProxyLearningIncorrectSat]
-    #funcs = [withoutProxyLearning]
+    funcs = [withProxySat,\
+            withoutProxy,\
+            withoutProxyLearning,\
+            withProxyUnsat,\
+            withProxyLearningCorrect,\
+            withProxyLearningIncorrectSat,\
+            withProxyLearningCorrectUnsat]
+    #funcs = [withProxyLearningCorrect]
     for func in funcs:
         model = func()
         result =  model.solver.check ()

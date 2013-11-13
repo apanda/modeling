@@ -31,6 +31,8 @@ class NetworkModel:
         self.send = z3.Function('send', self.node, self.node, self.packet, z3.BoolSort ())
         # recv := src -> dst -> self.packet ->bool
         self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.BoolSort ())
+        # Time at which packet is processed
+        self.etime = z3.Function('etime', self.node, self.packet, z3.IntSort ())
         # Create a solver
         self.solver = z3.Solver()
         # Install some basic conditions for the network.
@@ -47,7 +49,7 @@ class NetworkModel:
         # MBQI: Model based quantifier instantiation is on.
         z3.set_param('smt.mbqi', True)
         # Timeout for MBQI, setting this to a larger number might be useful
-        z3.set_param('smt.mbqi.max_iterations', 10000)
+        #z3.set_param('smt.mbqi.max_iterations', 10000)
         z3.set_param('model.compact', True)
         #z3.set_param('model.partial', True)
         # Simplify nested quantifiers.
@@ -65,6 +67,7 @@ class NetworkModel:
         ad1 = z3.Const('_base_ad1', self.address)
         # And a self.packet
         p = z3.Const('__base_packet', self.packet)
+        p2 = z3.Const('__base_packet_2', self.packet)
         # A host has address iff address belongs to host
         # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
         self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
@@ -84,6 +87,16 @@ class NetworkModel:
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
         #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
+
+        # Rules for time
+        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), z3.And(self.etime(eh2, p) > 0,\
+                            self.etime(eh2, p) > self.etime(eh1, p)))))
+        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), z3.And(self.etime(eh1, p) > 0,\
+                            self.etime(eh2, p) > self.etime(eh1, p)))))
+        # self.solver.add(z3.ForAll([eh1, eh2, eh3, p],\
+        #                    z3.Not(z3.Or(self.recv(eh2, eh1, p), self.send(eh1, eh3, p))) ==\
+        #                            (self.etime(eh1, p) == 0)))
+        #self.solver.add(z3.ForAll([eh1, p, p2], z3.Implies(p != p2, self.etime(eh1, p) != self.etime(eh1, p2))))
 
     def __saneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.node)
@@ -153,6 +166,7 @@ class NetworkModel:
 
         # Model holes as a function
         cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.BoolSort())
+        ctime = z3.Function ('__fw_cached_time_%s'%(fw_str), self.address, self.address, z3.IntSort())
         addr_a = z3.Const ('__fw_addr_cache_a_%s'%(fw_str), self.address)
         addr_b = z3.Const ('__fw_addr_cache_b_%s'%(fw_str), self.address)
 
@@ -178,7 +192,10 @@ class NetworkModel:
                                         self.packet.dest(p) == adb))
             #conditions.append(z3.And(self.packet.src(p) == adb,
             #                            self.packet.dest(p) == ada))
-
+        
+        self.solver.add(z3.ForAll([addr_a, addr_b, eh], z3.Implies(\
+                        z3.Not(cached(addr_a, addr_b)),\
+                        ctime (addr_a, addr_b) == 0)))
         # Constraints for what holes are punched 
         # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
         #                 p.src == a \land p.dest == b \land \neg(ACL(p))
@@ -186,13 +203,16 @@ class NetworkModel:
                             z3.Exists([eh, p],\
                                 z3.And(self.recv(eh, fw, p),\
                                 z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
+                                        ctime (addr_a, addr_b) == self.etime(fw, p),\
                                         z3.Not(z3.Or(conditions)))))))
 
         # Actually enforce firewall rules
         # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) 
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
-                    z3.Or(cached(self.packet.src(p), self.packet.dest(p)),\
-                        cached(self.packet.dest(p), self.packet.src(p))))))
+                    z3.Or(z3.And(cached(self.packet.src(p), self.packet.dest(p)),\
+                                        ctime(self.packet.src(p), self.packet.dest(p)) <= self.etime(fw, p)),\
+                                 z3.And(cached(self.packet.dest(p), self.packet.src(p)),\
+                                        ctime(self.packet.dest(p), self.packet.src(p)) <= self.etime(fw, p))))))
 
         
 
@@ -241,7 +261,8 @@ class NetworkModel:
                              z3.And(self.recv(eh2, proxy, p2),
                                  z3.And(z3.And(self.packet.origin(p2) == self.packet.origin(p),
                                         self.packet.dest(p2) == self.packet.dest(p),
-                                        self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)))))))))
+                                        self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)),
+                                        self.etime(proxy, p) > self.etime(proxy, p2))))))))
 
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
