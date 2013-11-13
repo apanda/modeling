@@ -216,8 +216,14 @@ def withProxyLearningIncorrectSat():
     return model
 
 if __name__ == "__main__":
-    funcs = [withProxyUnsat, withProxySat, withoutProxy, withoutProxyLearning, withProxyLearningCorrect,\
-            withProxyLearningCorrectUnsat, withProxyLearningIncorrectSat]
+    #funcs = [withProxyUnsat, withProxySat, withoutProxy, withoutProxyLearning, withProxyLearningCorrect,\
+    #        withProxyLearningCorrectUnsat, withProxyLearningIncorrectSat]
+    funcs = [withoutProxy,\
+            withoutProxyLearning,\
+            withProxySat,\
+            withProxyLearningIncorrectSat,\
+            withProxyUnsat,\
+            withProxyLearningCorrectUnsat]
     #funcs = [withoutProxyLearning]
     for func in funcs:
         model = func()

@@ -27,10 +27,12 @@ class NetworkModel:
                                             self.address, z3.BoolSort ())
         # addrToHost: self.address -> self.node
         self.addrToHost = z3.Function('addrToHost', self.address, self.node)
-        # send := src -> dst -> self.packet -> bool
-        self.send = z3.Function('send', self.node, self.node, self.packet, z3.BoolSort ())
-        # recv := src -> dst -> self.packet ->bool
-        self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.BoolSort ())
+        # send := src -> dst -> self.packet -> int -> bool
+        # send := src -> dst -> self.packet -> time -> bool
+        self.send = z3.Function('send', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort ())
+        # recv := src -> dst -> self.packet -> int -> bool
+        # recv := src -> dst -> self.packet -> time -> bool
+        self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort ())
         # Create a solver
         self.solver = z3.Solver()
         # Install some basic conditions for the network.
@@ -65,32 +67,39 @@ class NetworkModel:
         ad1 = z3.Const('_base_ad1', self.address)
         # And a self.packet
         p = z3.Const('__base_packet', self.packet)
+        # A few instances of time
+        t1 = z3.Int('__base_t0')
+        t2 = z3.Int('__base_t1')
+        
         # A host has address iff address belongs to host
         # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
         self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
 
-        # All sent packets are received
-        # \forall e_1, e_2\in Node , p\in Packet: recv(e_1, e_2, p) \iff send(e_1, e_2, p)
-        self.solver.add (z3.ForAll([eh1, eh2, p], self.recv(eh1, eh2, p) ==  self.send(eh1, eh2, p)))
+        # All sent packets are received (in one time unit)
+        # \forall e_1, e_2\in Node , p\in Packet, t\in \mathbb{N}: recv(e_1, e_2, p, t) \iff send(e_1, e_2, p, t - 1)
+        self.solver.add (z3.ForAll([eh1, eh2, p, t1], self.recv(eh1, eh2, p, t1) ==  self.send(eh1, eh2, p, t1 - 1)))
         
         # All received self.packets were once sent (don't invent self.packets).
-        # \forall e_1, e_2, p: recv (e_1, e_2, p) \Rightarrow \exists e_3 send(addrToHost(p), e_3, p)
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p),
-                                         z3.Exists([eh3], self.send(self.addrToHost(self.packet.src(p)), eh3, p)))))
+        # \forall e_1, e_2, p, t_1: recv (e_1, e_2, p, t_1) \Rightarrow \exists e_3, t_2 send(addrToHost(p), e_3, p, t_2) \land t_2 < t_1
+        self.solver.add(z3.ForAll([eh1, eh2, p, t1], z3.Implies(self.recv(eh1, eh2, p, t1),
+                                         z3.Exists([eh3, t2], 
+                                            z3.And(self.send(self.addrToHost(self.packet.src(p)), eh3, p, t2),
+                                                   t2 <= t1)))))
 
         # Turn off loopback, loopback makes me sad
         # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
         # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
-        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
+        self.solver.add(z3.ForAll([eh1, eh2, p, t1], z3.Implies(self.send(eh1, eh2, p, t1), eh1 != eh2)))
+        self.solver.add(z3.ForAll([eh1, eh2, p, t1], z3.Implies(self.recv(eh1, eh2, p, t1), eh1 != eh2)))
         #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
     def __saneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.node)
         p = z3.Const('__saneSend_p_%s'%(node), self.packet)
+        t = z3.Int('__saneSend_t_%s'%(node))
         # Don't send packets meant for node
-        # \forall e, p:\ send (f, e, p) \Rightarow \neg hostHasAddr (f, p.dest)
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(node, eh, p),\
+        # \forall e, p, t:\ send (f, e, p, t) \Rightarow \neg hostHasAddr (f, p.dest)
+        self.solver.add(z3.ForAll([eh, p, t], z3.Implies(self.send(node, eh, p, t),\
                 z3.Not(self.hostHasAddr(node, self.packet.dest(p))))))
 
     def setAddressMappingsExclusive (self, addrmap):
@@ -111,38 +120,44 @@ class NetworkModel:
         for node in nodes:
             eh = z3.Const('__adjacency_node_%s'%(node), self.node)
             p = z3.Const('__adjacency_packet_%s'%(node), self.packet)
+            t = z3.Int('__adjacency_time_%s'%(node))
             if len(adj) != 0:
                 adjacency_constraint = z3.Or(map(lambda n: eh == self.nodes[n], adj))
-                # \forall e_1, p recv(e_1, h, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-                # \forall e_1, p send(h, e_1, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-                self.solver.add(z3.ForAll([eh, p], z3.Implies(self.recv(eh, node, p),\
+                # \forall e_1, p, t recv(e_1, h, p, t) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
+                # \forall e_1, p, t send(h, e_1, p, t) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
+                self.solver.add(z3.ForAll([eh, p, t], z3.Implies(self.recv(eh, node, p, t),\
                                             adjacency_constraint)))
-                self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(node, eh, p),\
+                self.solver.add(z3.ForAll([eh, p, t], z3.Implies(self.send(node, eh, p, t),\
                                             adjacency_constraint)))
             else:
-                self.solver.add(z3.ForAll([eh, p], z3.Not(self.recv(eh, node, p))))
-                self.solver.add(z3.ForAll([eh, p], z3.Not(self.send(node, eh, p))))
+                self.solver.add(z3.ForAll([eh, p, t], z3.Not(self.recv(eh, node, p, t))))
+                self.solver.add(z3.ForAll([eh, p, t], z3.Not(self.send(node, eh, p, t))))
 
     def EndHostRules (self, hosts, adj):
         eh = z3.Const('__nodeRules_Node', self.node)
         p = z3.Const('__nodeRules_Packet', self.packet)
+        t = z3.Int('__nodeRules_Time')
         self.AdjacencyConstraint(map(lambda n: self.nodes[n], hosts), adj)
         for h in hosts:
             h = self.nodes[h]
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow hostHasAddr (h, p.src)
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow p.origin = h
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.hostHasAddr(h, self.packet.src(p)))))
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.packet.origin(p) == h)))
+            # No impersenation. THIS IS AN ASSUMPTION
+            # \forall e_1, p: send(h, e_1, p, t) \Rightarrow hostHasAddr (h, p.src)
+            self.solver.add(z3.ForAll([eh, p, t], z3.Implies(self.send(h, eh, p, t), self.hostHasAddr(h, self.packet.src(p)))))
+            # Origin is tracked correctly, this is not an assumption just done for our benefit
+            # \forall e_1, p: send(h, e_1, p, t) \Rightarrow p.origin = h
+            self.solver.add(z3.ForAll([eh, p, t], z3.Implies(self.send(h, eh, p, t), self.packet.origin(p) == h)))
     
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
         p = z3.Const('__packet__Routing_%s'%(node), self.packet)
         eh = z3.Const('__node__Routing_%s'%(node), self.node)
+        t = z3.Int('__time__Routing_%s'%(node))
         table = map(lambda (n1, n2): (self.addresses[n1], self.nodes[n2]), routing_table.items())
         node = self.nodes[node]
         for entry in table:
-            # \forall p: send(n, e[1], p) \iff p.dest == e[0]
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(z3.And(self.send(node, eh, p),
+            # \forall p: send(n, e[1], p, t) \iff p.dest == e[0]
+            self.solver.add(z3.ForAll([eh, p, t], z3.Implies(
+                                            z3.And(self.send(node, eh, p, t),
                                                (self.packet.dest(p) == entry[0])), 
                                                eh == entry[1])))
 
@@ -152,7 +167,9 @@ class NetworkModel:
         self.__saneSend(fw)
 
         # Model holes as a function
-        cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.BoolSort())
+        # cached: address -> address -> int -> bool
+        # cached: address -> address -> time -> bool
+        cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.IntSort(), z3.BoolSort())
         addr_a = z3.Const ('__fw_addr_cache_a_%s'%(fw_str), self.address)
         addr_b = z3.Const ('__fw_addr_cache_b_%s'%(fw_str), self.address)
 
@@ -161,9 +178,12 @@ class NetworkModel:
         eh = z3.Const('__firewall_node1_%s'%(fw_str), self.node)
         eh2 = z3.Const('__firewall_node2_%s'%(fw_str), self.node)
 
-        # The firewall never invents self.packets
-        # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
+        t1 = z3.Int('__firewall_time1_%s'%(fw_str))
+        t2 = z3.Int('__firewall_time2_%s'%(fw_str))
+
+        # The firewall never invents self.packets (and sends packets in one time unit)
+        # \forall e_1, p\ send (f, e_1, p, t) \Rightarrow \exists e_2 recv(e_2, f, p, t - 1)
+        self.solver.add(z3.ForAll([eh, p, t1], z3.Implies(self.send(fw, eh, p, t1), z3.Exists([eh2], self.recv(eh2, fw, p, t1 - 1)))))
         self.AdjacencyConstraint(fw, adj)
         
         if len(rules) == 0:
@@ -180,19 +200,22 @@ class NetworkModel:
             #                            self.packet.dest(p) == ada))
 
         # Constraints for what holes are punched 
-        # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
-        #                 p.src == a \land p.dest == b \land \neg(ACL(p))
-        self.solver.add(z3.ForAll([addr_a, addr_b], cached(addr_a, addr_b) ==\
-                            z3.Exists([eh, p],\
-                                z3.And(self.recv(eh, fw, p),\
+        # \forall a, b, t_1 cached(a, b, t_1) \iff \exists e, p, t_2 send(f, e, p, t_2) \land 
+        #                 p.src == a \land p.dest == b \land t_2 <= t_1 \neg(ACL(p))
+        self.solver.add(z3.ForAll([addr_a, addr_b, t1], cached(addr_a, addr_b, t1) ==\
+                            z3.Exists([eh, p, t2],\
+                                z3.And(self.recv(eh, fw, p, t2),\
                                 z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b,\
-                                        z3.Not(z3.Or(conditions)))))))
+                                        z3.Not(z3.Or(conditions)), t2 <= t1)))))
 
         # Actually enforce firewall rules
-        # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) 
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
-                    z3.Or(cached(self.packet.src(p), self.packet.dest(p)),\
-                        cached(self.packet.dest(p), self.packet.src(p))))))
+        # \forall e_1, p send(f, e_1, p) \Rightarrow \exits t_2
+        #       cached(p.src, p.dest, t_2) \lor cached(p.dest, p.src, t_2)
+        self.solver.add(z3.ForAll([eh, p, t1], z3.Implies(self.send(fw, eh, p, t1),\
+                    z3.Exists([t2], z3.And(\
+                            z3.Or(cached(self.packet.src(p), self.packet.dest(p), t2),\
+                                cached(self.packet.dest(p), self.packet.src(p), t2)),\
+                            t2 <= t1)))))
 
         
 
@@ -202,9 +225,10 @@ class NetworkModel:
         p = z3.Const('__firewall_Packet_%s'%(fw), self.packet)
         eh = z3.Const('__firewall_node1_%s'%(fw), self.node)
         eh2 = z3.Const('__firewall_node_%s'%(fw), self.node)
-        # The firewall never invents self.packets
-        # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), z3.Exists([eh2], self.recv(eh2, fw, p)))))
+        t1 = z3.Int('__firewall_time1_%s'%(fw))
+        # The firewall never invents self.packets (and sends packet in one time unit)
+        # \forall e_1, p\ send (f, e_1, p, t) \Rightarrow \exists e_2 recv(e_2, f, p, t - 1)
+        self.solver.add(z3.ForAll([eh, p, t1], z3.Implies(self.send(fw, eh, p, t1), z3.Exists([eh2], self.recv(eh2, fw, p, t1 - 1)))))
         self.AdjacencyConstraint(fw, adj)
         
         if len(rules) == 0:
@@ -222,7 +246,7 @@ class NetworkModel:
         # Actually enforce firewall rules
         # Actually enforce firewall rules
         # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p)) 
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),
+        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p, t1),
                     z3.Not(z3.Or(conditions)))))
 
     def WebProxyRules (self, proxy, adj):
@@ -230,24 +254,27 @@ class NetworkModel:
         p2 = z3.Const('__webproxy_p2_%s'%(proxy), self.packet)
         eh = z3.Const('__webproxy_eh_%s'%(proxy), self.node)
         eh2 = z3.Const('__webproxy_eh2_%s'%(proxy), self.node)
+        t1 = z3.Int('__webproxy_t1_%s'%(proxy))
+        t2 = z3.Int('__webproxy_t2_%s'%(proxy))
         proxy = self.nodes[proxy]
         self.__saneSend(proxy)
         self.AdjacencyConstraint(proxy, adj)
-        # \forall e, p: send(w, e, p) \Rightarrow hostHasAddr(w, p.src)
-        # \forall e_1, p_1: send(w, e, p_1) \Rightarrow \exists e_2, p_2: recv(e_2, w, p_2) \land 
-        #                   p_2.origin == p_1.origin \land p_2.dest == p_1.dest \land hostHasAddr(p_2.origin, p_2.src)
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(proxy, eh, p), self.hostHasAddr(proxy, self.packet.src(p)))))
-        self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(proxy, eh, p), z3.Exists([p2, eh2], 
-                             z3.And(self.recv(eh2, proxy, p2),
-                                 z3.And(z3.And(self.packet.origin(p2) == self.packet.origin(p),
-                                        self.packet.dest(p2) == self.packet.dest(p),
-                                        self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)))))))))
+        # \forall e, p, t: send(w, e, p, t) \Rightarrow hostHasAddr(w, p.src)
+        # \forall e_1, p_1, t_1: send(w, e, p_1, t_1) \Rightarrow \exists e_2, p_2, t_2: recv(e_2, w, p_2, t_2) \land 
+        #         p_2.origin == p_1.origin \land p_2.dest == p_1.dest \land hostHasAddr(p_2.origin, p_2.src) \land t_2 <= t_1
+        self.solver.add(z3.ForAll([eh, p, t1], z3.Implies(self.send(proxy, eh, p, t1), self.hostHasAddr(proxy, self.packet.src(p)))))
+        self.solver.add(z3.ForAll([eh, p, t1], z3.Implies(self.send(proxy, eh, p, t1), z3.Exists([p2, eh2], 
+                             z3.And(self.recv(eh2, proxy, p2, t1 - 1),\
+                                        self.packet.origin(p2) == self.packet.origin(p),\
+                                        self.packet.dest(p2) == self.packet.dest(p),\
+                                        self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)))))))
 
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src, dest), self.node)
+        t = z3.Int('__reachability__time_%s_%s'%(src, dest))
         if tag:
-            self.solver.assert_and_track(z3.Exists([eh], self.recv(eh, self.nodes[dest], p)), tag)
+            self.solver.assert_and_track(z3.Exists([eh], self.recv(eh, self.nodes[dest], p, t)), tag)
         else:
-            self.solver.add(z3.Exists([eh], self.recv(eh, self.nodes[dest], p)))
+            self.solver.add(z3.Exists([eh], self.recv(eh, self.nodes[dest], p, t)))
         self.solver.add(self.packet.origin(p) == self.nodes[src])
