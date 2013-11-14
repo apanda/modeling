@@ -15,6 +15,8 @@ class NetworkModel:
         # Also addresses for these nodes
         self.address, self.address_list = z3.EnumSort('Address', addresses)
         self.addresses = dict(zip(addresses, self.address_list))
+        # Events we care about. Currently we just care about sending and receiving (events at active elements
+        # are handled differently, c.f. learning firewall)
         self.events, [self.send_event, self.recv_event] = z3.EnumSort('Events', ['__ev_send', '__ev_recv'])
 
         # Networks have packets
@@ -33,6 +35,7 @@ class NetworkModel:
         # recv := src -> dst -> self.packet ->bool
         self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.BoolSort ())
         # Time at which packet is processed
+        # etime := node -> packet -> event -> int 
         self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
         # Create a solver
         self.solver = z3.Solver()
@@ -90,16 +93,24 @@ class NetworkModel:
         #self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
         # Rules for time
+        # Received packets have time, don't receive before sent
+        # \forall e_1, e_2, p: recv(e_1, e_2, p) \Rightarrow etime(e_2, p, R) > 0 \land etime(e_2, p, R) > etime(e_1, p, S)
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), z3.And(\
                             self.etime(eh2, p, self.recv_event) > 0,\
                             self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
+        # All sent packets have an event time
+        # \forall e_1, e_2, p: send(e_1, e_2, p) \Rightarrow etime(e_1, p, S) > 0 \land etime(e_2, p, R) > etime(e_1, p, S)
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), 
                             z3.And(self.etime(eh1, p, self.send_event) > 0,\
                             self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
-        # self.solver.add(z3.ForAll([eh1, eh2, eh3, p],\
-        #                    z3.Not(z3.Or(self.recv(eh2, eh1, p), self.send(eh1, eh3, p))) ==\
-        #                            (self.etime(eh1, p) == 0)))
-        #self.solver.add(z3.ForAll([eh1, p, p2], z3.Implies(p != p2, self.etime(eh1, p) != self.etime(eh1, p2))))
+        # Unreceved packets always have recv etime of 0
+        # \forall e_1, p: (\notexists e_2: recv(e_2, e_1, p)) \Rightarrow etime(e_1, p, R) = 0
+        self.solver.add(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.recv(eh2, eh1, p))),\
+                                    self.etime(eh1, p, self.recv_event) == 0)))
+        # Unreceved packets always have send etime of 0
+        # \forall e_1, p: (\notexists e_2: send(e_1, e_2, p)) \Rightarrow etime(e_1, p, S) = 0
+        self.solver.add(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))),\
+                                    self.etime(eh1, p, self.send_event) == 0)))
 
     def __saneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.node)
@@ -201,7 +212,8 @@ class NetworkModel:
                         ctime (addr_a, addr_b) == 0)))
         # Constraints for what holes are punched 
         # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
-        #                 p.src == a \land p.dest == b \land \neg(ACL(p))
+        #                 p.src == a \land p.dest == b \land ctime(a, b) = etime(fw, p, R) \land
+        #                   neg(ACL(p))
         self.solver.add(z3.ForAll([addr_a, addr_b], cached(addr_a, addr_b) ==\
                             z3.Exists([eh, p],\
                                 z3.And(self.recv(eh, fw, p),\
@@ -210,7 +222,8 @@ class NetworkModel:
                                         z3.Not(z3.Or(conditions)))))))
 
         # Actually enforce firewall rules
-        # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) 
+        # \forall e_1, p send(f, e_1, p) \Rightarrow (cached(p.src, p.dest) \land ctime(p.src, p.dest) <= etime(fw, p, R))
+        #                                       \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) <= etime(fw. p, R))
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p),\
                     z3.Or(z3.And(cached(self.packet.src(p), self.packet.dest(p)),\
                                         ctime(self.packet.src(p), self.packet.dest(p)) <=\
