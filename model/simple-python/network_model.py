@@ -21,7 +21,7 @@ class NetworkModel:
 
         # Networks have packets
         packet = z3.Datatype('Packet')
-        packet.declare('packet', ('src', self.address), ('dest', self.address), ('origin', self.node))
+        packet.declare('packet', ('src', self.address), ('dest', self.address), ('origin', self.node), ('id', z3.IntSort()))
         self.packet = packet.create()
 
         # Some functions to keep everything running

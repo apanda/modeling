@@ -14,8 +14,15 @@ to be $address$es
 \item $dest$: $dest\in address$.
 \item $origin$: $origin\in node$. This is a pseudofield in the packet tracking its true origin (which is important for
 answering questions about isolation).
+\item $id$: $id\in \mathbb{N}$. This is an unconstrained field that allows Z3 to create several copies of the same packet if necessary. By default
+Z3 treats objects where all members are equal as equivalent.
 \end{itemize}
 For the rest of the document identifiers $p, p_1,\ldots$ represent packets.
+\item $etype = \left\{R, S\right\}$ The event type, this is used to record times at which packets are received and sent. $R$ represents
+the event of a node receiving a packet, while $S$ represents a node sending a packet. Event type variables are represented as $E$ below.
+\item $time \subset \mathbb{N}$: Time/ordering information for an event, represented by the variable $\tau$.
+\item Events: Events are represented by the tuple $\left( e, p, E \right)$ and represent the act of packet $p$ either being received at or
+sent from node $e$.
 \end{itemize}
 
 We also create a few basic functions to model relationships between these types and also network functionality. These
@@ -26,12 +33,8 @@ are:
 to node mapping is onto).
 \item $send: e_1, e_2, p \rightarrow boolean$ True if $e_1$ sent $e_2$ packet $p$.
 \item $recv: e_1, e_2, p \rightarrow boolean$ True if $e_2$ received packet $p$ from $e_1$.
+\item $etime: e, p, E \rightarrow \tau$ The time at which event $\left( e, p, E \right)$ occurs.
 \end{itemize}
-
-\textbf{Note:} We do not currently model time just a set of packets. For entities involved in learning (such as stateful
-firewall) this complicates the generation of test cases/counter examples (since these might depend on the order of
-packets sent). I think it is fairly simple to add time, I just need to change a substantial portion of the model, which
-I didn't want to do until I had at least all of the basic bits working.
 
 Given these functions and types we layer them on to produce the test network. We go bottom up starting with the network:
 
@@ -48,6 +51,25 @@ invent packets, packet source is correct.
 \forall e_1, e_2, p:& send(e_1, e_2, p) \Rightarrow e_1 \neq e_2\\
 \forall e_1, e_2, p:& recv(e_1, e_2. p) \Rightarrow e_1 \neq e_2\\
 \end{align*}
+\item And a set of rules for time:
+\begin{itemize}
+\item Record the event that a packet is received and make sure packets are not received before being sent:
+\begin{align*}
+    \forall e_1, e_2, p:& recv(e_1, e_2, p)\Rightarrow etime(e_2, p, R) > 0 \land etime(e_2, p, R) > etime(e_1, p, S)
+\end{align*}
+\item Record the event that packet is sent. Make sure packets are received after being sent (yes this is redundant given above)
+\begin{align*}
+    \forall e_1, e_2, p:& send(e_1, e_2, p)\Rightarrow etime(e_1, p, S) > 0 \land etime(e_2, p, R) > etime(e_1, p, S)
+\end{align*}
+\item Make sure there are no other causes of receive events
+\begin{align*}
+    \forall e_1, p:& \neg(\exists e_2:\ recv(e_2, e_1, p)) \implies etime(e_1, p, R) = 0
+\end{align*}
+\item There are similarly no other causes for send events
+\begin{align*}
+    \forall e_1, p:& \neg(\exists e_2:\ send(e_1, e_2, p)) \implies etime(e_1, p, S) = 0
+\end{align*}
+\end{itemize}
 \end{itemize}
 
 \subsubsection{Adjacency Conditions}
@@ -101,13 +123,18 @@ ACL.
 Stateful firewally can cache previous decisions. In particular this means we don't need to have ACLs that are symmetric
 (one side can punch a hole through the firewall). Cached rules are modeled as a function: $cached: a_1, a_2 \rightarrow
 boolean$ which is true when packets with either source $a_1$ and destination $a_2$ or source $a_2$ and destination $a_1$
-are allowed through the firewall. The logical model for a stateful firewall $f$ with ACL table $A$ is:
+are allowed through the firewall. We also track the time at which a rule gets cached using a separate function $ctime:
+a_1, a_2 \rightarrow \tau$ which models the time at which rules allowing traffic between $a_1$ and $a_2$ get cached.
+(This also allows us to potentially model expiration times).
+
+The logical model for a stateful firewall $f$ with ACL table $A$ is:
 
 \begin{itemize}
 \item The correct sending condition from equation~\ref{eq:sanesend}.
 \item $\forall a, b:\ cached(a, b) \iff \exists e, p:\ recv(e, f, p) \land p.src = a \land p.dest = b\land (a, b) \not
-\in A$: Cache based on packets that are received.
-\item $\forall e, p:\ send(f, e, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src)$. Send if cached.
+    \in A \land ctime(a, b) = etime(f, p, R)$: Cache based on packets that are received.
+\item $\forall e, p:\ send(f, e, p) \Rightarrow (cached(p.src, p.dest) \land ctime(p.src, p.dest) \geq etime(f, p, R))
+    \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) \geq etime(f, p, R))$. Send if cached.
 \end{itemize}
 
 \subsection{Web Proxy}
@@ -117,7 +144,8 @@ follows:
 \item $\forall e, p:\ send(w, e, p) \implies hostHasAddr(w, p.src)$ Send all packets so source address belongs to the
 proxy, thus allowing caching.
 \item $\forall e_1, p_1:\ send(w, e, p) \implies \exists e_2, p_2:\ recv(e_2, w, p_2) \land p_2.origin = p.origin \land
-p_2.dest = p.dest \land hostHasAddr(p_2.origin, p_2.src)$ rules for what packets a webproxy sends. These are actually
-somewhat incomplete (we are not accounting for responses here). The reason is that currently I model all endhosts as
-endhosts instead of as servers and client, which would make this somewhat more reasonable.
+p_2.dest = p.dest \land hostHasAddr(p_2.origin, p_2.src) \land etime(w, p_1, S) \geq etime(w, p_1, R)$ rules for what
+packets a webproxy sends. These are actually somewhat incomplete (we are not accounting for responses here). The
+reason is that currently I model all endhosts as endhosts instead of as servers and client, which would make this
+somewhat more reasonable.
 \end{itemize}

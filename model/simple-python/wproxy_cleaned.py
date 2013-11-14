@@ -230,4 +230,4 @@ if __name__ == "__main__":
         print result
         if result == z3.sat:
             solution =  model.solver.model ()
-            print solution
+            #print solution
