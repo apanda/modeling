@@ -215,6 +215,48 @@ def withProxyLearningIncorrectSat():
     model.CheckPacketReachability('b', 'c')
     return model
 
+def withProxy2LearningCorrectUnsat():
+    print "Proxy, Learning 2 Firwall (correct) UNSAT"
+    model = NetworkModel(['a','b','c','d','fw_eh', 'fw_serv', 'proxy'],\
+                            ['ada', 'adb', 'adc', 'add', 'fwadd', 'fwadd2', 'padd'])
+    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd', 'fw_serv': 'fwadd2', 'proxy':'padd'})
+    model.EndHostRules(['a','b'],['fw_eh'])
+    model.EndHostRules(['c','d'],['fw_serv'])
+    model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
+    model.LearningFirewallRules('fw_serv', ['c', 'd', 'proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
+    model.WebProxyRules('proxy', ['fw_eh','fw_serv'])
+
+    model.RoutingTable('fw_eh', {'ada': 'a',\
+                                  'adb': 'b',\
+                                  'adc': 'proxy',\
+                                  'add': 'proxy',\
+                                  'padd': 'proxy',\
+                                  'fwadd2': 'proxy'})
+    model.RoutingTable('proxy', {'ada':'fw_eh',\
+                                 'adb': 'fw_eh',\
+                                 'adc': 'fw_serv',\
+                                 'add': 'fw_serv',\
+                                 'fwadd': 'fw_eh',\
+                                 'fwadd2': 'fw_serv'}) 
+    model.RoutingTable('fw_serv', {'ada': 'proxy',\
+                                   'adb': 'proxy',\
+                                   'adc': 'c',\
+                                   'add': 'd',\
+                                   'padd':'proxy',\
+                                   'fwadd': 'proxy'})
+    model.RoutingTable('a', {a: 'fw_eh'\
+              for a in ['ada', 'adb','adc','add','fwadd','padd', 'fwadd2']})
+    model.RoutingTable('b', {a: 'fw_eh'\
+        for a in ['ada', 'adb','adc','add','fwadd','padd', 'fwadd2']})
+    model.RoutingTable('c', {a: 'fw_serv'\
+            for a in ['ada', 'adb','adc','add','fwadd','padd', 'fwadd2']})
+    model.RoutingTable('d', {a: 'fw_serv'\
+            for a in ['ada', 'adb','adc','add','fwadd','padd', 'fwadd2']})
+
+    model.CheckPacketReachability('a', 'c')
+    model.CheckPacketReachability('b', 'd')
+    return model
+
 if __name__ == "__main__":
     funcs = [withProxySat,\
             withoutProxy,\
@@ -222,12 +264,16 @@ if __name__ == "__main__":
             withProxyUnsat,\
             withProxyLearningCorrect,\
             withProxyLearningIncorrectSat,\
-            withProxyLearningCorrectUnsat]
-    #funcs = [withProxyLearningCorrect]
+            withProxyLearningCorrectUnsat, \
+            withProxy2LearningCorrectUnsat]
+    funcs = [withProxy2LearningCorrectUnsat]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
         print result
         if result == z3.sat:
             solution =  model.solver.model ()
-            #print solution
+            decls = solution.decls()
+            good_decls = filter(lambda d: 'recv' in str(d) or 'send' in str(d) or 'etime' in str(d) or 'reachability' in str(d) or '_cache' in str(d) or '_cresp' in str(d) or '_ctime' in str(d), decls)
+            for decl in good_decls:
+                print '%s = %s'%(decl, solution[decl])
