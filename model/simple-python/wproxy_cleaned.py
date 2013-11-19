@@ -256,8 +256,42 @@ def withProxy2LearningCorrectUnsat():
     model.CheckPacketReachability('a', 'c')
     model.CheckPacketReachability('b', 'd')
     return model
-
-if __name__ == "__main__":
+def loadBalancer():
+    print "Load balancer, should be SAT"
+    model = NetworkModel(['a', 'b1', 'b2', 'lb', 'fw', 'null'], \
+                         ['ada', 'adb1', 'adb2', 'adlb', 'adb', 'fwad'])
+    model.setAddressMappingsExclusive({'a':'ada', 'lb':'adlb', 'fw':'fwad'})
+    model.setLoadBalancedAddressMapping('adb', {'b1':'adb1', 'b2':'adb2'})
+    model.EndHostRules(['a'], ['fw'])
+    model.EndHostRules(['b1', 'b2'], ['lb'])
+    model.FirewallDenyRules('fw', ['a', 'lb'], [('ada', 'adb1'), ('ada', 'adb2')])
+    model.LoadBalancer('lb', ['fw', 'b1', 'b2'], 'adb', ['b1', 'b2'])
+    model.RoutingTable('a', {\
+                             'adb1': 'fw', \
+                             'adb2': 'fw', \
+                             'adlb': 'fw', \
+                             'adb':  'fw'})
+    model.RoutingTable('fw', {'ada': 'a', \
+                              'adb': 'lb', \
+                              'adb1': 'lb', \
+                              'adb2': 'lb', \
+                              'adlb': 'lb'})
+    model.RoutingTable('lb', {'ada': 'fw', \
+                              'adb1': 'b1', \
+                              'adb2': 'b2', \
+                              'fwad': 'fw'})
+    model.RoutingTable('b1', {'ada': 'lb', \
+                              'adlb': 'lb', \
+                              'adb2': 'lb', \
+                              'fwad': 'lb'})
+    model.RoutingTable('b2', {'ada': 'lb', \
+                              'adlb': 'lb', \
+                              'adb1': 'lb', \
+                              'fwad': 'lb'})
+    model.CheckPacketReachability('a', 'b1')
+    model.CheckPacketReachability('a', 'b2')
+    return model
+def main ():
     funcs = [withProxySat,\
             withoutProxy,\
             withoutProxyLearning,\
@@ -265,8 +299,10 @@ if __name__ == "__main__":
             withProxyLearningCorrect,\
             withProxyLearningIncorrectSat,\
             withProxyLearningCorrectUnsat, \
-            withProxy2LearningCorrectUnsat]
-    funcs = [withProxy2LearningCorrectUnsat]
+            withProxy2LearningCorrectUnsat, \
+            loadBalancer]
+    # funcs = [withProxy2LearningCorrectUnsat]
+    funcs = [loadBalancer]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
@@ -274,6 +310,18 @@ if __name__ == "__main__":
         if result == z3.sat:
             solution =  model.solver.model ()
             decls = solution.decls()
-            good_decls = filter(lambda d: 'recv' in str(d) or 'send' in str(d) or 'etime' in str(d) or 'reachability' in str(d) or '_cache' in str(d) or '_cresp' in str(d) or '_ctime' in str(d), decls)
+            good_decls = filter(lambda d: 'recv' in str(d) or\
+                                          'send' in str(d) or\
+                                          'etime' in str(d) or\
+                                          'reachability' in str(d) or\
+                                          '_cache' in str(d) or\
+                                          '_cresp' in str(d) or\
+                                          '_ctime' in str(d) or\
+                                          'hash' in str(d),\
+                                decls)
             for decl in good_decls:
+                #pass
                 print '%s = %s'%(decl, solution[decl])
+
+if __name__ == "__main__":
+    main()

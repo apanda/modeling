@@ -18,8 +18,8 @@ class NetworkModel:
 
         # Networks have packets
         packet = z3.Datatype('Packet')
-        packet.declare('packet', ('src', self.address), ('dest', self.address), \
-                ('origin', self.node), ('id', z3.IntSort()), ('seq', z3.IntSort()))
+        packet.declare('packet', ('src', self.address), ('dest', self.address), ('sport', z3.IntSort()),\
+                ('dport', z3.IntSort()), ('origin', self.node), ('id', z3.IntSort()), ('seq', z3.IntSort()))
         self.packet = packet.create()
 
         # Some functions to keep everything running
@@ -70,9 +70,11 @@ class NetworkModel:
         # And a self.packet
         p = z3.Const('__base_packet', self.packet)
         p2 = z3.Const('__base_packet_2', self.packet)
+        z3.ForAll([p], z3.And(self.packet.sport(p) > 0,\
+                            self.packet.dport(p) > 0))
         # A host has address iff address belongs to host
         # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
-        self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
+        #self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
 
         # All sent packets are received
         # \forall e_1, e_2\in Node , p\in Packet: recv(e_1, e_2, p) \iff send(e_1, e_2, p)
@@ -128,7 +130,16 @@ class NetworkModel:
             self.solver.add(self.addrToHost(self.addresses[addr]) == self.nodes[host])
             self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], tempAddr) == (tempAddr == \
                                     self.addresses[addr])))
-
+    def setLoadBalancedAddressMapping (self, lbaddr, addrmap):
+        """Constraints to ensure that a host has only the addresses in the map"""
+        tempAddr = z3.Const("__setAdMapExclusive_address", self.address)
+        for host, addr in addrmap.iteritems():
+            # addrToHost(h) = a_h
+            # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
+            self.solver.add(self.addrToHost(self.addresses[addr]) == self.nodes[host])
+            self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], tempAddr) == \
+                                z3.Or(tempAddr == self.addresses[addr], \
+                                      tempAddr == self.addresses[lbaddr])))
     def AdjacencyConstraint (self, nodes, adj):
         if not isinstance(nodes, list):
             nodes = [nodes]
@@ -317,15 +328,6 @@ class NetworkModel:
                                     self.packet.origin(p2) != proxy
                                 ))))))
                               
-                                #"""z3.Exists([p2, eh2], \
-                                # z3.And(\
-                                #    self.send(proxy, eh2, p2), \
-                                #    self.packet.dest(p2) == a1, \
-                                #    self.packet.id(p2) == i1, \
-                                #    self.hostHasAddr(proxy, self.packet.src(p2)), \
-                                #    self.packet.origin(p2) != proxy, \
-                                #    self.etime(proxy, p2, self.send_event) < \
-                                #      self.etime(proxy, p, self.recv_event)))))))"""
         self.solver.add(cache_condition)
 
 
@@ -355,6 +357,49 @@ class NetworkModel:
                                         self.etime(proxy, p2, self.recv_event)), \
                                cached_packet))))))
 
+    
+    def LoadBalancer (self, balancer, adj, outaddr, outports):
+        lbalancer = self.nodes[balancer]
+        # sane send is good
+        self.__saneSend(lbalancer)
+        # Load balancers have adjacency constraints
+        self.AdjacencyConstraint (lbalancer, adj)
+        flow_hash = z3.Function('__lb_flow_hash_%s'%(balancer), self.packet, z3.IntSort())
+        p1 = z3.Const('__lb_packet1_%s'%(balancer), self.packet)
+        p2 = z3.Const('__lb_packet2_%s'%(balancer), self.packet)
+        eh1 = z3.Const('__lb_node_eh1_%s'%(balancer), self.node)
+        eh2 = z3.Const('__lb_node_eh2_%s'%(balancer), self.node)
+        # Limit the range of the flow hashing function
+        self.solver.add(z3.ForAll([p1], z3.And(flow_hash (p1) >= 0,\
+                                               flow_hash (p2) < len(outports))))
+        # Define flow hashing (equality of 4 tuple => equality of hash function)
+        self.solver.add(z3.ForAll([p1, p2], z3.Implies(\
+                    z3.And(self.packet.src(p1) == self.packet.src(p2), \
+                           self.packet.dest(p1) == self.packet.dest(p2), \
+                           self.packet.sport(p1) == self.packet.sport(p2), \
+                           self.packet.dport(p1) == self.packet.dport(p2)), \
+                    flow_hash (p1) == flow_hash (p2))))
+
+        # Load balancers don't create any packets, ever
+        self.solver.add(z3.ForAll([eh1, p1], z3.Implies(self.send(lbalancer, eh1, p1), \
+                                 z3.And(z3.Exists([eh2], self.recv(eh2, lbalancer, p1)), \
+                                        self.etime(lbalancer, p1, self.send_event) >\
+                                        self.etime(lbalancer, p1, self.recv_event)))))
+        outaddr = self.addresses[outaddr]
+        outputs = map(lambda p: self.nodes[p], outports)
+        input_clause = map(lambda n: eh1 == n, outputs)
+        # Send out packet based on flow hashing
+        self.solver.add(z3.ForAll([eh1, p1], \
+                z3.Implies(\
+                 z3.And(self.send(lbalancer, eh1, p1), \
+                        self.packet.dest(p1) == outaddr), \
+                 z3.Or (input_clause))))
+        for idx, output in zip(range(len(outputs)), outputs):
+            self.solver.add(z3.ForAll([p1], \
+                    z3.Implies(\
+                     z3.And(self.send(lbalancer, output, p1), \
+                            self.packet.dest(p1) == outaddr),
+                     flow_hash(p1) == idx)))
 
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
