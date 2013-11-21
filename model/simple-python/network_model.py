@@ -18,8 +18,12 @@ class NetworkModel:
 
         # Networks have packets
         packet = z3.Datatype('Packet')
-        packet.declare('packet', ('src', self.address), ('dest', self.address), \
-                ('origin', self.node), ('id', z3.IntSort()), ('seq', z3.IntSort()))
+        packet.declare('packet', \
+                       ('src', self.address), \
+                       ('dest', self.address), \
+                       ('origin', self.node), \
+                       ('id', z3.IntSort()), \
+                       ('seq', z3.IntSort()))
         self.packet = packet.create()
 
         # Some functions to keep everything running
@@ -317,15 +321,6 @@ class NetworkModel:
                                     self.packet.origin(p2) != proxy
                                 ))))))
                               
-                                #"""z3.Exists([p2, eh2], \
-                                # z3.And(\
-                                #    self.send(proxy, eh2, p2), \
-                                #    self.packet.dest(p2) == a1, \
-                                #    self.packet.id(p2) == i1, \
-                                #    self.hostHasAddr(proxy, self.packet.src(p2)), \
-                                #    self.packet.origin(p2) != proxy, \
-                                #    self.etime(proxy, p2, self.send_event) < \
-                                #      self.etime(proxy, p, self.recv_event)))))))"""
         self.solver.add(cache_condition)
 
 

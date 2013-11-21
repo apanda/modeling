@@ -266,7 +266,7 @@ if __name__ == "__main__":
             withProxyLearningIncorrectSat,\
             withProxyLearningCorrectUnsat, \
             withProxy2LearningCorrectUnsat]
-    funcs = [withProxy2LearningCorrectUnsat]
+    # funcs = [withProxy2LearningCorrectUnsat]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
