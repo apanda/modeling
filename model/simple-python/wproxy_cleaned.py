@@ -301,7 +301,7 @@ def main ():
             withProxyLearningCorrectUnsat, \
             withProxy2LearningCorrectUnsat, \
             loadBalancer]
-    # funcs = [withProxy2LearningCorrectUnsat]
+    funcs = [withProxyLearningCorrectUnsat]
     funcs = [loadBalancer]
     for func in funcs:
         model = func()

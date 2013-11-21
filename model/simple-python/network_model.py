@@ -18,8 +18,14 @@ class NetworkModel:
 
         # Networks have packets
         packet = z3.Datatype('Packet')
-        packet.declare('packet', ('src', self.address), ('dest', self.address), ('sport', z3.IntSort()),\
-                ('dport', z3.IntSort()), ('origin', self.node), ('id', z3.IntSort()), ('seq', z3.IntSort()))
+        packet.declare('packet', \
+                       ('src', self.address), \
+                       ('dest', self.address), \
+                       ('sport', z3.IntSort()), \
+                       ('dport', z3.IntSort()), \
+                       ('origin', self.node), \
+                       ('id', z3.IntSort()), \
+                       ('seq', z3.IntSort()))
         self.packet = packet.create()
 
         # Some functions to keep everything running
@@ -70,8 +76,16 @@ class NetworkModel:
         # And a self.packet
         p = z3.Const('__base_packet', self.packet)
         p2 = z3.Const('__base_packet_2', self.packet)
-        z3.ForAll([p], z3.And(self.packet.sport(p) > 0,\
-                            self.packet.dport(p) > 0))
+
+        # self.solver.add(z3.ForAll([p], z3.And(self.packet.sport(p) > 0, \
+        #                    self.packet.dport(p) > 0, \
+        #                    self.packet.sport(p) < 65535, \
+        #                    self.packet.dport(p) < 65535)))
+        self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p),
+                                                  z3.And(self.packet.sport(p) > 0, \
+                                                  self.packet.dport(p) > 0, \
+                                                  self.packet.sport(p) < 65535, \
+                                                  self.packet.dport(p) < 65535))))
         # A host has address iff address belongs to host
         # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
         #self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
@@ -364,21 +378,42 @@ class NetworkModel:
         self.__saneSend(lbalancer)
         # Load balancers have adjacency constraints
         self.AdjacencyConstraint (lbalancer, adj)
-        flow_hash = z3.Function('__lb_flow_hash_%s'%(balancer), self.packet, z3.IntSort())
+        flow_hash = z3.Function('__lb_flow_hash_%s'%(balancer), \
+                                        self.address, \
+                                        z3.IntSort(), \
+                                        self.address, \
+                                        z3.IntSort(), \
+                                        z3.IntSort())
         p1 = z3.Const('__lb_packet1_%s'%(balancer), self.packet)
         p2 = z3.Const('__lb_packet2_%s'%(balancer), self.packet)
         eh1 = z3.Const('__lb_node_eh1_%s'%(balancer), self.node)
         eh2 = z3.Const('__lb_node_eh2_%s'%(balancer), self.node)
+
+        saddr = z3.Const('__lb_node_sa1_%s'%(balancer), self.address)
+        daddr = z3.Const('__lb_node_da1_%s'%(balancer), self.address)
+        sport = z3.Const('__lb_node_sp1_%s'%(balancer), z3.IntSort())
+        dport = z3.Const('__lb_node_dp1_%s'%(balancer), z3.IntSort())
+        
         # Limit the range of the flow hashing function
-        self.solver.add(z3.ForAll([p1], z3.And(flow_hash (p1) >= 0,\
-                                               flow_hash (p2) < len(outports))))
-        # Define flow hashing (equality of 4 tuple => equality of hash function)
-        self.solver.add(z3.ForAll([p1, p2], z3.Implies(\
-                    z3.And(self.packet.src(p1) == self.packet.src(p2), \
-                           self.packet.dest(p1) == self.packet.dest(p2), \
-                           self.packet.sport(p1) == self.packet.sport(p2), \
-                           self.packet.dport(p1) == self.packet.dport(p2)), \
-                    flow_hash (p1) == flow_hash (p2))))
+        # \forall a_1, x, a_2, y: flow_hash(a_1, x, a_2, y) \geq 0 
+        self.solver.add(z3.ForAll([saddr, sport, daddr, dport], \
+                flow_hash (saddr, \
+                           sport, \
+                           daddr, \
+                           dport) >= 0))
+        # \forall a_1, x, a_2, y: flow_hash(a_1, x, a_2, y) \leq len(outports) 
+        self.solver.add(z3.ForAll([saddr, sport, daddr, dport], \
+                flow_hash (saddr, \
+                           sport, \
+                           daddr, \
+                           dport) < len(outports)))
+        # TODO: Maybe think about doing this in bit vectors
+        # \forall a_1, x, a_2, y: flow_hash(a_1, x, a_2, y) = (x + y) % len(outports) 
+        self.solver.add(z3.ForAll([saddr, sport, daddr, dport], \
+                flow_hash (saddr, \
+                           sport, \
+                           daddr, \
+                           dport) == (dport + sport) % len(outports)))
 
         # Load balancers don't create any packets, ever
         self.solver.add(z3.ForAll([eh1, p1], z3.Implies(self.send(lbalancer, eh1, p1), \
@@ -394,13 +429,12 @@ class NetworkModel:
                  z3.And(self.send(lbalancer, eh1, p1), \
                         self.packet.dest(p1) == outaddr), \
                  z3.Or (input_clause))))
-        for idx, output in zip(range(len(outputs)), outputs):
+        for idx, node in zip(range(len(outputs)), outputs):
             self.solver.add(z3.ForAll([p1], \
-                    z3.Implies(\
-                     z3.And(self.send(lbalancer, output, p1), \
-                            self.packet.dest(p1) == outaddr),
-                     flow_hash(p1) == idx)))
-
+                    z3.Implies(self.send(lbalancer, node, p1),
+                        z3.Or(z3.Not(self.packet.dest(p1) == outaddr),\
+                        flow_hash(self.packet.src(p1), self.packet.sport(p1), \
+                                self.packet.dest(p1), self.packet.dport(p1)) == idx))))
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src, dest), self.node)
