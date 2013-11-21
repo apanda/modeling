@@ -302,7 +302,7 @@ def main ():
             withProxy2LearningCorrectUnsat, \
             loadBalancer]
     funcs = [withProxyLearningCorrectUnsat]
-    funcs = [loadBalancer]
+    #funcs = [loadBalancer]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
@@ -317,7 +317,9 @@ def main ():
                                           '_cache' in str(d) or\
                                           '_cresp' in str(d) or\
                                           '_ctime' in str(d) or\
-                                          'hash' in str(d),\
+                                          'hash' in str(d) or \
+                                          'sport' in str(d) or \
+                                          'dport' in str(d),\
                                 decls)
             for decl in good_decls:
                 #pass

@@ -21,8 +21,6 @@ class NetworkModel:
         packet.declare('packet', \
                        ('src', self.address), \
                        ('dest', self.address), \
-                       ('sport', z3.IntSort()), \
-                       ('dport', z3.IntSort()), \
                        ('origin', self.node), \
                        ('id', z3.IntSort()), \
                        ('seq', z3.IntSort()))
@@ -41,6 +39,10 @@ class NetworkModel:
         # Time at which packet is processed
         # etime := node -> packet -> event -> int 
         self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
+
+        self.sport = z3.Function('sport', self.packet, z3.IntSort ())
+        
+        self.dport = z3.Function('dport', self.packet, z3.IntSort())
         # Create a solver
         self.solver = z3.Solver()
         # Install some basic conditions for the network.
@@ -82,10 +84,10 @@ class NetworkModel:
         #                    self.packet.sport(p) < 65535, \
         #                    self.packet.dport(p) < 65535)))
         self.solver.add(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p),
-                                                  z3.And(self.packet.sport(p) > 0, \
-                                                  self.packet.dport(p) > 0, \
-                                                  self.packet.sport(p) < 65535, \
-                                                  self.packet.dport(p) < 65535))))
+                                                  z3.And(self.sport(p) > 0, \
+                                                  self.dport(p) > 0, \
+                                                  self.sport(p) < 256, \
+                                                  self.dport(p) < 256))))
         # A host has address iff address belongs to host
         # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
         #self.solver.add(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
@@ -433,8 +435,8 @@ class NetworkModel:
             self.solver.add(z3.ForAll([p1], \
                     z3.Implies(self.send(lbalancer, node, p1),
                         z3.Or(z3.Not(self.packet.dest(p1) == outaddr),\
-                        flow_hash(self.packet.src(p1), self.packet.sport(p1), \
-                                self.packet.dest(p1), self.packet.dport(p1)) == idx))))
+                        flow_hash(self.packet.src(p1), self.sport(p1), \
+                                self.packet.dest(p1), self.dport(p1)) == idx))))
     def CheckPacketReachability (self, src, dest, tag = None):
         p = z3.Const('__reachability_Packet_%s_%s'%(src, dest), self.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src, dest), self.node)
