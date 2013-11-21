@@ -301,8 +301,8 @@ def main ():
             withProxyLearningCorrectUnsat, \
             withProxy2LearningCorrectUnsat, \
             loadBalancer]
-    #funcs = [withProxyLearningCorrectUnsat]
-    #funcs = [loadBalancer]
+    # funcs = [withProxyLearningCorrectUnsat]
+    # funcs = [loadBalancer]
     for func in funcs:
         model = func()
         result =  model.solver.check ()
