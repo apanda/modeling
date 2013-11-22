@@ -2,6 +2,7 @@
 import z3
 class NetworkModel:
     """ A container for state, the old way was far too messy, messiness bad """
+    MAX_PORT = 512
     def __init__ (self, nodes, addresses):
         """ Initialize things for the model"""
         self.__setOptions ()
@@ -117,8 +118,8 @@ class NetworkModel:
         self.solver.add(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))), \
                                     self.etime(eh1, p, self.send_event) == 0)))
 
-        self.solver.add(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < 512)))
-        self.solver.add(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < 512)))
+        self.solver.add(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < NetworkModel.MAX_PORT)))
+        self.solver.add(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < NetworkModel.MAX_PORT)))
         # self.solver.add(z3.ForAll([p, p2], z3.Implies(
         #                     z3.And(self.packet.src(p) == self.packet.src(p2),
         #                            self.packet.dest(p) == self.packet.dest(p2),
@@ -198,10 +199,12 @@ class NetworkModel:
         self.__saneSend(fw)
 
         # Model holes as a function
-        cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, self.address, z3.BoolSort())
-        ctime = z3.Function ('__fw_cached_time_%s'%(fw_str), self.address, self.address, z3.IntSort())
+        cached = z3.Function ('__fw_cached_rules_%s'%(fw_str), self.address, z3.IntSort(), self.address, z3.IntSort(), z3.BoolSort())
+        ctime = z3.Function ('__fw_cached_time_%s'%(fw_str), self.address, z3.IntSort(), self.address, z3.IntSort(), z3.IntSort())
         addr_a = z3.Const ('__fw_addr_cache_a_%s'%(fw_str), self.address)
+        port_a = z3.Const('__fw_addr_port_a_%s'%(fw_str), z3.IntSort())
         addr_b = z3.Const ('__fw_addr_cache_b_%s'%(fw_str), self.address)
+        port_b = z3.Const('__fw_addr_port_b_%s'%(fw_str), z3.IntSort())
 
         # Normal firewall rules (same as firewall deny rules, maybe we can combine them somehow) 
         p = z3.Const('__firewall_Packet_%s'%(fw_str), self.packet)
@@ -230,18 +233,25 @@ class NetworkModel:
             #conditions.append(z3.And(self.packet.src(p) == adb,
             #                            self.packet.dest(p) == ada))
         
-        self.solver.add(z3.ForAll([addr_a, addr_b, eh], z3.Implies(\
-                        z3.Not(cached(addr_a, addr_b)), \
-                        ctime (addr_a, addr_b) == 0)))
+        self.solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b, eh], z3.Implies(\
+                        z3.Or(port_a < 0, \
+                              port_a > NetworkModel.MAX_PORT, \
+                              port_b < 0, \
+                              port_a > NetworkModel.MAX_PORT), \
+                        z3.Not(cached(addr_a, port_a, addr_b, port_b)))))
+        self.solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b, eh], z3.Implies(\
+                        z3.Not(cached(addr_a, port_a, addr_b, port_b)), \
+                        ctime (addr_a, port_a, addr_b, port_b) == 0)))
         # Constraints for what holes are punched 
         # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
         #                 p.src == a \land p.dest == b \land ctime(a, b) = etime(fw, p, R) \land
         #                   neg(ACL(p))
-        self.solver.add(z3.ForAll([addr_a, addr_b], cached(addr_a, addr_b) ==\
+        self.solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b], cached(addr_a, port_a, addr_b, port_b) ==\
                             z3.Exists([eh, p], \
                                 z3.And(self.recv(eh, fw, p), \
                                 z3.And(self.packet.src (p) == addr_a, self.packet.dest(p) == addr_b, \
-                                        ctime (addr_a, addr_b) == self.etime(fw, p, self.recv_event), \
+                                        self.src_port (p) == port_a,  self.dest_port (p) == port_b, \
+                                        ctime (addr_a, port_a, addr_b, port_b) == self.etime(fw, p, self.recv_event), \
                                         z3.Not(z3.Or(conditions)))))))
 
         # Actually enforce firewall rules
@@ -249,11 +259,11 @@ class NetworkModel:
         #                       \land ctime(p.src, p.dest) <= etime(fw, p, R))
         #                       \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) <= etime(fw. p, R))
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(fw, eh, p), \
-                    z3.Or(z3.And(cached(self.packet.src(p), self.packet.dest(p)), \
-                                        ctime(self.packet.src(p), self.packet.dest(p)) <=\
+                    z3.Or(z3.And(cached(self.packet.src(p), self.src_port(p), self.packet.dest(p), self.dest_port(p)), \
+                                        ctime(self.packet.src(p), self.src_port(p), self.packet.dest(p), self.dest_port(p)) <=\
                                                         self.etime(fw, p, self.recv_event)), \
-                                 z3.And(cached(self.packet.dest(p), self.packet.src(p)), \
-                                        ctime(self.packet.dest(p), self.packet.src(p)) <=\
+                                 z3.And(cached(self.packet.dest(p), self.dest_port(p), self.packet.src(p), self.src_port(p)), \
+                                        ctime(self.packet.dest(p), self.dest_port(p), self.packet.src(p), self.src_port(p)) <=\
                                                         self.etime(fw, p, self.recv_event))))))
 
         
