@@ -1,4 +1,5 @@
 import z3
+import time
 from network_model import *
 
 def withProxyUnsat():
@@ -268,12 +269,22 @@ if __name__ == "__main__":
             withProxy2LearningCorrectUnsat]
     # funcs = [withProxy2LearningCorrectUnsat]
     for func in funcs:
+        print str(func)
+        current = time.time()
         model = func()
         result =  model.solver.check ()
         print result
         if result == z3.sat:
             solution =  model.solver.model ()
             decls = solution.decls()
-            good_decls = filter(lambda d: 'recv' in str(d) or 'send' in str(d) or 'etime' in str(d) or 'reachability' in str(d) or '_cache' in str(d) or '_cresp' in str(d) or '_ctime' in str(d), decls)
+            good_decls = filter(lambda d: 'recv' in str(d) or \
+                                          'send' in str(d) or \
+                                          'etime' in str(d) or \
+                                          'reachability' in str(d) or \
+                                          '_cache' in str(d) or \
+                                          '_cresp' in str(d) or \
+                                          '_ctime' in str(d), decls)
             for decl in good_decls:
                 print '%s = %s'%(decl, solution[decl])
+        print 'Time to complete %s = %f '%(str(func), time.time() - current)
+
