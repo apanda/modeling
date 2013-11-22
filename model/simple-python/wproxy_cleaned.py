@@ -283,7 +283,9 @@ if __name__ == "__main__":
                                           'reachability' in str(d) or \
                                           '_cache' in str(d) or \
                                           '_cresp' in str(d) or \
-                                          '_ctime' in str(d), decls)
+                                          '_ctime' in str(d) or \
+                                          'sport' in str(d) or \
+                                          'dport' in str(d), decls)
             for decl in good_decls:
                 print '%s = %s'%(decl, solution[decl])
         print 'Time to complete %s = %f '%(str(func), time.time() - current)

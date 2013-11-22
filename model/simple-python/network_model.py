@@ -39,6 +39,8 @@ class NetworkModel:
         # Time at which packet is processed
         # etime := node -> packet -> event -> int 
         self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
+        self.src_port = z3.Function('sport', self.packet, z3.IntSort())
+        self.dest_port = z3.Function('dport', self.packet, z3.IntSort())
         # Create a solver
         self.solver = z3.Solver()
         # Install some basic conditions for the network.
@@ -114,6 +116,19 @@ class NetworkModel:
         # \forall e_1, p: (\notexists e_2: send(e_1, e_2, p)) \Rightarrow etime(e_1, p, S) = 0
         self.solver.add(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))), \
                                     self.etime(eh1, p, self.send_event) == 0)))
+
+        self.solver.add(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < 512)))
+        self.solver.add(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < 512)))
+        # self.solver.add(z3.ForAll([p, p2], z3.Implies(
+        #                     z3.And(self.packet.src(p) == self.packet.src(p2),
+        #                            self.packet.dest(p) == self.packet.dest(p2),
+        #                            self.packet.id(p) == self.packet.id(p2)),
+        #                     self.src_port(p) == self.src_port(p2))))
+        # self.solver.add(z3.ForAll([p, p2], z3.Implies(
+        #                     z3.And(self.packet.src(p) == self.packet.src(p2),
+        #                            self.packet.dest(p) == self.packet.dest(p2),
+        #                            self.packet.id(p) == self.packet.id(p2)),
+        #                     self.dest_port(p) == self.dest_port(p2))))
 
     def __saneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.node)
@@ -336,6 +351,8 @@ class NetworkModel:
                                     ctime(self.packet.dest(p2), self.packet.id(p2)), \
                                 self.packet.id(p) == cresp(self.packet.dest(p2), self.packet.id(p2)), \
                                 self.packet.dest(p) == self.packet.src(p2), \
+                                self.dest_port(p) == self.src_port(p2), \
+                                self.src_port(p) == self.dest_port(p2), \
                                 self.packet.origin(p) == corigin(self.packet.dest(p2), self.packet.id(p2)))
 
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(proxy, eh, p), z3.Exists([p2, eh2], 
@@ -346,6 +363,7 @@ class NetworkModel:
                                       self.packet.id(p2) == self.packet.id(p), \
                                       self.packet.seq(p2) == self.packet.seq(p), \
                                       self.hostHasAddr(self.packet.origin(p2), self.packet.src(p2)), \
+                                      self.dest_port(p2) == self.dest_port(p), \
                                       self.etime(proxy, p, self.send_event) > \
                                         self.etime(proxy, p2, self.recv_event)), \
                                cached_packet))))))
