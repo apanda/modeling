@@ -262,7 +262,7 @@ def loadBalancerCorrect ():
     print "Load balancer should be SAT"
     model = NetworkModel(['a', 'b', 'c', 'l'], \
                         ['ada', 'adb', 'adc', 'adl'])
-    model.setAddressMappings(['a':'ada', 'b': ['adb', 'adl'], 'c':['adc', 'adl'], 'l':'adl'])
+    model.setAddressMappings({'a':'ada', 'b': ['adb', 'adl'], 'c':['adc', 'adl'], 'l':'adl'})
     model.EnsHostRules(['a', 'b', 'c'], ['l'])
     model.LoadBalancerRules('l', ['a', 'b', 'c'], 'adl', ['b', 'c'])
     model.RoutingTable('a', {'adc': 'l', \
