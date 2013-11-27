@@ -258,6 +258,26 @@ def withProxy2LearningCorrectUnsat():
     model.CheckPacketReachability('b', 'd')
     return model
 
+def loadBalancerCorrect ():
+    print "Load balancer should be SAT"
+    model = NetworkModel(['a', 'b', 'c', 'l'], \
+                        ['ada', 'adb', 'adc', 'adl'])
+    model.setAddressMappings(['a':'ada', 'b': ['adb', 'adl'], 'c':['adc', 'adl'], 'l':'adl'])
+    model.EnsHostRules(['a', 'b', 'c'], ['l'])
+    model.LoadBalancerRules('l', ['a', 'b', 'c'], 'adl', ['b', 'c'])
+    model.RoutingTable('a', {'adc': 'l', \
+                             'adb': 'l', \
+                             'adl': 'l'})
+    model.RoutingTable('b', {'ada': 'l', \
+                             'adc': 'l', \
+                             'adl': 'l'})
+    model.RoutingTable('c', {'ada': 'l', \
+                             'adb': 'l', \
+                             'adl': 'l'})
+    model.RoutingTable('l', {'ada': 'a', \
+                             'adb': 'b', \
+                             'adc': 'c'})
+    model.CheckPacketReachability('a', 'c')
 if __name__ == "__main__":
     funcs = [withProxySat,\
             withoutProxy,\
@@ -266,7 +286,8 @@ if __name__ == "__main__":
             withProxyLearningCorrect,\
             withProxyLearningIncorrectSat,\
             withProxyLearningCorrectUnsat, \
-            withProxy2LearningCorrectUnsat]
+            withProxy2LearningCorrectUnsat, \
+            loadBalancerCorrect]
     # funcs = [withProxy2LearningCorrectUnsat]
     for func in funcs:
         print str(func)
