@@ -6,7 +6,7 @@ def withProxyUnsat():
     print "Proxy UNSAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
     model.EndHostRules(['a','b'],['fw_eh'])
     model.EndHostRules(['c','d'],['proxy'])
     model.FirewallDenyRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add')])
@@ -39,7 +39,7 @@ def withProxySat():
     print "Proxy SAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
     model.EndHostRules(['a','b'],['proxy'])
     model.EndHostRules(['c','d'],['fw_eh'])
     model.FirewallDenyRules('fw_eh', ['c','d','proxy'], [('ada', 'adc'), ('adb', 'add')])
@@ -73,7 +73,7 @@ def withoutProxy():
     print "No PROXY SAT"
     model = NetworkModel(['a','b','c','d','fw_eh'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
     model.EndHostRules(['a','b','c','d'],['fw_eh'])
     model.FirewallDenyRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adb', 'add')])
     model.RoutingTable('fw_eh', {'ada': 'a',\
@@ -97,7 +97,7 @@ def withoutProxyLearning():
     print "No PROXY, Learning Firewall, SHOULD BE UNSAT"
     model = NetworkModel(['a','b','c','d','fw_eh'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd'})
     model.EndHostRules(['a','b','c','d'],['fw_eh'])
     model.LearningFirewallRules('fw_eh', ['a','b','c','d'], [('ada', 'adc'), ('adc', 'ada'), ('adb', 'add')])
     model.RoutingTable('fw_eh', {'ada': 'a',\
@@ -122,7 +122,7 @@ def withProxyLearningCorrect():
     print "Proxy, Learning Firwall (correct) SAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
     model.EndHostRules(['a','b'],['proxy'])
     model.EndHostRules(['c','d'],['fw_eh'])
     model.LearningFirewallRules('fw_eh', ['c','d','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
@@ -154,7 +154,7 @@ def withProxyLearningCorrectUnsat():
     print "Proxy, Learning Firwall (correct) UNSAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
     model.EndHostRules(['a','b'],['fw_eh'])
     model.EndHostRules(['c','d'],['proxy'])
     model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])
@@ -187,7 +187,7 @@ def withProxyLearningIncorrectSat():
     print "Proxy, Learning Firwall (incorrect) SAT"
     model = NetworkModel(['a','b','c','d','fw_eh','proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd','proxy':'padd'})
     model.EndHostRules(['a','b'],['fw_eh'])
     model.EndHostRules(['c','d'],['proxy'])
     model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add')])
@@ -220,7 +220,7 @@ def withProxy2LearningCorrectUnsat():
     print "Proxy, Learning 2 Firwall (correct) UNSAT"
     model = NetworkModel(['a','b','c','d','fw_eh', 'fw_serv', 'proxy'],\
                             ['ada', 'adb', 'adc', 'add', 'fwadd', 'fwadd2', 'padd'])
-    model.setAddressMappingsExclusive({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd', 'fw_serv': 'fwadd2', 'proxy':'padd'})
+    model.setAddressMappings({'a':'ada', 'b':'adb','c':'adc','d':'add','fw_eh':'fwadd', 'fw_serv': 'fwadd2', 'proxy':'padd'})
     model.EndHostRules(['a','b'],['fw_eh'])
     model.EndHostRules(['c','d'],['fw_serv'])
     model.LearningFirewallRules('fw_eh', ['a','b','proxy'], [('ada', 'adc'), ('adb', 'add'), ('add', 'adb'), ('adc', 'ada')])

@@ -139,15 +139,19 @@ class NetworkModel:
         self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(node, eh, p), \
                 z3.Not(self.hostHasAddr(node, self.packet.dest(p))))))
 
-    def setAddressMappingsExclusive (self, addrmap):
+    def setAddressMappings (self, addrmap):
         """Constraints to ensure that a host has only the addresses in the map"""
         tempAddr = z3.Const("__setAdMapExclusive_address", self.address)
         for host, addr in addrmap.iteritems():
             # addrToHost(h) = a_h
             # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
-            self.solver.add(self.addrToHost(self.addresses[addr]) == self.nodes[host])
-            self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], tempAddr) == (tempAddr == \
-                                    self.addresses[addr])))
+            if not isinstance(addr, list):
+                self.solver.add(self.addrToHost(self.addresses[addr]) == self.nodes[host])
+                self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], tempAddr) == (tempAddr == \
+                                        self.addresses[addr])))
+            else:
+                addr_clause = z3.Or(map(lambda a: tempAddr == a,  addr))
+                self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], addr_clause)))
 
     def AdjacencyConstraint (self, nodes, adj):
         if not isinstance(nodes, list):
@@ -169,17 +173,6 @@ class NetworkModel:
                 self.solver.add(z3.ForAll([eh, p], z3.Not(self.recv(eh, node, p))))
                 self.solver.add(z3.ForAll([eh, p], z3.Not(self.send(node, eh, p))))
 
-    def EndHostRules (self, hosts, adj):
-        eh = z3.Const('__nodeRules_Node', self.node)
-        p = z3.Const('__nodeRules_Packet', self.packet)
-        self.AdjacencyConstraint(map(lambda n: self.nodes[n], hosts), adj)
-        for h in hosts:
-            h = self.nodes[h]
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow hostHasAddr (h, p.src)
-            # \forall e_1, p: send(h, e_1, p) \Rightarrow p.origin = h
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), \
-                self.hostHasAddr(h, self.packet.src(p)))))
-            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.packet.origin(p) == h)))
     
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
@@ -192,6 +185,46 @@ class NetworkModel:
             self.solver.add(z3.ForAll([eh, p], z3.Implies(z3.And(self.send(node, eh, p),
                                                (self.packet.dest(p) == entry[0])), 
                                                eh == entry[1])))
+
+    def EndHostRules (self, hosts, adj):
+        eh = z3.Const('__nodeRules_Node', self.node)
+        p = z3.Const('__nodeRules_Packet', self.packet)
+        self.AdjacencyConstraint(map(lambda n: self.nodes[n], hosts), adj)
+        for h in hosts:
+            h = self.nodes[h]
+            # \forall e_1, p: send(h, e_1, p) \Rightarrow hostHasAddr (h, p.src)
+            # \forall e_1, p: send(h, e_1, p) \Rightarrow p.origin = h
+            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), \
+                self.hostHasAddr(h, self.packet.src(p)))))
+            self.solver.add(z3.ForAll([eh, p], z3.Implies(self.send(h, eh, p), self.packet.origin(p) == h)))
+    
+    def LoadBalancerRules (self, balancer, adj, shared_addr, servers):
+        lbalancer = self.nodes[balancer]
+        # No sane send, want to send out packets meant for me
+        flow_hash_func = z3.Function('__lb_flowHashFunc_%s'%(balancer), self.packet, z3.IntSort())
+        flow_hash_packet = z3.Const('__lb_fhash_packet1_%s'%(balancer), self.packet)
+        self.solver.add(z3.ForAll([flow_hash_packet], flow_hash_func(flow_hash_packet) < len(servers)))
+        self.solver.add(z3.ForAll([flow_hash_packet], flow_hash_func(flow_hash_packet) ==\
+                                                        (self.dest_port(flow_hash_packet) + \
+                                                        self.src_port(flow_hash_packet) % len(servers))))
+       
+        packet0 = z3.Const('__lb_packet1_%s'%(balancer), self.packet)
+        node0 = z3.Const('__lb_node1_%s'%(balancer), self.node)
+        node1 = z3.Const('__lb_node2_%s'%(balancer), self.node)
+        self.solver.add(z3.ForAll([node0, packet0], z3.Implies(self.send(lbalancer, node0, packet0), \
+                z3.Exists([node1], \
+                 z3.And(self.recv(node1, lbalancer, packet0), \
+                 self.etime(lbalancer, packet0, self.recv_event) < \
+                    self.etime(lbalancer, p, self.send_event))))))
+        self.AdjacencyConstraint(lbalancer, adj)
+        for idx, server in zip(range(len(servers)), servers):
+            self.solver.add(z3.ForAll([node0, packet0], z3.Implies(z3.And(\
+                    self.recv(node0, lbalancer, packet0), \
+                    self.packet.dest (packet0) == shared_addr, \
+                    flow_hash_func (packet0) == idx),
+                    z3.And(self.send(lbalancer, server, packet0),
+                    self.etime(lbalancer, packet0, self.recv_event) < \
+                        self.etime(lbalancer, packet0, self.send_event)))))
 
     def LearningFirewallRules (self, fw, adj, rules):
         fw_str = fw
