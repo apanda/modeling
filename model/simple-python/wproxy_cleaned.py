@@ -263,7 +263,7 @@ def loadBalancerCorrect ():
     model = NetworkModel(['a', 'b', 'c', 'l'], \
                         ['ada', 'adb', 'adc', 'adl'])
     model.setAddressMappings({'a':'ada', 'b': ['adb', 'adl'], 'c':['adc', 'adl'], 'l':'adl'})
-    model.EnsHostRules(['a', 'b', 'c'], ['l'])
+    model.EndHostRules(['a', 'b', 'c'], ['l'])
     model.LoadBalancerRules('l', ['a', 'b', 'c'], 'adl', ['b', 'c'])
     model.RoutingTable('a', {'adc': 'l', \
                              'adb': 'l', \
@@ -278,6 +278,7 @@ def loadBalancerCorrect ():
                              'adb': 'b', \
                              'adc': 'c'})
     model.CheckPacketReachability('a', 'c')
+    return model
 if __name__ == "__main__":
     funcs = [withProxySat,\
             withoutProxy,\
@@ -288,7 +289,7 @@ if __name__ == "__main__":
             withProxyLearningCorrectUnsat, \
             withProxy2LearningCorrectUnsat, \
             loadBalancerCorrect]
-    # funcs = [withProxy2LearningCorrectUnsat]
+    # funcs = [loadBalancerCorrect]
     for func in funcs:
         print str(func)
         current = time.time()

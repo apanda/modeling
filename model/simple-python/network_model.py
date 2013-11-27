@@ -203,6 +203,8 @@ class NetworkModel:
     
     def LoadBalancerRules (self, balancer, adj, shared_addr, servers):
         lbalancer = self.nodes[balancer]
+        shared_addr = self.addresses[shared_addr]
+        servers = map(lambda s: self.nodes[s], servers)
         # No sane send, want to send out packets meant for me
         flow_hash_func = z3.Function('__lb_flowHashFunc_%s'%(balancer), self.packet, z3.IntSort())
         flow_hash_packet = z3.Const('__lb_fhash_packet1_%s'%(balancer), self.packet)
@@ -218,7 +220,7 @@ class NetworkModel:
                 z3.Exists([node1], \
                  z3.And(self.recv(node1, lbalancer, packet0), \
                  self.etime(lbalancer, packet0, self.recv_event) < \
-                    self.etime(lbalancer, p, self.send_event))))))
+                    self.etime(lbalancer, packet0, self.send_event))))))
         self.AdjacencyConstraint(lbalancer, adj)
         for idx, server in zip(range(len(servers)), servers):
             self.solver.add(z3.ForAll([node0, packet0], z3.Implies(z3.And(\
