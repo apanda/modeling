@@ -150,9 +150,10 @@ class NetworkModel:
                 self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host], tempAddr) == (tempAddr == \
                                         self.addresses[addr])))
             else:
-                addr_clause = z3.Or(map(lambda a: tempAddr == a,  addr))
+                addr_clause = z3.Or(map(lambda a: tempAddr == self.addresses[a],  addr))
                 self.solver.add(z3.ForAll([tempAddr], self.hostHasAddr(self.nodes[host]. tempAddr), addr_clause))
-                self.solver.add(self.addrToHost(addr[0]) == host)
+                self.solver.add(self.addrToHost(self.addresses[addr[0]]) ==\
+                                    self.nodes[host])
 
     def AdjacencyConstraint (self, nodes, adj):
         if not isinstance(nodes, list):
