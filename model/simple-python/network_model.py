@@ -66,7 +66,6 @@ class NetworkModel:
 
     def __baseCondition (self):
         """ Set up base conditions for the network"""
-
         # A few temporary nodes
         eh1 = z3.Const('_base_eh1', self.node)
         eh2 = z3.Const('_base_eh2', self.node)
