@@ -3,11 +3,13 @@ import z3
 
 class WebProxy (NetworkObject):
     """A caching web proxy"""
-    def _init (self, node, context):
+    def _init (self, node, network, context):
         self.proxy = node
         self.ctx = context
         self.constraints = list ()
+        network.SaneSend(self)
         self._webProxyFunctions ()
+        self._webProxyConstraints ()
     
     @property
     def z3Node (self):
@@ -28,25 +30,28 @@ class WebProxy (NetworkObject):
                             self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p)))))
 
         cached_packet = z3.And(self.cached(self.ctx.packet.dest(p2), self.ctx.packet.id(p2)), \
-                                self.ctx.etime(self.proxy, p2, self.recv_event) >= \
+                                self.ctx.etime(self.proxy, p2, self.ctx.recv_event) > \
                                     self.ctime(self.ctx.packet.dest(p2), self.ctx.packet.id(p2)), \
                                 self.ctx.packet.id(p) == self.cresp(self.ctx.packet.dest(p2), self.ctx.packet.id(p2)), \
                                 self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \
-                                self.ctx.dest_port(p) == self.src_port(p2), \
-                                self.src_port(p) == self.ctx.dest_port(p2), \
+                                self.ctx.dest_port(p) == self.ctx.src_port(p2), \
+                                self.ctx.src_port(p) == self.ctx.dest_port(p2), \
                                 self.ctx.packet.origin(p) == self.corigin(self.ctx.packet.dest(p2), self.ctx.packet.id(p2)))
 
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.proxy, eh, p), z3.Exists([p2, eh2], 
-                             z3.And(self.recv(eh2, self.proxy, p2),
+                             z3.And(self.ctx.recv(eh2, self.proxy, p2),
+                                 z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p2))),\
                               z3.Or(\
-                               z3.And(self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
+                               z3.And(z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.dest(p2))), \
+                                      self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
                                       self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
                                       self.ctx.packet.id(p2) == self.ctx.packet.id(p), \
                                       self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
                                       self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
                                       self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
                                       self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
-                                        self.ctx.etime(self.proxy, p2, self.recv_event)), \
+                                        self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
+                                      self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))), \
                                cached_packet))))))
     
     def _webProxyFunctions (self):
@@ -69,6 +74,7 @@ class WebProxy (NetworkObject):
                             z3.Implies(self.cached(a1, i1), \
                              z3.Exists([p, eh], \
                               z3.And(\
+                                z3.Not(self.ctx.hostHasAddr(self.proxy, a1)), \
                                 self.ctx.recv(eh, self.proxy, p), \
                                 self.ctx.packet.src(p) == a1, \
                                 self.ctx.packet.id(p) == self.cresp(a1, i1), \
@@ -78,7 +84,7 @@ class WebProxy (NetworkObject):
                                 z3.Exists([p2], \
                                 z3.And(\
                                     self.ctx.etime(self.proxy, p2, self.ctx.send_event) > 0, \
-                                    self.ctx.etime(self.proxy, p2, self.ctx.send_event) <= self.ctime(a1, i1), \
+                                    self.ctx.etime(self.proxy, p2, self.ctx.send_event) < self.ctime(a1, i1), \
                                     self.ctx.etime(self.ctx.addrToHost(a1), p, self.ctx.send_event) > 
                                         self.ctx.etime(self.ctx.addrToHost(a1), p2, self.ctx.recv_event), \
                                     self.ctx.packet.dest(p2) == a1, \

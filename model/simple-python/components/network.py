@@ -7,11 +7,18 @@ class Network (Core):
         self._name = name
         self.ctx = context
         self.constraints = list()
+        self.elements = list()
+
+    def Attach (self, *elements):
+        self.elements.extend(elements)
+
     def _addConstraints (self, solver):
-        return
+        solver.add(self.constraints)
+
     def AdjacencyMap (self, adjGraph):
         for node, adjacent in adjGraph:
             self._adjacencyConstraint(node, adjacent)
+
     def _adjacencyConstraint (self, nodes, adj):
         if not isinstance(nodes, list):
             nodes = [nodes]
@@ -48,7 +55,7 @@ class Network (Core):
         for host, addr in addrmap:
             # addrToHost(h) = a_h
             # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
-            if not isinstance(addr, list):
+            if not isinstance(addr, list) or len(addr) == 0:
                 self.constraints.append(self.ctx.addrToHost(addr) == host.z3Node)
                 self.constraints.append(z3.ForAll([tempAddr], \
                             self.ctx.hostHasAddr(host.z3Node, tempAddr) == (tempAddr == \

@@ -5,3 +5,4 @@ from endhost import *
 from loadbalancer import *
 from learningfirewall import *
 from webproxy import *
+from checker import *

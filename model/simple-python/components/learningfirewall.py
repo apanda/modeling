@@ -60,6 +60,8 @@ class LearningFirewall (NetworkObject):
                               port_b < 0, \
                               port_a > Core.MAX_PORT), \
                         z3.Not(self.cached(addr_a, port_a, addr_b, port_b)))))
+        self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], self.ctime (addr_a, port_a, addr_b, port_b) \
+                                            >= 0))
         self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], z3.Implies(\
                         z3.Not(self.cached(addr_a, port_a, addr_b, port_b)), \
                         self.ctime (addr_a, port_a, addr_b, port_b) == 0)))
@@ -84,8 +86,8 @@ class LearningFirewall (NetworkObject):
         #                       \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) <= etime(fw. p, R))
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.firewall, eh, p), \
                     z3.Or(z3.And(self.cached(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)), \
-                                        self.ctime(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)) <=\
+                                        self.ctime(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)) <\
                                                         self.ctx.etime(self.firewall, p, self.ctx.recv_event)), \
                                  z3.And(self.cached(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)), \
-                                        self.ctime(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)) <=\
+                                        self.ctime(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)) <\
                                                         self.ctx.etime(self.firewall, p, self.ctx.recv_event))))))
