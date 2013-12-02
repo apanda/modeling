@@ -8,6 +8,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
+reload(components.z3)
 
 
 print "Without Proxy ACL Firewall"
@@ -17,6 +18,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
+reload(components.z3)
 
 print "Without Proxy Learning Firewall"
 start = time.time()
@@ -25,6 +27,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
+reload(components.z3)
 
 print "With proxy SAT"
 start = time.time()
