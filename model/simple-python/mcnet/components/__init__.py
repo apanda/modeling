@@ -1,6 +1,3 @@
-__version__ = "0.0001"
-__author__ = "Aurojit Panda <apanda@cs.berkeley.edu>"
-
 from core import *
 from context import *
 from network import *
