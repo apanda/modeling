@@ -37,10 +37,10 @@ class PropertyChecker (object):
         eh = z3.Const('__implied_reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         self.solver.add(z3.And(z3.Not(z3.Exists([pn, ehn], \
                                z3.And(self.ctx.recv(ehn, destn.z3Node, pn), \
-                                       self.ctx.packet.origin(pn) == srcn))),
+                                       self.ctx.packet.origin(pn) == srcn.z3Node))),
                                z3.And(z3.Exists([eh], \
-                                       self.ctx.recv(eh, dest.node, p)), \
-                                       self.ctx.packet.origin(p) == src)))
+                                       self.ctx.recv(eh, dest.z3Node, p)), \
+                                       self.ctx.packet.origin(p) == src.z3Node)))
         self.result = self.solver.check()
         if self.result == z3.sat:
             self.model = self.solver.model ()
