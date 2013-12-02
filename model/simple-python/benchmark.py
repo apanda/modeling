@@ -41,4 +41,4 @@ print "With proxy SAT implied"
 start = time.time()
 print check.CheckImpliedIsolation(eh[2], eh[0], eh[0], eh[2])
 stop = time.time()
-print stop - start()
+print stop - start
