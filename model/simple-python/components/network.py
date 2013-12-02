@@ -3,8 +3,7 @@ from . import *
 import z3
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
-    def _init(self, name, context):
-        self._name = name
+    def _init(self,  context):
         self.ctx = context
         self.constraints = list()
         self.elements = list()
