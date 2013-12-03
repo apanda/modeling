@@ -1,4 +1,3 @@
-from . import *
 import z3
 class PropertyChecker (object):
     """Actually check for properties in the network graph etc."""

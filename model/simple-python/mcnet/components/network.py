@@ -1,6 +1,7 @@
 # Class for network functionality
-from . import *
+from . import Core
 import z3
+import mcnet
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
     def _init(self,  context):
@@ -16,28 +17,25 @@ class Network (Core):
 
     def AdjacencyMap (self, adjGraph):
         for node, adjacent in adjGraph:
-            self._adjacencyConstraint(node, adjacent)
+            self.adjacencyConstraint(node, adjacent)
 
-    def _adjacencyConstraint (self, nodes, adj):
-        if not isinstance(nodes, list):
-            nodes = [nodes]
+    def AdjacentNode (self, node, adj):
         if not isinstance(adj, list):
             adj = [adj]
-        for node in nodes:
-            node = node.z3Node
-            eh = z3.Const('__adjacency_node_%s'%(node), self.ctx.node)
-            p = z3.Const('__adjacency_packet_%s'%(node), self.ctx.packet)
-            if len(adj) != 0:
-                adjacency_constraint = z3.Or(map(lambda n: eh == n.z3Node, adj))
-                # \forall e_1, p recv(e_1, h, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-                # \forall e_1, p send(h, e_1, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-                self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.recv(eh, node, p), \
-                                            adjacency_constraint)))
-                self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(node, eh, p), \
-                                            adjacency_constraint)))
-            else:
-                self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.recv(eh, node, p))))
-                self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.send(node, eh, p))))
+        node = node.z3Node
+        eh = z3.Const('__adjacency_node_%s'%(node), self.ctx.node)
+        p = z3.Const('__adjacency_packet_%s'%(node), self.ctx.packet)
+        if len(adj) != 0:
+            adjacency_constraint = z3.Or(map(lambda n: eh == n.z3Node, adj))
+            # \forall e_1, p recv(e_1, h, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
+            # \forall e_1, p send(h, e_1, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
+            self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.recv(eh, node, p), \
+                                        adjacency_constraint)))
+            self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(node, eh, p), \
+                                        adjacency_constraint)))
+        else:
+            self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.recv(eh, node, p))))
+            self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.send(node, eh, p))))
 
     def SaneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.ctx.node)
@@ -77,3 +75,7 @@ class Network (Core):
             self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
                                                (self.ctx.packet.dest(p) == entry[0])), 
                                                eh == entry[1].z3Node)))
+    @property
+    def EndHosts (self):
+        """Return all currently attached endhosts"""
+        return {str(el.z3Node) : el for el in filter(lambda e: isinstance(e, mcnet.components.endhost.EndHost), self.elements)} 

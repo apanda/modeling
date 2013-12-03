@@ -1,4 +1,4 @@
-from . import *
+from . import NetworkObject
 import z3
 
 class WebProxy (NetworkObject):

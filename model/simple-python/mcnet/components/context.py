@@ -1,6 +1,6 @@
 # Basic fields and other things required for model checking.
 import z3
-from . import *
+from . import Core
 class Context(Core):
     """Context for all of the rest that follows. Every network needs one of
     these"""

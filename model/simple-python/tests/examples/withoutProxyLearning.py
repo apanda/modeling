@@ -4,10 +4,10 @@ def withoutProxyLearning ():
     ctx = components.Context (['a', 'b', 'c', 'd', 'fw'],\
                               ['ip_a', 'ip_b', 'ip_c', 'ip_d', 'ip_f'])
     net = components.Network (ctx)
-    a = components.EndHost(ctx.a, ctx) 
-    b = components.EndHost(ctx.b, ctx) 
-    c = components.EndHost(ctx.c, ctx) 
-    d = components.EndHost(ctx.d, ctx) 
+    a = components.EndHost(ctx.a, net, ctx) 
+    b = components.EndHost(ctx.b, net, ctx) 
+    c = components.EndHost(ctx.c, net, ctx) 
+    d = components.EndHost(ctx.d, net, ctx) 
     fw = components.LearningFirewall(ctx.fw, net, ctx)
     net.AdjacencyMap([(a, fw), (b, fw), (c, fw), (d, fw), (fw, [a, b, c, d])])
     net.setAddressMappings([(a, ctx.ip_a), \

@@ -1,4 +1,4 @@
-from . import *
+from . import NetworkObject
 import z3
 class LoadBalancer (NetworkObject):
     """Load balancers can be used to split traffic among multipler servers"""
