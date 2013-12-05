@@ -1,3 +1,4 @@
+import z3
 from examples import *
 import time
 print "Running timing tests"
@@ -8,7 +9,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
-reload(components.z3)
+reload(z3)
 
 
 print "Without Proxy ACL Firewall"
@@ -16,9 +17,11 @@ start = time.time()
 (eh, check) = withoutProxyAclFw ()
 print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
+print check.CheckIsolationProperty(eh[0], eh[1])
+print check.CheckIsolationProperty(eh[1], eh[2])
 stop = time.time()
 print stop - start
-reload(components.z3)
+reload(z3)
 
 print "Without Proxy Learning Firewall"
 start = time.time()
@@ -27,7 +30,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
-reload(components.z3)
+reload(z3)
 
 print "With proxy SAT"
 start = time.time()

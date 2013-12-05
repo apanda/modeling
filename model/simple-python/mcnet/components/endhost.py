@@ -25,3 +25,7 @@ class EndHost (NetworkObject):
         self.constraints.append(z3.ForAll([eh, p],
             z3.Implies(self.ctx.send(self.node, eh, p), self.ctx.packet.origin(p) ==\
                                 self.node)))
+
+    @property
+    def isEndHost (self):
+        return True

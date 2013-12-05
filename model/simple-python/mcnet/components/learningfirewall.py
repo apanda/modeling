@@ -1,4 +1,4 @@
-from . import NetworkObject
+from . import NetworkObject, Core
 import z3
 class LearningFirewall (NetworkObject):
     def _init (self, node, network, context):

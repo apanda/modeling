@@ -1,7 +1,6 @@
 # Class for network functionality
 from . import Core
 import z3
-import mcnet
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
     def _init(self,  context):
@@ -17,7 +16,7 @@ class Network (Core):
 
     def AdjacencyMap (self, adjGraph):
         for node, adjacent in adjGraph:
-            self.adjacencyConstraint(node, adjacent)
+            self.AdjacentNode(node, adjacent)
 
     def AdjacentNode (self, node, adj):
         if not isinstance(adj, list):
@@ -78,4 +77,4 @@ class Network (Core):
     @property
     def EndHosts (self):
         """Return all currently attached endhosts"""
-        return {str(el.z3Node) : el for el in filter(lambda e: isinstance(e, mcnet.components.endhost.EndHost), self.elements)} 
+        return {str(el.z3Node) : el for el in filter(lambda e: e.isEndHost, self.elements)} 

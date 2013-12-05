@@ -26,7 +26,8 @@ def withoutProxyAclFw ():
                           (ctx.ip_b, b), \
                           (ctx.ip_c, c), \
                           (ctx.ip_d, d)])
-    fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_c, ctx.ip_a), (ctx.ip_b, ctx.ip_d), (ctx.ip_d, ctx.ip_b)])
+    #fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_c, ctx.ip_a), (ctx.ip_b, ctx.ip_d), (ctx.ip_d, ctx.ip_b)])
+    fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_b, ctx.ip_d)])
     net.Attach(a, b, c, d, fw)
     endhosts = [a, b, c, d]
     check = components.PropertyChecker(ctx, net)

@@ -7,10 +7,19 @@ class LoadBalancer (NetworkObject):
         self.ctx = context
         self.lbalancer = lbalancer
         self.shared_addr = shared_addr
-        self.servers = servers
-        self._loadBalancerRules(self.lbalancer, self.shared_addr, self.servers)
+        self.servers = list()
+        if servers:
+            self.AddServers (servers)
+        self.frozen = False
+
+    def AddServers (self, servers):
+        assert(not self.frozen)
+        self.servers.extend(servers)
 
     def _addConstraints (self, solver):
+        if not self.frozen:
+            self.frozen = True
+            self._loadBalancerRules(self.lbalancer, self.shared_addr, self.servers)
         solver.add(self.constraints)
     
     @property

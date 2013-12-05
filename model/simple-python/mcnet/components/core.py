@@ -28,3 +28,6 @@ class NetworkObject(Core):
         return str(self.z3Node)
     def __hash__ (self):
         return self.z3Node.__hash__()
+    @property
+    def isEndHost (self):
+        return False
