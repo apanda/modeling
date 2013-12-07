@@ -8,3 +8,4 @@
 *.cmxs
 *.cmxa
 /z3/
+*.pyc
