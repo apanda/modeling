@@ -72,7 +72,7 @@ print check.CheckIsolationProperty(graph['b'], graph['c'])
 stop = time.time()
 print stop - start
 
-REPEAT_ITERS = 10
+REPEAT_ITERS = 1
 
 reload(z3)
 print "With proxy 2 learning firewall (Graph)"
