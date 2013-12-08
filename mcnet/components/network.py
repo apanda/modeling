@@ -74,6 +74,14 @@ class Network (Core):
             self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
                                                (self.ctx.packet.dest(p) == entry[0])), 
                                                eh == entry[1].z3Node)))
+    def SetGateway (self, node, gateway):
+        """ Set a node so it sends all packets to gateway"""
+        p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
+        eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
+        node = node.z3Node
+        gw = gateway.z3Node
+        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(node, eh, p),
+                                                              eh == gw)))
     @property
     def EndHosts (self):
         """Return all currently attached endhosts"""

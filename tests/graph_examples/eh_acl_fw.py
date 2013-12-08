@@ -27,7 +27,7 @@ def GraphAclFwNoProxy ():
     addresses = ['ac0', 'bc0', 'cc0', 'dc0', 'fc0']
 
     for node in net.EndHosts.itervalues():
-        net.RoutingTable(node, [(graph(x), fw) for x in addresses])
+        net.SetGateway(node, fw)
 
     net.RoutingTable(fw, [(ip_a, a), \
                           (ip_b, b), \

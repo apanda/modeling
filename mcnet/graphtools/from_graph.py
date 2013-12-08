@@ -7,8 +7,8 @@ class GraphTopo (object):
            We expect each node in the supplied graph to have a few attributes:
            1. A factory this takes a node and a reference to  and creates an object from mcnet.components. 
            2. An address: can be a string or a list.
-           3. An optional category naming the category to which an object belongs. If the object has no category then we
-              infer that the object name is the category.
+           3. An optional category naming the equivalence class to which an object belongs. If the object has no
+              category then we infer that the object name is the category.
         """
         nodes = graph.nodes()
         # We need node names to be strings
@@ -19,9 +19,12 @@ class GraphTopo (object):
         addresses = list(set(addresses))
         self.addresses = {'a_%s'%str(address) : address for address in addresses}
         self.rev_addresses = {self.addresses[address]: address for address in self.addresses.iterkeys()}
+        
         # Create context and network
         self.ctx = components.Context (self.nodes.keys(), self.addresses.keys())
         self.net = components.Network (self.ctx)
+        
+        # How to construct components
         factories = nx.get_node_attributes(graph, 'factory')
         self.addr_refs = {address: getattr(self.ctx, self.rev_addresses[address]) for address in addresses}
 

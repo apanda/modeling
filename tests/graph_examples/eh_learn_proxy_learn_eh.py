@@ -35,10 +35,10 @@ def GraphLearn2FwProxy ():
     addresses = ['a', 'b', 'c', 'd', 'f1', 'f2', 'p']
 
     for node in [a, b]:
-        net.RoutingTable(node, [(graph(x), fw1) for x in addresses])
+        net.SetGateway(node,  fw1)
 
     for node in [c, d]:
-        net.RoutingTable(node, [(graph(x), fw2) for x in addresses])
+        net.SetGateway(node, fw2)
 
     net.RoutingTable(fw1, [(ip_a, a), \
                           (ip_b, b), \
