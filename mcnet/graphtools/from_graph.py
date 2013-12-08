@@ -7,6 +7,8 @@ class GraphTopo (object):
            We expect each node in the supplied graph to have a few attributes:
            1. A factory this takes a node and a reference to  and creates an object from mcnet.components. 
            2. An address: can be a string or a list.
+           3. An optional category naming the category to which an object belongs. If the object has no category then we
+              infer that the object name is the category.
         """
         nodes = graph.nodes()
         # We need node names to be strings
