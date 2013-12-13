@@ -1,4 +1,4 @@
-modeling
-========
+Model Checking for Networks
+===========================
 
-Network reachability models
+Use model checking to verify correctness for combination of Middle Boxes

@@ -9,6 +9,8 @@ class GraphTopo (object):
            2. An address: can be a string or a list.
            3. An optional category naming the equivalence class to which an object belongs. If the object has no
               category then we infer that the object name is the category.
+           4. An optional gateway: this avoids having to route for these nodes: useful for endhosts and maybe other
+              things too.
         """
         nodes = graph.nodes()
         # We need node names to be strings
@@ -53,6 +55,11 @@ class GraphTopo (object):
             # Add adjacency element
             self.net.AdjacentNode (node_obj, adjacent_nodes)
             self.net.Attach (node_obj)
+        
+        # Set gateway. This should not affect things when this attribute is not set
+        gateways = nx.get_node_attributes(graph, 'gateway')
+        for n, gw in gateways.iteritems():
+            self.net.SetGateway (self[n], self[gw])
 
     @property
     def Network (self):

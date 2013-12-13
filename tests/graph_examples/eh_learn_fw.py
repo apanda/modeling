@@ -1,11 +1,11 @@
 import networkx as nx
 import mcnet.graphtools
 def GraphLearnFwNoProxy ():
-    g = nx.Graph()
-    g.add_node('a', factory=mcnet.graphtools.EndHostFactory(), address='ac0')
-    g.add_node('b', factory=mcnet.graphtools.EndHostFactory(), address='bc0')
-    g.add_node('c', factory=mcnet.graphtools.EndHostFactory(), address='cc0')
-    g.add_node('d', factory=mcnet.graphtools.EndHostFactory(), address='dc0')
+    g = nx.DiGraph()
+    g.add_node('a', factory=mcnet.graphtools.EndHostFactory(), address='ac0', gateway='f')
+    g.add_node('b', factory=mcnet.graphtools.EndHostFactory(), address='bc0', gateway='f')
+    g.add_node('c', factory=mcnet.graphtools.EndHostFactory(), address='cc0', gateway='f')
+    g.add_node('d', factory=mcnet.graphtools.EndHostFactory(), address='dc0', gateway='f')
     g.add_node('f', factory=mcnet.graphtools.LearningFirewallFactory(), address='fc0')
     g.add_edge('a', 'f')
     g.add_edge('b', 'f')
@@ -25,9 +25,6 @@ def GraphLearnFwNoProxy ():
     ip_d = graph('dc0')
     ip_f = graph('fc0')
     addresses = ['ac0', 'bc0', 'cc0', 'dc0', 'fc0']
-
-    for node in net.EndHosts.itervalues():
-        net.SetGateway(node, fw)
 
     net.RoutingTable(fw, [(ip_a, a), \
                           (ip_b, b), \
