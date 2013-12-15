@@ -7,6 +7,7 @@ __all__ = ['Core', \
            'LearningFirewall', \
            'WebProxy', \
            'LoadBalancer', \
+           'IPS', \
            'PropertyChecker']
 from core import Core, NetworkObject
 from context import Context
@@ -16,4 +17,5 @@ from loadbalancer import LoadBalancer
 from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall
 from webproxy import WebProxy
+from ips import IPS
 from checker import PropertyChecker
