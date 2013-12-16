@@ -2,8 +2,10 @@ from . import NetworkObject, Core
 import z3
 class IPS (NetworkObject):
     """ Intrusion prevention system: Just combines a stateful ips with DPI, hooray""" 
-    def _init (self, node, network, context):
+    def _init (self, policy, node, network, context):
+        """Policy is an object of type dpi_policy"""
         self.constraints = list ()
+        self.policy = policy
         self.ips = node
         self.ctx = context
         network.SaneSend(self)
@@ -19,8 +21,7 @@ class IPS (NetworkObject):
         addr_b = z3.Const ('__ips_acl_cache_b_%s'%(self.ips), self.ctx.address)
         port_b = z3.Const('__ips_acl_port_b_%s'%(self.ips), z3.IntSort())
         aclConstraints = map(lambda (a, b): z3.And(self.ctx.packet.src(p) == a, \
-                                              self.ctx.packet.dest(p) == b, \
-                                              self.ips_match(p)), \
+                                              self.ctx.packet.dest(p) == b),
                                               self.acls)
         eh = z3.Const('__ips_acl_node_%s'%(self.ips), self.ctx.node)
 
@@ -56,11 +57,6 @@ class IPS (NetworkObject):
         port_a = z3.Const('__ips_addr_port_a_%s'%(self.ips), z3.IntSort())
         addr_b = z3.Const ('__ips_addr_cache_b_%s'%(self.ips), self.ctx.address)
         port_b = z3.Const('__ips_addr_port_b_%s'%(self.ips), z3.IntSort())
-        ips_packet = z3.Const('__ips_content_packet_%s'%(self.ips), self.ctx.packet)
-        content_match = z3.Int('__ips_content_%s'%(self.ips))
-        self.ips_match = z3.Function('__ips_match_func_%s'%(self.ips), self.ctx.packet, z3.BoolSort())
-        self.constraints.append(z3.ForAll([ips_packet], self.ips_match(ips_packet) == (self.ctx.packet.id(ips_packet)\
-                                                                                         == content_match)))
         self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], z3.Implies(\
                         z3.Or(port_a < 0, \
                               port_a > Core.MAX_PORT, \
@@ -74,16 +70,18 @@ class IPS (NetworkObject):
                         self.ctime (addr_a, port_a, addr_b, port_b) == 0)))
 
     def _ipsSendRules (self):
-
         p = z3.Const('__ips_Packet_%s'%(self.ips), self.ctx.packet)
         eh = z3.Const('__ips_node1_%s'%(self.ips), self.ctx.node)
         eh2 = z3.Const('__ips_node2_%s'%(self.ips), self.ctx.node)
+        eh3 = z3.Const('__ips_node3_%s'%(self.ips), self.ctx.node)
 
         # The ips never invents packets
         # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.ips, eh, p), \
                 z3.Exists([eh2], \
                  z3.And(self.ctx.recv(eh2, self.ips, p), \
+                    z3.Not(z3.Exists([eh3], z3.And(self.ctx.send(self.ips, eh3, p),\
+                                                   eh3 != eh))), \
                     self.ctx.etime(self.ips, p, self.ctx.recv_event) < \
                         self.ctx.etime(self.ips, p, self.ctx.send_event))))))
 
@@ -92,9 +90,10 @@ class IPS (NetworkObject):
         #                       \land ctime(p.src, p.dest) <= etime(ips, p, R))
         #                       \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) <= etime(ips. p, R))
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.ips, eh, p), \
-                    z3.Or(z3.And(self.cached(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)), \
+                 z3.And(z3.Not(self.policy.dpi_match(self.ctx.packet.id(p))), \
+                        z3.Or(z3.And(self.cached(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)), \
                                         self.ctime(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)) <\
                                                         self.ctx.etime(self.ips, p, self.ctx.recv_event)), \
-                                 z3.And(self.cached(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)), \
+                              z3.And(self.cached(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)), \
                                         self.ctime(self.ctx.packet.dest(p), self.ctx.dest_port(p), self.ctx.packet.src(p), self.ctx.src_port(p)) <\
-                                                        self.ctx.etime(self.ips, p, self.ctx.recv_event))))))
+                                                        self.ctx.etime(self.ips, p, self.ctx.recv_event)))))))

@@ -17,8 +17,8 @@ class CompressionAlgorithm (Core):
 
     def _createCompressionFunction (self):
         """Declare functions add some constraints to this etc"""
-        self.compress = z3.Function (z3.IntSort(), z3.IntSort())
-        self.decompress = z3.Function (z3.IntSort(), z3.IntSort())
+        self.compress = z3.Function ('%s_compress'%(self.name), z3.IntSort(), z3.IntSort())
+        self.decompress = z3.Function ('%s_decompress'%(self.name), z3.IntSort(), z3.IntSort())
         uncompressed = z3.Int('__compression_%s_uncompressed'%(self.name))
         compressed = z3.Int('__compression_%s_compressed'%(self.name))
 

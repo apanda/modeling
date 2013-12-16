@@ -1,4 +1,3 @@
-
 import components
 def withoutProxyAclFw ():
     """No proxy, just a learning firewall"""

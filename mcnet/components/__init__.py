@@ -8,6 +8,8 @@ __all__ = ['Core', \
            'WebProxy', \
            'LoadBalancer', \
            'IPS', \
+           'CompressionAlgorithm', \
+           'DPIPolicy', \
            'PropertyChecker']
 from core import Core, NetworkObject
 from context import Context
@@ -17,5 +19,7 @@ from loadbalancer import LoadBalancer
 from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall
 from webproxy import WebProxy
+from dpi_policy import DPIPolicy
 from ips import IPS
+from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker
