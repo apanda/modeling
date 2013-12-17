@@ -23,6 +23,8 @@ class IPS (NetworkObject):
         aclConstraints = map(lambda (a, b): z3.And(self.ctx.packet.src(p) == a, \
                                               self.ctx.packet.dest(p) == b),
                                               self.acls)
+        if len(aclConstraints) == 0:
+            aclConstraints = [True]
         eh = z3.Const('__ips_acl_node_%s'%(self.ips), self.ctx.node)
 
         # Constraints for what holes are punched 

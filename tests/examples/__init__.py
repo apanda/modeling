@@ -4,3 +4,4 @@ from twolearningfw import *
 from withProxySat import *
 from withoutProxyAclFw import *
 from withoutProxyLearning import * 
+from dpiFw import * 

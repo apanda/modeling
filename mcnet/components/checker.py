@@ -46,6 +46,25 @@ class PropertyChecker (object):
         self.solver.pop()
         return self.result
     
+    def CheckIsolatedIf (self, predicate, src, dest):
+        """Check for isolation given a predicate on the packet"""
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        if not self.primed:
+            self.CheckNow()
+        self.solver.push()
+        p = z3.Const('__reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        eh = z3.Const('__reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        self.solver.add(z3.Exists([eh], z3.And(predicate(p), \
+                                self.ctx.recv(eh, dest.z3Node, p))))
+        self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
+        self.result = self.solver.check() 
+        if self.result == z3.sat:
+            self.model = self.solver.model ()
+        self.solver.pop()
+        return self.result
+        
+    
     def CheckNow (self):
         self.ctx._addConstraints(self.solver)
         self.net._addConstraints(self.solver)

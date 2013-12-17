@@ -13,7 +13,10 @@ class DPIPolicy (Core):
         self.dpi_match = z3.Function('%s_dpi_match'%(self.name), z3.IntSort(), z3.BoolSort())
         some_content = z3.Int('__%s_dpi_content'%(self.name))
         self.constraints.append(z3.Exists([some_content], self.dpi_match(some_content)))
-        self.constrinats.append(z3.Exists([some_content], z3.Not(self.dpi_match(some_content))))
+        #self.constraints.append(z3.Exists([some_content], z3.Not(self.dpi_match(some_content))))
 
     def _addConstraints (self, solver):
         solver.add(self.constraints)
+
+    def GetPacketDPIFunction (self, context):
+        return lambda p: self.dpi_match(context.packet.id(p))

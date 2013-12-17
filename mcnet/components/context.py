@@ -7,10 +7,18 @@ class Context(Core):
     def  _init (self, nodes, addresses):
         self._mkTypes (nodes, addresses)
         self.constraints = list()
+        self.policies = list ()
         self._baseCondition ()
+
+    def AddPolicy (self, policy):
+        """A policy is a collection of shared algorithms or functions used by multiple
+           components (for instance compression or DPI policies etc)."""
+        self.policies.append(policy)
 
     def _addConstraints (self, solver):
         solver.add(self.constraints)
+        for policy in self.policies:
+            policy._addConstraints (solver)
 
     def _mkTypes (self, nodes, addresses):
         # Networks have nodes, nodes are quite important
