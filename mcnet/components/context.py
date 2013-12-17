@@ -62,7 +62,16 @@ class Context(Core):
         self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
         self.src_port = z3.Function('sport', self.packet, z3.IntSort())
         self.dest_port = z3.Function('dport', self.packet, z3.IntSort())
-        
+
+    def PacketsHeadersEqual (self, p1, p2):
+        """Return conditions that two packets have identical headers"""
+        return z3.And(\
+                self.packet.src(p1) == self.packet.src(p2), \
+                self.packet.dest(p1) == self.packet.dest(p2), \
+                self.packet.origin(p1) == self.packet.origin(p2), \
+                self.packet.seq(p1) == self.packet.seq(p2), \
+                self.src_port(p1) == self.src_port(p2), \
+                self.dest_port(p1) == self.dest_port(p2))
 
     def _baseCondition (self):
         """ Set up base conditions for the network"""

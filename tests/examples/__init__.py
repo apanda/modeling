@@ -5,3 +5,4 @@ from withProxySat import *
 from withoutProxyAclFw import *
 from withoutProxyLearning import * 
 from dpiFw import * 
+from dpiCompress import *

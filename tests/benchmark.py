@@ -62,6 +62,21 @@ print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
 stop = time.time()
 print stop - start
 
+reload(z3)
+print "Intrusion Prevention System with compression SAT"
+start = time.time()
+d = dpiCompress()
+chk = d['check']
+pred = d['policy'].GetPacketDPIFunction(d['ctx'])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
+print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][2])
+print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][3])
+print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
+stop = time.time()
+print stop - start
+
 from graph_examples import *
 reload(z3)
 print "Without proxy ACL firewall (Graph)"

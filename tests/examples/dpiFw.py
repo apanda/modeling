@@ -1,6 +1,6 @@
 import components
 def dpiFw ():
-    """No proxy, just a learning firewall"""
+    """DPI Firewall. Everything is UNSAT since no bad packets make it through"""
     ctx = components.Context (['a', 'b', 'c', 'd', 'fw'],\
                               ['ip_a', 'ip_b', 'ip_c', 'ip_d', 'ip_f'])
     
