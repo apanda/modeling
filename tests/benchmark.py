@@ -2,6 +2,9 @@ import z3
 from examples import *
 import time
 import mcnet.components
+def ResetZ3 ():
+    z3._main_ctx = None
+    z3.main_ctx()
 print "Running timing tests"
 print "Two Learning Firewalls"
 start = time.time()
@@ -10,8 +13,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
-reload(z3)
-
+ResetZ3()
 
 print "Without Proxy ACL Firewall"
 start = time.time()
@@ -22,7 +24,7 @@ print check.CheckIsolationProperty(eh[0], eh[1])
 print check.CheckIsolationProperty(eh[1], eh[2])
 stop = time.time()
 print stop - start
-reload(z3)
+ResetZ3()
 
 print "Without Proxy Learning Firewall"
 start = time.time()
@@ -31,7 +33,7 @@ print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
 stop = time.time()
 print stop - start
-reload(z3)
+ResetZ3()
 
 print "With proxy SAT"
 start = time.time()
@@ -47,12 +49,12 @@ print check.CheckImpliedIsolation(eh[2], eh[0], eh[0], eh[2])
 stop = time.time()
 print stop - start
 
-reload(z3)
+ResetZ3()
 print "Intrusion Prevention System (UNSAT)"
 start = time.time()
 d = dpiFw()
 chk = d['check']
-pred = d['policy'].GetPacketDPIFunction(d['ctx'])
+pred = d['policy'].packetDPIPredicate(d['ctx'])
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
@@ -62,12 +64,30 @@ print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
 stop = time.time()
 print stop - start
 
-reload(z3)
+ResetZ3()
 print "Intrusion Prevention System with compression SAT"
 start = time.time()
 d = dpiCompress()
 chk = d['check']
-pred = d['policy'].GetPacketDPIFunction(d['ctx'])
+pred = d['policy'].packetDPIPredicate(d['ctx'])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
+print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
+print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][2])
+print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][3])
+print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
+stop = time.time()
+print stop - start
+
+ResetZ3()
+print "Intrusion Prevention System with compression (without decomp) SAT"
+start = time.time()
+d = dpiCompress2()
+chk = d['check']
+primitive = d['policy'].packetDPIPredicate(d['ctx'])
+decompress = d['gzip'].packetDecompressionPredicate(d['ctx'])
+pred = lambda p: (primitive(p) or primitive(decompress(p)))
+pred = primitive
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
 print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
@@ -78,7 +98,7 @@ stop = time.time()
 print stop - start
 
 from graph_examples import *
-reload(z3)
+ResetZ3()
 print "Without proxy ACL firewall (Graph)"
 start = time.time()
 graph = GraphAclFwNoProxy ()
@@ -90,7 +110,7 @@ print check.CheckIsolationProperty(graph['b'], graph['c'])
 stop = time.time()
 print stop - start
 
-reload(z3)
+ResetZ3()
 print "Without proxy Learning firewall (Graph)"
 start = time.time()
 graph = GraphLearnFwNoProxy ()
@@ -104,7 +124,7 @@ print stop - start
 
 REPEAT_ITERS = 1
 
-reload(z3)
+ResetZ3()
 print "With proxy 2 learning firewall (Graph)"
 avg = 0
 for iter in xrange(REPEAT_ITERS):
@@ -125,7 +145,7 @@ print res3
 print avg / REPEAT_ITERS
 
 
-reload(z3)
+ResetZ3()
 print "With proxy 1 learning firewall (Graph)"
 avg = 0
 for iter in xrange(REPEAT_ITERS):

@@ -1,14 +1,17 @@
 from . import Core
 import z3
+import gmpy2
 class CompressionAlgorithm (Core):
     """A compression algorithm is a set of two function:
        - compress
        - decompress
        Decompress is the inverse of compress."""
-
+    PRIME = 2
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
+        self.const = CompressionAlgorithm.PRIME
+        CompressionAlgorithm.PRIME = int(gmpy2.next_prime(CompressionAlgorithm.PRIME))
         self.constraints = list ()
         self._createCompressionFunction ()
 
@@ -19,12 +22,19 @@ class CompressionAlgorithm (Core):
         """Declare functions add some constraints to this etc"""
         self.compress = z3.Function ('%s_compress'%(self.name), z3.IntSort(), z3.IntSort())
         self.decompress = z3.Function ('%s_decompress'%(self.name), z3.IntSort(), z3.IntSort())
-        uncompressed = z3.Int('__compression_%s_uncompressed'%(self.name))
-        compressed = z3.Int('__compression_%s_compressed'%(self.name))
+        uncompressed = z3.Const('__compression_%s_uncompressed'%(self.name), z3.IntSort())
 
         # Assume that compression changes data, because well that makes sense
-        self.constraints.append(self.compress(uncompressed) != uncompressed) 
+        self.constraints.append(z3.ForAll([uncompressed], self.compress(uncompressed) == uncompressed + self.const))
+
+        self.constraints.append(z3.ForAll([uncompressed], self.decompress(uncompressed) == uncompressed - self.const))
         
         # Decompression is the inverse of compression
-        self.constraints.append(z3.Implies(compressed == self.compress(uncompressed), \
-                                           uncompressed == self.decompress(compressed)))
+        self.constraints.append(z3.ForAll([uncompressed],\
+                                self.decompress(self.compress(uncompressed)) == uncompressed)) 
+        
+    def packetCompressionPredicate (self, context):
+        return lambda p: self.compress(context.packet.id(p))
+
+    def packetDecompressionPredicate (self, context):
+        return lambda p: self.decompress(context.packet.id(p))

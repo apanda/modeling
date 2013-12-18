@@ -6,3 +6,4 @@ from withoutProxyAclFw import *
 from withoutProxyLearning import * 
 from dpiFw import * 
 from dpiCompress import *
+from dpiCompress2 import *

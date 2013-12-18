@@ -18,5 +18,5 @@ class DPIPolicy (Core):
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 
-    def GetPacketDPIFunction (self, context):
+    def packetDPIPredicate (self, context):
         return lambda p: self.dpi_match(context.packet.id(p))
