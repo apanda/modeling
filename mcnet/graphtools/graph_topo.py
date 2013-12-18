@@ -1,8 +1,9 @@
 import networkx as nx
 import components
+from collections import Iterable
 
 class GraphTopo (object):
-    def __init__ (self, graph):
+    def __init__ (self, graph, policies = list()):
         """Construct a network from a NetworkX graph. The network and context are available in the object
            We expect each node in the supplied graph to have a few attributes:
            1. A factory this takes a node and a reference to  and creates an object from mcnet.components. 
@@ -25,6 +26,12 @@ class GraphTopo (object):
         # Create context and network
         self.ctx = components.Context (self.nodes.keys(), self.addresses.keys())
         self.net = components.Network (self.ctx)
+        
+        if not isinstance(policies, Iterable):
+            policies = [policies]
+        # Add policies
+        for policy in policies:
+            self.ctx.AddPolicy (policy)
         
         # How to construct components
         factories = nx.get_node_attributes(graph, 'factory')

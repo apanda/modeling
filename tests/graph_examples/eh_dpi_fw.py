@@ -12,9 +12,8 @@ def GraphDpiFwNoProxy (dpi_policy):
     g.add_edge('b', 'f')
     g.add_edge('c', 'f')
     g.add_edge('d', 'f')
-    graph = mcnet.graphtools.GraphTopo(g)
+    graph = mcnet.graphtools.GraphTopo(g, dpi_policy)
     net, ctx = graph.Network, graph.Context
-    ctx.AddPolicy (dpi_policy)
     a = graph['a']
     b = graph['b']
     c = graph['c']
