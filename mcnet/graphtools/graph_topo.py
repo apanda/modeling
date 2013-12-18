@@ -14,12 +14,12 @@ class GraphTopo (object):
         """
         nodes = graph.nodes()
         # We need node names to be strings
-        self.nodes = {'n_%s'%str(node): node for node in nodes}
+        self.nodes = {self._nameToZ3Name (node): node for node in nodes}
         self.rev_nodes = {self.nodes[node]: node for node in self.nodes.iterkeys()}
         address_map = nx.get_node_attributes(graph, 'address')
         addresses = address_map.values()
         addresses = list(set(addresses))
-        self.addresses = {'a_%s'%str(address) : address for address in addresses}
+        self.addresses = {self._addressToZ3Address (address) : address for address in addresses}
         self.rev_addresses = {self.addresses[address]: address for address in self.addresses.iterkeys()}
         
         # Create context and network
@@ -39,6 +39,7 @@ class GraphTopo (object):
         for init in self.node_initializers:
             func, args = init
             func(*args)
+
         # Take care of individual nodes
         for node in sorted(self.nodes.keys()):
             adjacent_nodes = map(lambda n: self.node_elements[n], nx.all_neighbors(graph, self.nodes[node]))
@@ -60,6 +61,12 @@ class GraphTopo (object):
         gateways = nx.get_node_attributes(graph, 'gateway')
         for n, gw in gateways.iteritems():
             self.net.SetGateway (self[n], self[gw])
+    
+    def _nameToZ3Name (self, node):
+        return 'n_%s'%str(node)
+
+    def _addressToZ3Address (self, address):
+        return 'a_%s'%str(address)
 
     @property
     def Network (self):

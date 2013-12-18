@@ -7,7 +7,7 @@ __all__ = ['GraphTopo', \
            'IPSFactory', \
            'WANOptFactory' \
            'CategoricalCollection']
-from from_graph import GraphTopo
+from graph_topo import GraphTopo
 from factories import EndHostFactory, \
                       LoadBalancerFactory, \
                       WebProxyFactory, \
