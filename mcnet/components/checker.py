@@ -8,11 +8,12 @@ class PropertyChecker (object):
         self.constraints = list ()
         self.primed = False
     
+    # Just use the NULL predicate
     def CheckIsolationProperty (self, src, dest):
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
         if not self.primed:
-            self.CheckNow()
+            self.AddConstraints()
         self.solver.push ()
         p = z3.Const('__reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
@@ -23,12 +24,13 @@ class PropertyChecker (object):
             self.model = self.solver.model ()
         self.solver.pop()
         return self.result
-
+    
+    # Convert to a predicate used by CheckImpliedIsolation
     def CheckImpliedIsolation (self, srcn, destn, src, dest):
         assert(srcn in self.net.elements)
         assert(destn in self.net.elements)
         if not self.primed:
-            self.CheckNow()
+            self.AddConstraints()
         self.solver.push()
         pn = z3.Const('__implied_reachability_neg_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         ehn = z3.Const('__implied_reachability_neg_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
@@ -51,7 +53,7 @@ class PropertyChecker (object):
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
         if not self.primed:
-            self.CheckNow()
+            self.AddConstraints()
         self.solver.push()
         p = z3.Const('__reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
@@ -65,7 +67,7 @@ class PropertyChecker (object):
         return self.result
         
     
-    def CheckNow (self):
+    def AddConstraints (self):
         self.ctx._addConstraints(self.solver)
         self.net._addConstraints(self.solver)
         for el in self.net.elements:

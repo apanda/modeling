@@ -4,3 +4,4 @@ from eh_acl_fw import GraphAclFwNoProxy
 from eh_learn_fw import GraphLearnFwNoProxy
 from eh_learn_proxy_learn_eh import GraphLearn2FwProxy
 from eh_learn_proxy_eh import GraphLearnFwProxy
+from eh_dpi_fw import GraphDpiFwNoProxy 

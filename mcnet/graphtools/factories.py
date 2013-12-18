@@ -2,7 +2,9 @@ from components import LoadBalancer, \
                        EndHost, \
                        AclFirewall, \
                        LearningFirewall, \
-                       WebProxy
+                       WebProxy, \
+                       IPS, \
+                       WANOptTransformer
 """ 
 Some factories for instantiating elements in a nicer way. Used when
 creating graphs of elements.
@@ -52,3 +54,19 @@ def WebProxyFactory ():
     def CreateWebProxy (graph, node):
         return WebProxy(node, graph.Network, graph.Context) 
     return CreateWebProxy
+
+def IPSFactory (ips_policy):
+    """
+    Factory for IPS boxes
+    """
+    def CreateIPS (graph, node):
+        return IPS(ips_policy, node, graph.Network, graph.Context)
+    return CreateIPS
+
+def WANOptFactory (transformation):
+    """
+    Factory for transformation box
+    """
+    def CreateWANOpt (graph, node):
+        return WANOptTransformer(transformation, node, graph.Network, graph.Context)
+    return CreateWANOpt

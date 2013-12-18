@@ -122,8 +122,23 @@ print check.CheckIsolationProperty(graph['b'], graph['c'])
 stop = time.time()
 print stop - start
 
-REPEAT_ITERS = 1
+ResetZ3()
+from mcnet.components import DPIPolicy
+print "Without proxy DPI firewall (Graph)"
+start = time.time()
+dpi_policy = DPIPolicy('graph_check')
+graph = GraphDpiFwNoProxy (dpi_policy)
+check = mcnet.components.PropertyChecker(graph.Context, graph.Network)
+pred = dpi_policy.packetDPIPredicate(graph.Context)
+print check.CheckIsolatedIf(pred, graph['a'], graph['c'])
+print check.CheckIsolatedIf(pred, graph['b'], graph['d'])
+print check.CheckIsolatedIf(pred, graph['a'], graph['b'])
+print check.CheckIsolatedIf(pred, graph['b'], graph['c'])
+stop = time.time()
+print stop - start
 
+
+REPEAT_ITERS = 1
 ResetZ3()
 print "With proxy 2 learning firewall (Graph)"
 avg = 0
@@ -164,3 +179,4 @@ print res1
 print res2
 print res3
 print avg / REPEAT_ITERS
+
