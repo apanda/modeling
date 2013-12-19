@@ -23,6 +23,7 @@ class NetworkObject(Core):
     __metaclass__ = ABCMeta
     @abstractproperty
     def z3Node (self):
+        """Get a reference to the z3 node this class wraps around"""
         pass
     def __str__ (self):
         return str(self.z3Node)
@@ -30,4 +31,9 @@ class NetworkObject(Core):
         return self.z3Node.__hash__()
     @property
     def isEndHost (self):
+        """A simple way to determine the set of endhosts"""
         return False
+
+    def SetPolicy (self, policy):
+        """Wrap methods to set policy"""
+        raise NotImplementedError

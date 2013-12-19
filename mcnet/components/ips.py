@@ -43,6 +43,10 @@ class IPS (NetworkObject):
     def z3Node (self):
         return self.ips
 
+    def SetPolicy (self, policy):
+        """Wrap add acls"""
+        self.AddAcls(policy)
+
     def AddAcls(self, acls):
         if not isinstance(acls, list):
             acls = [acls]

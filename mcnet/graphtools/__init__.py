@@ -6,7 +6,13 @@ __all__ = ['GraphTopo', \
            'LearningFirewallFactory', \
            'IPSFactory', \
            'WANOptFactory' \
-           'CategoricalCollection']
+           'CategoricalCollection', \
+           'GraphObject', \
+            'GraphNode', \
+            'GraphAddr', \
+            'TranslateIfTranslatable', \
+            'TranslatableTuple', \
+            'TranslatableList']
 from graph_topo import GraphTopo
 from factories import EndHostFactory, \
                       LoadBalancerFactory, \
@@ -16,3 +22,10 @@ from factories import EndHostFactory, \
                       IPSFactory, \
                       WANOptFactory
 from categorical_collection import CategoricalCollection
+from graph_objects import GraphObject, \
+                          GraphNode, \
+                          GraphAddr, \
+                          TranslateIfTranslatable, \
+                          TranslatableTuple, \
+                          TranslatableList, \
+                          ConstructAclList

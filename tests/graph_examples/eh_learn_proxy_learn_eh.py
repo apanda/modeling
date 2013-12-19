@@ -1,13 +1,15 @@
 import networkx as nx
 import mcnet.graphtools
+from  mcnet.graphtools import TranslatableList, TranslatableTuple, GraphAddr, ConstructAclList
 def GraphLearn2FwProxy ():
     g = nx.Graph()
+    fw1_policy = ConstructAclList([('a', 'c'), ('c', 'a'), ('b', 'd'), ('d', 'b')])
     g.add_node('a', factory=mcnet.graphtools.EndHostFactory(), address='a')
     g.add_node('b', factory=mcnet.graphtools.EndHostFactory(), address='b')
     g.add_node('c', factory=mcnet.graphtools.EndHostFactory(), address='c')
     g.add_node('d', factory=mcnet.graphtools.EndHostFactory(), address='d')
-    g.add_node('f1', factory=mcnet.graphtools.LearningFirewallFactory(), address = 'f1')
-    g.add_node('f2', factory=mcnet.graphtools.LearningFirewallFactory(), address='f2')
+    g.add_node('f1', factory=mcnet.graphtools.LearningFirewallFactory(), address = 'f1', policy = fw1_policy)
+    g.add_node('f2', factory=mcnet.graphtools.LearningFirewallFactory(), address='f2', policy = fw1_policy)
     g.add_node('p', factory=mcnet.graphtools.WebProxyFactory(), address = 'p')
     g.add_edge('a', 'f1')
     g.add_edge('b', 'f1')
@@ -34,6 +36,7 @@ def GraphLearn2FwProxy ():
     ip_p = graph('p')
     addresses = ['a', 'b', 'c', 'd', 'f1', 'f2', 'p']
 
+
     for node in [a, b]:
         net.SetGateway(node,  fw1)
 
@@ -59,8 +62,5 @@ def GraphLearn2FwProxy ():
                          (ip_d, fw2), \
                          (ip_f1, fw1), \
                          (ip_f2, fw2)])
-    #fw.AddAcls([(ip_a, ip_c), (ip_c, ip_a), (ip_b, ip_d), (ip_d, ip_b)])
-    fw1.AddAcls([(ip_a, ip_c), (ip_c, ip_a), (ip_b, ip_d), (ip_d, ip_b)])
-    fw2.AddAcls([(ip_a, ip_c), (ip_c, ip_a), (ip_b, ip_d), (ip_d, ip_b)])
     #check = mcnet.components.PropertyChecker(ctx, net)
     return graph

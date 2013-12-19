@@ -1,13 +1,15 @@
 import networkx as nx
 import components
 from collections import Iterable
+from graph_objects import TranslateIfTranslatable
 
 class GraphTopo (object):
     def __init__ (self, graph, policies = list()):
         """Construct a network from a NetworkX graph. The network and context are available in the object
            We expect each node in the supplied graph to have a few attributes:
            1. A factory this takes a node and a reference to  and creates an object from mcnet.components. 
-           2. An address: can be a string or a list.
+           2. An address: can be a string or a list. List every possible address which a node can receive.
+           3. An optional policy. This is treated as an opaque value.
            3. An optional category naming the equivalence class to which an object belongs. If the object has no
               category then we infer that the object name is the category.
            4. An optional gateway: this avoids having to route for these nodes: useful for endhosts and maybe other
@@ -46,20 +48,27 @@ class GraphTopo (object):
         for init in self.node_initializers:
             func, args = init
             func(*args)
+        
+        ad_map = []
+        # Set node addresses
+        for k, v in address_map.iteritems():
+            k = self.node_elements[k]
+            if isinstance(v, list):
+                v = map(self.AddrRef, v)
+            else:
+                v = self.AddrRef(v)
+            ad_map.append((k, v))
+        self.net.setAddressMappings(ad_map)
+
+        # Set of policies used by nodes
+        node_policies = nx.get_node_attributes(graph, 'policy')
 
         # Take care of individual nodes
         for node in sorted(self.nodes.keys()):
             adjacent_nodes = map(lambda n: self.node_elements[n], nx.all_neighbors(graph, self.nodes[node]))
             node_obj = self.node_elements [self.nodes[node]]
-            ad_map = []
-            for k, v in address_map.iteritems():
-                k = self.node_elements[k]
-                if isinstance(v, list):
-                    v = map(self.AddrRef, v)
-                else:
-                    v = self.AddrRef(v)
-                ad_map.append((k, v))
-            self.net.setAddressMappings(ad_map)
+            if self.nodes[node] in node_policies:
+                node_obj.SetPolicy(TranslateIfTranslatable(self, node_policies[self.nodes[node]]))
             # Add adjacency element
             self.net.AdjacentNode (node_obj, adjacent_nodes)
             self.net.Attach (node_obj)

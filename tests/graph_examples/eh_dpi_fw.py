@@ -1,13 +1,15 @@
 import networkx as nx
 import mcnet.graphtools
+from  mcnet.graphtools import TranslatableList, TranslatableTuple, GraphAddr, ConstructAclList
 def GraphDpiFwNoProxy (dpi_policy):
 
+    fw1_policy = ConstructAclList([('ac0', 'cc0'),  ('bc0', 'dc0'), ('cc0', 'ac0'), ('dc0', 'bc0')])
     g = nx.Graph()
     g.add_node('a', factory=mcnet.graphtools.EndHostFactory(), address='ac0')
     g.add_node('b', factory=mcnet.graphtools.EndHostFactory(), address='bc0')
     g.add_node('c', factory=mcnet.graphtools.EndHostFactory(), address='cc0')
     g.add_node('d', factory=mcnet.graphtools.EndHostFactory(), address='dc0')
-    g.add_node('f', factory=mcnet.graphtools.IPSFactory(dpi_policy), address='fc0')
+    g.add_node('f', factory=mcnet.graphtools.IPSFactory(dpi_policy), address='fc0', policy = fw1_policy)
     g.add_edge('a', 'f')
     g.add_edge('b', 'f')
     g.add_edge('c', 'f')
@@ -35,6 +37,5 @@ def GraphDpiFwNoProxy (dpi_policy):
                           (ip_c, c), \
                           (ip_d, d)])
     #fw.AddAcls([(ip_a, ip_c), (ip_c, ip_a), (ip_b, ip_d), (ip_d, ip_b)])
-    fw.AddAcls([(ip_a, ip_c), (ip_b, ip_d)])
     #check = mcnet.components.PropertyChecker(ctx, net)
     return graph
