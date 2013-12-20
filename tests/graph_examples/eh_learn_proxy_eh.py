@@ -15,7 +15,6 @@ def GraphLearnFwProxy ():
     g.add_edge('c', 'p')
     g.add_edge('d', 'p')
     g.add_edge('f1', 'p')
-    # g.add_edge('f2', 'p')
     graph = mcnet.graphtools.GraphTopo(g)
     net, ctx = graph.Network, graph.Context
     a = graph['a']

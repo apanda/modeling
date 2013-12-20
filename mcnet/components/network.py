@@ -15,27 +15,9 @@ class Network (Core):
         solver.add(self.constraints)
 
     def AdjacencyMap (self, adjGraph):
-        for node, adjacent in adjGraph:
-            self.AdjacentNode(node, adjacent)
-
+        pass
     def AdjacentNode (self, node, adj):
-        if not isinstance(adj, list):
-            adj = [adj]
-        node = node.z3Node
-        eh = z3.Const('__adjacency_node_%s'%(node), self.ctx.node)
-        p = z3.Const('__adjacency_packet_%s'%(node), self.ctx.packet)
-        if len(adj) != 0:
-            adjacency_constraint = z3.Or(map(lambda n: eh == n.z3Node, adj))
-            # \forall e_1, p recv(e_1, h, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-            # \forall e_1, p send(h, e_1, p) \Rightarrow \exists e_2 \in Adj: e_1 = e_2
-            self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.recv(eh, node, p), \
-                                        adjacency_constraint)))
-            self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(node, eh, p), \
-                                        adjacency_constraint)))
-        else:
-            self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.recv(eh, node, p))))
-            self.constraints.append(z3.ForAll([eh, p], z3.Not(self.ctx.send(node, eh, p))))
-
+        pass
     def SaneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.ctx.node)
         p = z3.Const('__saneSend_p_%s'%(node), self.ctx.packet)
