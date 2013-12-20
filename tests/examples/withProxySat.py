@@ -11,7 +11,6 @@ def withProxySat ():
     d = components.EndHost(ctx.d, net, ctx) 
     fw = components.AclFirewall(ctx.fw, net, ctx)
     p = components.WebProxy(ctx.p, net, ctx)
-    net.AdjacencyMap([(a, fw), (b, fw), (c, p), (d, p), (fw, [a, b, p]), (p, [c, d, fw])])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
                             (c, ctx.ip_c), \

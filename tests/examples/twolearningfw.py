@@ -12,7 +12,6 @@ def TwoLearningFw ():
     fw1 = components.AclFirewall(ctx.fw1, net, ctx)
     fw2 = components.AclFirewall(ctx.fw2, net, ctx)
     p = components.WebProxy(ctx.p, net, ctx)
-    net.AdjacencyMap([(a, fw1), (b, fw1), (c, fw2), (d, fw2), (fw1, [a, b, p]), (p, [fw1, fw2]), (fw2, [c, d, p])])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
                             (c, ctx.ip_c), \

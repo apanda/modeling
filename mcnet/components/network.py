@@ -14,10 +14,6 @@ class Network (Core):
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 
-    def AdjacencyMap (self, adjGraph):
-        pass
-    def AdjacentNode (self, node, adj):
-        pass
     def SaneSend (self, node):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.ctx.node)
         p = z3.Const('__saneSend_p_%s'%(node), self.ctx.packet)

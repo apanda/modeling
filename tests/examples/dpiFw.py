@@ -13,7 +13,6 @@ def dpiFw ():
     c = components.EndHost(ctx.c, net, ctx) 
     d = components.EndHost(ctx.d, net, ctx) 
     fw = components.IPS(dpi_policy, ctx.fw, net, ctx)
-    net.AdjacencyMap([(a, fw), (b, fw), (c, fw), (d, fw), (fw, [a, b, c, d])])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
                             (c, ctx.ip_c), \

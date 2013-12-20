@@ -17,8 +17,6 @@ def dpiCompress ():
     fw = components.IPS(dpi_policy, ctx.fw, net, ctx)
     zp = components.WANOptTransformer(gzip.compress, ctx.zip, net, ctx)
     uzp = components.WANOptTransformer(gzip.decompress, ctx.uzip, net, ctx)
-    net.AdjacencyMap([(a, [zp, uzp]), (b, [zp, uzp]), (c, [zp, uzp]),\
-                      (d, [uzp, zp]), (fw, [zp, uzp]), (zp, [a, b, c, d, fw]), (uzp, [a, b, c, d, fw])])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
                             (c, ctx.ip_c), \
