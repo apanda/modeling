@@ -69,8 +69,6 @@ class GraphTopo (object):
             node_obj = self.node_elements [self.nodes[node]]
             if self.nodes[node] in node_policies:
                 node_obj.SetPolicy(TranslateIfTranslatable(self, node_policies[self.nodes[node]]))
-            # Add adjacency element
-            self.net.AdjacentNode (node_obj, adjacent_nodes)
             self.net.Attach (node_obj)
         
         # Set gateway. This should not affect things when this attribute is not set
