@@ -2,5 +2,6 @@
 -   Enforcement
 -   Change to the new post 12/19 world
     -   We now accept a set of nodes
-    -   Routing/traversal policy responsible for building graph.
-    -   Make things like proxy model state: if the proxy has appropriate data boom
+    -   Make things like proxy model state: if the proxy has appropriate data boom (kind of)
+-   New eval based on Katerina's e-mail.
+-   Failures?
