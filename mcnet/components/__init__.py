@@ -11,9 +11,12 @@ __all__ = ['Core', \
            "WANOptTransformer", \
            'CompressionAlgorithm', \
            'DPIPolicy', \
-           'PropertyChecker']
+           'PropertyChecker', \
+           'failurePredicate', \
+           'destAddrPredicate', \
+           'srcAddrPredicate']
 from core import Core, NetworkObject
-from context import Context
+from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
 from endhost import EndHost
 from network import Network
 from loadbalancer import LoadBalancer

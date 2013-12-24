@@ -141,3 +141,8 @@ class Context(Core):
 def failurePredicate (context):
     return lambda node:  z3.Not(context.failed (node.z3Node))
 
+def destAddrPredicate (context, address):
+    return lambda p: context.packet.dest(p) == address
+
+def srcAddrPredicate (context, address):
+    return lambda p: context.packet.src(p) == address

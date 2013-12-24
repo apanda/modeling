@@ -1,5 +1,5 @@
 # Class for network functionality
-from . import Core
+from . import Core, destAddrPredicate
 import z3
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
@@ -44,14 +44,24 @@ class Network (Core):
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
+        compositionPolicy = map(lambda (d, n): (destAddrPredicate(self.ctx, d), n), routing_table)
+        self.CompositionPolicy(node, compositionPolicy)
+
+    def CompositionPolicy (self, node, policy):
+        """ Composition policies steer packets between middleboxes.
+            Policy is of the form predicate -> node"""
         p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
         eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
         node = node.z3Node
-        for entry in routing_table:
-            # \forall p: send(n, e[1], p) \iff p.dest == e[0]
+        for (predicate, dnode) in policy:
+            # The implication in this direction allows for the existence of things like firewalls
+            # that might drop the packet instead of forwarding it.
+
+            # \forall p: send(n, e, p) \land p.dest == e[0] \Rightarrow e == e[1]
             self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
-                                               (self.ctx.packet.dest(p) == entry[0])), 
-                                               eh == entry[1].z3Node)))
+                                               predicate(p)), 
+                                               eh == dnode.z3Node)))
+
     def SetGateway (self, node, gateway):
         """ Set a node so it sends all packets to gateway"""
         p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
