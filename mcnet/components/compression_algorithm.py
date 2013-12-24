@@ -1,6 +1,6 @@
 from . import Core
 import z3
-import gmpy2
+# import gmpy2
 class CompressionAlgorithm (Core):
     """A compression algorithm is a set of two function:
        - compress
@@ -11,7 +11,8 @@ class CompressionAlgorithm (Core):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
         self.const = CompressionAlgorithm.PRIME
-        CompressionAlgorithm.PRIME = int(gmpy2.next_prime(CompressionAlgorithm.PRIME))
+        CompressionAlgorithm.PRIME = CompressionAlgorithm.PRIME + 1
+        #int(gmpy2.next_prime(CompressionAlgorithm.PRIME))
         self.constraints = list ()
         self._createCompressionFunction ()
 
