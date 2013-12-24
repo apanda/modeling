@@ -1,5 +1,5 @@
 # Class for network functionality
-from . import Core, destAddrPredicate
+from . import Core, destAddrPredicate, NetworkObject
 import z3
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
@@ -27,20 +27,22 @@ class Network (Core):
         """Constraints to ensure that a host has only the addresses in the map"""
         tempAddr = z3.Const("__setAdMapExclusive_address", self.ctx.address)
         for host, addr in addrmap:
+            if isinstance(host, NetworkObject):
+                host = host.z3Node
             # addrToHost(h) = a_h
             # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
             if not isinstance(addr, list) or len(addr) == 0:
-                self.constraints.append(self.ctx.addrToHost(addr) == host.z3Node)
+                self.constraints.append(self.ctx.addrToHost(addr) == host)
                 self.constraints.append(z3.ForAll([tempAddr], \
-                            self.ctx.hostHasAddr(host.z3Node, tempAddr) == (tempAddr == \
+                            self.ctx.hostHasAddr(host, tempAddr) == (tempAddr == \
                                             addr)))
             else:
                 addr_clause = z3.Or(map(lambda a: tempAddr == a,  addr))
                 self.constraints.append(z3.ForAll([tempAddr], \
-                        z3.Implies(self.ctx.hostHasAddr(host.z3Node, tempAddr), \
+                        z3.Implies(self.ctx.hostHasAddr(host, tempAddr), \
                                             addr_clause)))
                 self.constraints.append(self.ctx.addrToHost(addr[0]) ==\
-                                    host.z3Node)
+                                    host)
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
@@ -66,18 +68,21 @@ class Network (Core):
         """ Set a node so it sends all packets to gateway"""
         p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
         eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
-        self.CompositionPolicy(node, [(lambda p: True, gateway)])
+        #self.CompositionPolicy(node, [(lambda p: True, gateway)])
+        self.SetIsolationConstraint(node, gateway)
     
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but
         useful when interfering policies are in play."""
 
         if not isinstance(adjacencies, list):
-            adjacencies = list(adjacencies)
+            adjacencies = [adjacencies]
         node = node.z3Node
         n = z3.Const ('__node_Isolation_%s'%(node), self.ctx.node)
         p = z3.Const ('__pkt_Isolation_%s'%(node), self.ctx.packet)
-        clause = map(lambda a: n == a.z3Node, adjacencies)
+        adjacencies = map(lambda a: a.z3Node if isinstance(a, NetworkObject) \
+                                         else a, adjacencies)
+        clause = z3.Or(map(lambda a: n == a, adjacencies))
         self.constraints.append(z3.ForAll([n, p], \
                                   z3.Implies(self.ctx.send(node, n, p), \
                                              clause)))

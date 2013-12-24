@@ -97,6 +97,14 @@ print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
 stop = time.time()
 print stop - start
 
+from policy_test import *
+ResetZ3()
+print "Policy Test SAT"
+start = time.time()
+TrivialPolicyTest ('A', 'B') 
+stop = time.time()
+print stop - start
+
 from graph_examples import *
 ResetZ3()
 print "Without proxy ACL firewall (Graph)"
