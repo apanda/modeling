@@ -66,10 +66,7 @@ class Network (Core):
         """ Set a node so it sends all packets to gateway"""
         p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
         eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
-        node = node.z3Node
-        gw = gateway.z3Node
-        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(node, eh, p),
-                                                              eh == gw)))
+        self.CompositionPolicy(node, [(lambda p: True, gateway)])
     @property
     def EndHosts (self):
         """Return all currently attached endhosts"""
