@@ -67,6 +67,24 @@ class Network (Core):
         p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
         eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
         self.CompositionPolicy(node, [(lambda p: True, gateway)])
+    
+    def SetIsolationConstraint (self, node,  adjacencies):
+        """Set isolation constraints on a node. Doesn't need to be set but
+        useful when interfering policies are in play."""
+
+        if not isinstance(adjacencies, list):
+            adjacencies = list(adjacencies)
+        node = node.z3Node
+        n = z3.Const ('__node_Isolation_%s'%(node), self.ctx.node)
+        p = z3.Const ('__pkt_Isolation_%s'%(node), self.ctx.packet)
+        clause = map(lambda a: n == a.z3Node, adjacencies)
+        self.constraints.append(z3.ForAll([n, p], \
+                                  z3.Implies(self.ctx.send(node, n, p), \
+                                             clause)))
+        self.constraints.append(z3.ForAll([n, p], \
+                                  z3.Implies(self.ctx.recv(n, node, p), \
+                                             clause)))
+
     @property
     def EndHosts (self):
         """Return all currently attached endhosts"""
