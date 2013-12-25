@@ -163,6 +163,7 @@ for iter in xrange(REPEAT_ITERS):
     stop = time.time()
     print "This iter %f"%(stop - start)
     avg += stop - start
+    ResetZ3()
 print res0
 print res1
 print res2
@@ -184,6 +185,7 @@ for iter in xrange(REPEAT_ITERS):
     stop = time.time()
     print "This iter %f"%(stop - start)
     avg += stop - start
+    ResetZ3()
 print res0
 print res1
 print res2
