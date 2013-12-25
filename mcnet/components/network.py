@@ -63,6 +63,13 @@ class Network (Core):
             self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
                                                predicate(p)), 
                                                eh == dnode.z3Node)))
+        
+
+
+        neg_policy = z3.Not(z3.Or(map(lambda (pred, dnode): pred(p), policy)))
+        self.constraints.append(z3.ForAll([p], z3.Implies(neg_policy, \
+                                                        z3.Not(z3.Exists([eh], 
+                                                                self.ctx.send(node, eh, p))))))
 
     def SetGateway (self, node, gateway):
         """ Set a node so it sends all packets to gateway"""

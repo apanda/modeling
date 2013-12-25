@@ -139,23 +139,7 @@ class Context(Core):
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.send(eh1, eh2, p))))))
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.recv(eh2, eh1, p))))))
 
-        # Sane origin policy
-        self.constraints.append(z3.ForAll([eh1, eh2, eh3, eh5, p], \
-                                    z3.Implies(z3.And(self.send(eh1, eh2, p), \
-                                                      z3.Not(self.recv(eh5, eh1, p)), \
-                                                        self.packet.origin(p) == eh3), \
-                                               z3.Or(eh1 == eh3, \
-                                                     z3.Exists([eh4, p2], \
-                                                        z3.And(self.recv(eh4, eh1, p2), \
-                                                                self.packet.origin(p2) == eh3))))))
-
-        #self.constraints.append(z3.ForAll([eh1, eh2, eh3, p], \
-        #                            z3.Implies(z3.And(self.send(eh1, eh2, p), \
-        #                                              z3.Not(self.recv(eh3, eh1, p))), \
-        #                                       z3.Or(self.packet.origin(p) == eh1, \
-        #                                             z3.Exists([p2, eh4], \
-        #                                                z3.And(self.recv(eh4, eh1, p2), \
-        #                                                       self.packet.origin(p2) == self.packet.origin(p)))))))
+        # TODO: Sane origin policy
 
 def failurePredicate (context):
     return lambda node:  z3.Not(context.failed (node.z3Node))

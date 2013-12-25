@@ -11,6 +11,8 @@ start = time.time()
 (eh, check) = TwoLearningFw()
 print check.CheckIsolationProperty(eh[0], eh[2])
 print check.CheckIsolationProperty(eh[1], eh[3])
+print check.CheckIsolationProperty(eh[0], eh[1])
+print check.CheckIsolationProperty(eh[2], eh[3])
 stop = time.time()
 print stop - start
 ResetZ3()
