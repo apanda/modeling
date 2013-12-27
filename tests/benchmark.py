@@ -5,6 +5,16 @@ import mcnet.components
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
+
+ResetZ3 ()
+print "Running simple trivial test"
+start = time.time()
+out = Trivial()
+assert (z3.sat == out.check.CheckIsolationProperty(out.a, out.b)) 
+stop = time.time()
+print stop - start
+ResetZ3 ()
+
 print "Running timing tests"
 print "Two Learning Firewalls"
 start = time.time()
@@ -51,54 +61,6 @@ print check.CheckImpliedIsolation(eh[2], eh[0], eh[0], eh[2])
 stop = time.time()
 print stop - start
 
-ResetZ3()
-print "Intrusion Prevention System (UNSAT)"
-start = time.time()
-d = dpiFw()
-chk = d['check']
-pred = d['policy'].packetDPIPredicate(d['ctx'])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
-stop = time.time()
-print stop - start
-
-ResetZ3()
-print "Intrusion Prevention System with compression SAT"
-start = time.time()
-d = dpiCompress()
-chk = d['check']
-pred = d['policy'].packetDPIPredicate(d['ctx'])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
-stop = time.time()
-print stop - start
-
-ResetZ3()
-print "Intrusion Prevention System with compression (without decomp) SAT"
-start = time.time()
-d = dpiCompress2()
-chk = d['check']
-primitive = d['policy'].packetDPIPredicate(d['ctx'])
-decompress = d['gzip'].packetDecompressionPredicate(d['ctx'])
-pred = lambda p: (primitive(p) or primitive(decompress(p)))
-pred = primitive
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][1])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][0], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][2])
-print chk.CheckIsolatedIf(pred, d['endhosts'][1], d['endhosts'][3])
-print chk.CheckIsolatedIf(pred, d['endhosts'][2], d['endhosts'][3])
-stop = time.time()
-print stop - start
-
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"
@@ -131,22 +93,6 @@ print check.CheckIsolationProperty(graph['a'], graph['b'])
 print check.CheckIsolationProperty(graph['b'], graph['c'])
 stop = time.time()
 print stop - start
-
-ResetZ3()
-from mcnet.components import DPIPolicy
-print "Without proxy DPI firewall (Graph)"
-start = time.time()
-dpi_policy = DPIPolicy('graph_check')
-graph = GraphDpiFwNoProxy (dpi_policy)
-check = mcnet.components.PropertyChecker(graph.Context, graph.Network)
-pred = dpi_policy.packetDPIPredicate(graph.Context)
-print check.CheckIsolatedIf(pred, graph['a'], graph['c'])
-print check.CheckIsolatedIf(pred, graph['b'], graph['d'])
-print check.CheckIsolatedIf(pred, graph['a'], graph['b'])
-print check.CheckIsolatedIf(pred, graph['b'], graph['c'])
-stop = time.time()
-print stop - start
-
 
 REPEAT_ITERS = 1
 ResetZ3()

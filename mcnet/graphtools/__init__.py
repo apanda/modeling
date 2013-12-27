@@ -5,7 +5,6 @@ __all__ = ['GraphTopo', \
            'AclFirewallFactory', \
            'LearningFirewallFactory', \
            'IPSFactory', \
-           'WANOptFactory' \
            'CategoricalCollection', \
            'GraphObject', \
             'GraphNode', \
@@ -19,8 +18,7 @@ from factories import EndHostFactory, \
                       WebProxyFactory, \
                       AclFirewallFactory, \
                       LearningFirewallFactory, \
-                      IPSFactory, \
-                      WANOptFactory
+                      IPSFactory
 from categorical_collection import CategoricalCollection
 from graph_objects import GraphObject, \
                           GraphNode, \

@@ -91,9 +91,6 @@ class Context(Core):
         # And a self.packet
         p = z3.Const('__base_packet', self.packet)
         p2 = z3.Const('__base_packet_2', self.packet)
-        # A host has address iff address belongs to host
-        # \forall e_1 \in Node,\ a_1\in Address: hostHasAddr(e_1, a_1) \iff addrToHost(a_1) = e_1
-        # self.constraints.append(z3.ForAll([eh1, ad1], self.hostHasAddr(eh1, ad1) == (self.addrToHost(ad1) == eh1)))
 
         # All sent packets are received
         # \forall e_1, e_2\in Node , p\in Packet: recv(e_1, e_2, p) \iff send(e_1, e_2, p)

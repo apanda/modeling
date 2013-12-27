@@ -8,7 +8,6 @@ __all__ = ['Core', \
            'WebProxy', \
            'LoadBalancer', \
            'IPS', \
-           "WANOptTransformer", \
            'CompressionAlgorithm', \
            'DPIPolicy', \
            'PropertyChecker', \
@@ -26,5 +25,4 @@ from webproxy import WebProxy
 from dpi_policy import DPIPolicy
 from ips import IPS
 from compression_algorithm import CompressionAlgorithm
-from wan_opt import WANOptTransformer
 from checker import PropertyChecker
