@@ -78,7 +78,10 @@ from policy_test import *
 ResetZ3()
 print "Policy Test SAT"
 start = time.time()
-TrivialPolicyTest ('A', 'B') 
+res, chk, ctx = TrivialPolicyTest ('A', 'B') 
+assert res == z3.unsat, \
+        "No one can produce bad packet in this case"
+print res
 stop = time.time()
 print stop - start
 

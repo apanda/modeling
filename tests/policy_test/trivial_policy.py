@@ -24,36 +24,64 @@ def TrivialPolicyTest (src, dest):
     assert (dest == 'B')
     A = components.EndHost(ctx.A, net, ctx) 
     B = components.EndHost(ctx.B, net, ctx)
+    # C = components.EndHost(ctx.C, net, ctx)
     fw1 = components.AclFirewall(ctx.fw1, net, ctx)
     fw2 = components.AclFirewall(ctx.fw2, net, ctx)
+    # fw3 = components.AclFirewall(ctx.fw3, net, ctx)
     p = components.WebProxy(ctx.p, net, ctx)
     net.SetGateway(A, fw1)
     net.SetGateway(B, fw2)
 
     net.RoutingTable(fw1, [(ctx.a_A, A),
-                          (ctx.a_p, p),
-                          (ctx.a_fw2, p),
                           (ctx.a_B, p),
-                          (ctx.a_fw3, p),
+                          (ctx.a_p, p),
                           (ctx.a_C, p)])
 
     net.RoutingTable(fw2, [(ctx.a_B, B),
                           (ctx.a_p, p),
-                          (ctx.a_fw1, p),
                           (ctx.a_A, p),
-                          (ctx.a_fw3, p),
                           (ctx.a_C, p)])
 
     net.RoutingTable(p, [(ctx.a_B, fw2),
-                          (ctx.a_A, fw1),
-                          (ctx.a_fw1, fw1),
-                          (ctx.a_fw2, fw2)])
+                          (ctx.a_A, fw1)])
+
+    #net.RoutingTable(fw3, [(ctx.a_C, C),
+    #                       (ctx.a_A, p), 
+    #                       (ctx.a_B, p),
+    #                       (ctx.a_p, p)])
     fw1.AddAcls([(ctx.a_A, ctx.a_B), (ctx.a_B, ctx.a_A)])
     fw2.AddAcls([(ctx.a_A, ctx.a_B), (ctx.a_B, ctx.a_A)])
+    #fw3.AddAcls([(ctx.a_A, ctx.a_B), (ctx.a_B, ctx.a_A)])
+
     net.SetIsolationConstraint(fw1, [A, p])
     net.SetIsolationConstraint(fw2, [B, p])
     net.SetIsolationConstraint(p, [fw1, fw2, ctx.fw3])
+    import z3
+    
+    n0 = z3.Const('__triv_node_0', ctx.node)
+    n1 = z3.Const('__triv_node_1', ctx.node)
+    p0 = z3.Const('__triv_packet_0', ctx.packet)
+    
+    # This is a part of policy?
+
+    net.constraints.append( \
+            z3.ForAll([n0, n1, p0], \
+                z3.Implies( \
+                  z3.And(ctx.send(n0, n1, p0), 
+                        z3.Or(n0 == ctx.C, \
+                              n0 == ctx.fw3)), \
+                        z3.Not(z3.And(z3.Or(ctx.packet.dest(p0) == ctx.a_B, ctx.packet.dest(p0) == ctx.a_p), 
+                                      ctx.packet.origin(p0) == ctx.A)))))
+    net.constraints.append( \
+            z3.ForAll([n0, n1, p0], \
+                z3.Implies( \
+                  z3.And(ctx.send(n0, n1, p0), 
+                        z3.Or(n0 == ctx.C, \
+                              n0 == ctx.fw3)), \
+                        z3.Not(z3.And(z3.Or(ctx.packet.dest(p0) == ctx.a_A, ctx.packet.dest(p0) == ctx.a_p), 
+                                      ctx.packet.origin(p0) == ctx.B)))))
+    
     net.Attach(A, B, fw1, fw2, p)
     check = components.PropertyChecker(ctx, net)
-    print check.CheckIsolationProperty(A, B)
-    return check, ctx
+    res = check.CheckIsolationProperty(A, B)
+    return res, check, ctx

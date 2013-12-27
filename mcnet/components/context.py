@@ -78,6 +78,9 @@ class Context(Core):
                 self.src_port(p1) == self.src_port(p2), \
                 self.dest_port(p1) == self.dest_port(p2))
 
+    def PacketContentEqual (self, p1, p2):
+        return self.packet.id(p1) == self.packet.id(p2)
+
     def _baseCondition (self):
         """ Set up base conditions for the network"""
         # A few temporary nodes
@@ -86,6 +89,7 @@ class Context(Core):
         eh3 = z3.Const('_base_eh3', self.node)
         eh4 = z3.Const('_base_eh4', self.node)
         eh5 = z3.Const('_base_eh5', self.node)
+        eh6 = z3.Const('_base_eh6', self.node)
         # An self.address
         ad1 = z3.Const('_base_ad1', self.address)
         # And a self.packet
@@ -98,8 +102,16 @@ class Context(Core):
         
         # All received self.packets were once sent (don't invent self.packets).
         # \forall e_1, e_2, p: recv (e_1, e_2, p) \Rightarrow \exists e_3 send(addrToHost(p), e_3, p)
+        
         self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p),
-                                         z3.Exists([eh3], self.send(self.addrToHost(self.packet.src(p)), eh3, p)))))
+                                         z3.Or(z3.Exists([eh3], self.send(self.addrToHost(self.packet.src(p)), eh3, p)), \
+                                               z3.Exists([eh3, p2], z3.And(self.send(self.addrToHost(self.packet.src(p)), eh3, p2), \
+                                                       z3.Exists([eh4, eh5], 
+                                                           z3.And(self.recv(eh5, eh4, p2), \
+                                                                  self.send(eh4, eh6, p), \
+                                                                  self.etime(eh4, p2, self.recv_event) < \
+                                                                        self.etime(eh4, p, self.send_event))), \
+                                                       self.PacketsHeadersEqual(p, p2)))))))
 
         # Turn off loopback, loopback makes me sad
         # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
@@ -136,8 +148,24 @@ class Context(Core):
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.send(eh1, eh2, p))))))
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.recv(eh2, eh1, p))))))
 
-        # TODO: Sane origin policy
-
+        # Sending packet with origin implies either you are origin or you previously received a packet that
+        # had the right origin
+        self.constraints.append( \
+                z3.ForAll([eh1, eh2, eh3, p], \
+                    z3.Implies( \
+                        z3.And(self.send(eh1, eh2, p), \
+                             self.packet.origin(p) == eh3),
+                        z3.Or(eh3 == eh1, \
+                              z3.Exists([eh4], \
+                              z3.And(self.recv(eh4, eh1, p), \
+                                    self.etime(eh1, p, self.recv_event) < \
+                                        self.etime(eh1, p, self.send_event))), \
+                              z3.Exists([eh4, p2], \
+                                z3.And(p2 != p, \
+                                self.packet.origin(p2) == eh3, \
+                                self.recv(eh4, eh1, p2), \
+                                self.etime(eh1, p2, self.recv_event) < \
+                                    self.etime(eh1, p, self.send_event)))))))
 def failurePredicate (context):
     return lambda node:  z3.Not(context.failed (node.z3Node))
 
