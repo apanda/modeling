@@ -10,7 +10,8 @@ ResetZ3 ()
 print "Running simple trivial test"
 start = time.time()
 out = Trivial()
-assert (z3.sat == out.check.CheckIsolationProperty(out.a, out.b)) 
+assert z3.sat == out.check.CheckIsolationProperty(out.a, out.b), \
+        "Trivial Check Failed"
 stop = time.time()
 print stop - start
 ResetZ3 ()
@@ -19,10 +20,22 @@ print "Running timing tests"
 print "Two Learning Firewalls"
 start = time.time()
 (eh, check) = TwoLearningFw()
-print check.CheckIsolationProperty(eh[0], eh[2])
-print check.CheckIsolationProperty(eh[1], eh[3])
-print check.CheckIsolationProperty(eh[0], eh[1])
-print check.CheckIsolationProperty(eh[2], eh[3])
+c1 = check.CheckIsolationProperty(eh[0], eh[2])
+assert z3.unsat == c1, \
+        "Should be unsat; the firewall drops all packets from A -> C"
+print c1
+c2 = check.CheckIsolationProperty(eh[1], eh[3])
+assert z3.unsat == c2,\
+        "Should be unsat; firewall drops all packets from B -> D"
+print c2
+c3 = check.CheckIsolationProperty(eh[0], eh[1])
+assert z3.sat == c3, \
+        "Should be SAT; firewall allows packet from A -> B"
+print c3
+c4 = check.CheckIsolationProperty(eh[2], eh[3])
+assert z3.sat == c4, \
+        "Should be SAT; firewall allows packets from B -> C"
+print c4
 stop = time.time()
 print stop - start
 ResetZ3()
