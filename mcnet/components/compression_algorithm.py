@@ -1,18 +1,16 @@
 from . import Core
 import z3
-# import gmpy2
+import pyprimes
 class CompressionAlgorithm (Core):
     """A compression algorithm is a set of two function:
        - compress
        - decompress
        Decompress is the inverse of compress."""
-    PRIME = 2
+    PRIMES = pyprimes.primes() 
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
-        self.const = CompressionAlgorithm.PRIME
-        CompressionAlgorithm.PRIME = CompressionAlgorithm.PRIME + 1
-        #int(gmpy2.next_prime(CompressionAlgorithm.PRIME))
+        self.const = next(CompressionAlgorithm.PRIMES)
         self.constraints = list ()
         self._createCompressionFunction ()
 
