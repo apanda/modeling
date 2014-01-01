@@ -102,16 +102,26 @@ class Context(Core):
         
         # All received self.packets were once sent (don't invent self.packets).
         # \forall e_1, e_2, p: recv (e_1, e_2, p) \Rightarrow \exists e_3 send(addrToHost(p), e_3, p)
-        
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p),
-                                         z3.Or(z3.Exists([eh3], self.send(self.addrToHost(self.packet.src(p)), eh3, p)), \
-                                               z3.Exists([eh3, p2], z3.And(self.send(self.addrToHost(self.packet.src(p)), eh3, p2), \
-                                                       z3.Exists([eh4, eh5], 
-                                                           z3.And(self.recv(eh5, eh4, p2), \
-                                                                  self.send(eh4, eh6, p), \
-                                                                  self.etime(eh4, p2, self.recv_event) < \
+        # eh3 is the first hop from source
+        # p is the received packet
+        # p2 is the original pakcet
+        # eh4 is the node that modifies p2 to produce p
+        # eh5 and eh6 are the hops before and after eh4
+        self.constraints.append(z3.ForAll([eh1, eh2, p], \
+                                          z3.Implies(self.recv(eh1, eh2, p), \
+                                                    z3.Or( \
+                                                        z3.Exists([eh3], 
+                                                            self.send(self.addrToHost(self.packet.src(p)), eh3, p)), \
+                                                        z3.Exists([eh3, p2], \
+                                                            z3.And(\
+                                                                self.send(self.addrToHost(self.packet.src(p)), eh3, p2), \
+                                                                z3.Exists([eh4, eh5], 
+                                                                   z3.And(
+                                                                      self.recv(eh5, eh4, p2), \
+                                                                      self.send(eh4, eh6, p), \
+                                                                      self.etime(eh4, p2, self.recv_event) < \
                                                                         self.etime(eh4, p, self.send_event))), \
-                                                       self.PacketsHeadersEqual(p, p2)))))))
+                                                                self.PacketsHeadersEqual(p, p2)))))))
 
         # Turn off loopback, loopback makes me sad
         # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
