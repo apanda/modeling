@@ -61,6 +61,24 @@ assert is_false(result.model.eval(out.ctx.send(out.a.z3Node, out.w.z3Node, resul
 stop = time.time()
 print stop - start
 
+print "Running simple compression-decompression test"
+ResetZ3()
+start = time.time()
+out = TrivialWanOptimizerDeOptimizer()
+result = out.check.CheckIsolatedIf(lambda p: z3.Not(out.ctx.send(out.w0.z3Node, out.w1.z3Node, p)), out.a, out.b)
+assert z3.sat == result.result, \
+        "Nothing is blocking the way, packets should get from A -> B"
+assert is_true(result.model.eval(out.ctx.send(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
+        "Violating packet was never sent"
+assert is_true(result.model.eval(out.ctx.recv(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
+        "Violating packet was never received"
+assert is_true(result.model.eval(out.ctx.recv(out.a.z3Node, out.w0.z3Node, result.violating_packet))), \
+        "The packet that gets to b was sent by a"
+assert is_false(result.model.eval(out.ctx.send(out.w0.z3Node, out.w1.z3Node, result.violating_packet))), \
+        "The original packet never goes through the network"
+stop = time.time()
+print stop - start
+
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"

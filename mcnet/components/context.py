@@ -100,29 +100,6 @@ class Context(Core):
         # \forall e_1, e_2\in Node , p\in Packet: recv(e_1, e_2, p) \iff send(e_1, e_2, p)
         self.constraints.append (z3.ForAll([eh1, eh2, p], self.recv(eh1, eh2, p) ==  self.send(eh1, eh2, p)))
 
-        # All received self.packets were once sent (don't invent self.packets).
-        # \forall e_1, e_2, p: recv (e_1, e_2, p) \Rightarrow \exists e_3 send(addrToHost(p), e_3, p)
-        # eh3 is the first hop from source
-        # p is the received packet
-        # p2 is the original pakcet
-        # eh4 is the node that modifies p2 to produce p
-        # eh5 and eh6 are the hops before and after eh4
-        #self.constraints.append(z3.ForAll([eh1, eh2, p], \
-                                          #z3.Implies(self.recv(eh1, eh2, p), \
-                                                    #z3.Or( \
-                                                        #z3.Exists([eh3],
-                                                            #self.send(self.addrToHost(self.packet.src(p)), eh3, p)), \
-                                                        #z3.Exists([eh3, p2], \
-                                                            #z3.And(\
-                                                                #self.send(self.addrToHost(self.packet.src(p)), eh3, p2), \
-                                                                #z3.Exists([eh4, eh5],
-                                                                   #z3.And(
-                                                                      #self.recv(eh5, eh4, p2), \
-                                                                      #self.send(eh4, eh6, p), \
-                                                                      #self.etime(eh4, p2, self.recv_event) < \
-                                                                        #self.etime(eh4, p, self.send_event))), \
-                                                                #self.PacketsHeadersEqual(p, p2)))))))
-
         # Turn off loopback, loopback makes me sad
         # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
         # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
@@ -146,7 +123,7 @@ class Context(Core):
         # \forall e_1, p: (\notexists e_2: recv(e_2, e_1, p)) \Rightarrow etime(e_1, p, R) = 0
         self.constraints.append(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.recv(eh2, eh1, p))), \
                                     self.etime(eh1, p, self.recv_event) == 0)))
-        # Unreceved packets always have send etime of 0
+        # Unsent packets always have send etime of 0
         # \forall e_1, p: (\notexists e_2: send(e_1, e_2, p)) \Rightarrow etime(e_1, p, S) = 0
         self.constraints.append(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))), \
                                     self.etime(eh1, p, self.send_event) == 0)))
@@ -158,24 +135,6 @@ class Context(Core):
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.send(eh1, eh2, p))))))
         self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.recv(eh2, eh1, p))))))
 
-        # Sending packet with origin implies either you are origin or you previously received a packet that
-        # had the right origin
-        #self.constraints.append( \
-                #z3.ForAll([eh1, eh2, eh3, p], \
-                    #z3.Implies( \
-                        #z3.And(self.send(eh1, eh2, p), \
-                             #self.packet.origin(p) == eh3),
-                        #z3.Or(eh3 == eh1, \
-                              #z3.Exists([eh4], \
-                              #z3.And(self.recv(eh4, eh1, p), \
-                                    #self.etime(eh1, p, self.recv_event) < \
-                                        #self.etime(eh1, p, self.send_event))), \
-                              #z3.Exists([eh4, p2], \
-                                #z3.And(p2 != p, \
-                                #self.packet.origin(p2) == eh3, \
-                                #self.recv(eh4, eh1, p2), \
-                                #self.etime(eh1, p2, self.recv_event) < \
-                                    #self.etime(eh1, p, self.send_event)))))))
 def failurePredicate (context):
     return lambda node:  z3.Not(context.failed (node.z3Node))
 

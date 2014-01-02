@@ -61,14 +61,13 @@ class Network (Core):
 
             # \forall p: send(n, e, p) \land p.dest == e[0] \Rightarrow e == e[1]
             self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
-                                               predicate(p)), 
+                                               predicate(p)), \
                                                eh == dnode.z3Node)))
-        
 
 
         neg_policy = z3.Not(z3.Or(map(lambda (pred, dnode): pred(p), policy)))
         self.constraints.append(z3.ForAll([p], z3.Implies(neg_policy, \
-                                                        z3.Not(z3.Exists([eh], 
+                                                        z3.Not(z3.Exists([eh], \
                                                                 self.ctx.send(node, eh, p))))))
 
     def SetGateway (self, node, gateway):
@@ -77,7 +76,7 @@ class Network (Core):
         eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
         #self.CompositionPolicy(node, [(lambda p: True, gateway)])
         self.SetIsolationConstraint(node, gateway)
-    
+
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but
         useful when interfering policies are in play."""
@@ -100,4 +99,5 @@ class Network (Core):
     @property
     def EndHosts (self):
         """Return all currently attached endhosts"""
-        return {str(el.z3Node) : el for el in filter(lambda e: e.isEndHost, self.elements)} 
+        return {str(el.z3Node) : el for el in filter(lambda e: e.isEndHost, self.elements)}
+
