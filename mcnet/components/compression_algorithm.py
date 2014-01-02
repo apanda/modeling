@@ -33,7 +33,7 @@ class CompressionAlgorithm (Core):
                                 self.decompress(self.compress(uncompressed)) == uncompressed)) 
         
     def packetCompressionPredicate (self, context):
-        return lambda p: self.compress(context.packet.id(p))
+        return lambda p: self.compress(context.packet.body(p))
 
     def packetDecompressionPredicate (self, context):
-        return lambda p: self.decompress(context.packet.id(p))
+        return lambda p: self.decompress(context.packet.body(p))

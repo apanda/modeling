@@ -10,6 +10,7 @@ __all__ = ['Core', \
            'IPS', \
            'CompressionAlgorithm', \
            'DPIPolicy', \
+           'WanOptimizer', \
            'PropertyChecker', \
            'failurePredicate', \
            'destAddrPredicate', \
@@ -24,5 +25,6 @@ from learningfirewall import LearningFirewall
 from webproxy import WebProxy
 from dpi_policy import DPIPolicy
 from ips import IPS
+from wan_opt import WanOptimizer
 from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker

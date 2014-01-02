@@ -1,7 +1,7 @@
 from . import NetworkObject
 import z3
 
-class WebProxy (NetworkObject):
+class IsolatedWebProxy (NetworkObject):
     """A caching web proxy"""
     def _init (self, node, network, context):
         self.proxy = node
@@ -18,6 +18,7 @@ class WebProxy (NetworkObject):
     def _addConstraints (self, solver):
         solver.add(self.constraints)
     
+    # TODO: Add some constraints to take care of isolation policies
     def _webProxyConstraints (self):
         p = z3.Const('__webproxy_constraint_packet1_%s'%(self.proxy), self.ctx.packet)
         p2 = z3.Const('__webproxy_constraint_p2_%s'%(self.proxy), self.ctx.packet)
@@ -38,21 +39,22 @@ class WebProxy (NetworkObject):
                                 self.ctx.src_port(p) == self.ctx.dest_port(p2), \
                                 self.ctx.packet.origin(p) == self.corigin(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)))
 
-        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.proxy, eh, p), z3.Exists([p2, eh2], 
-                             z3.And(self.ctx.recv(eh2, self.proxy, p2),
-                                 z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p2))),\
-                              z3.Or(\
-                               z3.And(z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.dest(p2))), \
-                                      self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
-                                      self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
-                                      self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
-                                      self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
-                                      self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
-                                      self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
-                                      self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
-                                        self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
-                                      self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))), \
-                               cached_packet))))))
+        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.proxy, eh, p), 
+                                z3.Exists([p2, eh2], 
+                                    z3.And(self.ctx.recv(eh2, self.proxy, p2),
+                                      z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p2))),\
+                                      z3.Or(\
+                                        z3.And(z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.dest(p2))), \
+                                               self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
+                                               self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
+                                               self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
+                                               self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
+                                               self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
+                                               self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
+                                               self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
+                                                    self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
+                                               self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))), \
+                                        cached_packet))))))
     
     def _webProxyFunctions (self):
         self.cached = z3.Function('__webproxy_cached_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.BoolSort())
@@ -70,6 +72,16 @@ class WebProxy (NetworkObject):
         p = z3.Const('__webproxy_packet1_%s'%(self.proxy), self.ctx.packet)
         p2 = z3.Const('__webproxy_p2_%s'%(self.proxy), self.ctx.packet)
         eh = z3.Const('__webproxy_eh_%s'%(self.proxy), self.ctx.node)
+        cache_condition = z3.ForAll([a1, i1],
+                            z3.Implies(self.cached(a1, i1), \
+                              z3.Exists([p, eh], \
+                                z3.Not(self.ctx.hostHasAddr(self.proxy, a1)), \
+                                self.ctx.recv(eh, self.proxy, p), \
+                                self.ctx.packet.src(p) == a1, \
+                                self.ctx.packet.body(p) == self.cresp(a1, i1), \
+                                self.corigin(a1, i1) == self.ctx.packet.origin(p), \
+                                self.ctx.hostHasAddr(self.proxy, self.ctx.packet.dest(p)), \
+                                self.ctx.etime (self.proxy, p, self.ctx.recv_event) == self.ctime(a1, i1)
         cache_condition = z3.ForAll([a1, i1], \
                             z3.Implies(self.cached(a1, i1), \
                              z3.Exists([p, eh], \

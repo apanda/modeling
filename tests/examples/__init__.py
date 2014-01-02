@@ -8,3 +8,4 @@ from dpiFw import *
 from dpiCompress import *
 from dpiCompress2 import *
 from trivial import *
+from trivial_wan_opt import *

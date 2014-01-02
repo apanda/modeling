@@ -96,7 +96,7 @@ class IPS (NetworkObject):
         #                       \land ctime(p.src, p.dest) <= etime(ips, p, R))
         #                       \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) <= etime(ips. p, R))
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.ips, eh, p), \
-                 z3.And(z3.Not(self.policy.dpi_match(self.ctx.packet.id(p))), \
+                 z3.And(z3.Not(self.policy.dpi_match(self.ctx.packet.body(p))), \
                         z3.Or(z3.And(self.cached(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)), \
                                         self.ctime(self.ctx.packet.src(p), self.ctx.src_port(p), self.ctx.packet.dest(p), self.ctx.dest_port(p)) <\
                                                         self.ctx.etime(self.ips, p, self.ctx.recv_event)), \
