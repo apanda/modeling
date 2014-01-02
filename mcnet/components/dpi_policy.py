@@ -8,7 +8,7 @@ class DPIPolicy (Core):
         self.name = policy_name
         self.constraints = list ()
         self._createPolicyFunction ()
-    
+
     def _createPolicyFunction (self):
         self.dpi_match = z3.Function('%s_dpi_match'%(self.name), z3.IntSort(), z3.BoolSort())
         some_content = z3.Int('__%s_dpi_content'%(self.name))

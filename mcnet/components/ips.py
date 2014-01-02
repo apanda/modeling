@@ -1,7 +1,7 @@
 from . import NetworkObject, Core
 import z3
 class IPS (NetworkObject):
-    """ Intrusion prevention system: Just combines a stateful ips with DPI, hooray""" 
+    """ Intrusion prevention system: Just combines a stateful fw with DPI, hooray"""
     def _init (self, policy, node, network, context):
         """Policy is an object of type dpi_policy"""
         self.constraints = list ()
@@ -23,21 +23,27 @@ class IPS (NetworkObject):
         aclConstraints = map(lambda (a, b): z3.And(self.ctx.packet.src(p) == a, \
                                               self.ctx.packet.dest(p) == b),
                                               self.acls)
-        if len(aclConstraints) == 0:
-            aclConstraints = [True]
         eh = z3.Const('__ips_acl_node_%s'%(self.ips), self.ctx.node)
 
-        # Constraints for what holes are punched 
-        # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land 
+        # Constraints for what holes are punched
+        # \forall a, b cached(a, b) \iff \exists e, p send(f, e, p) \land
         #                 p.src == a \land p.dest == b \land ctime(a, b) = etime(ips, p, R) \land
         #                   neg(ACL(p))
-        solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b], self.cached(addr_a, port_a, addr_b, port_b) ==\
-                       z3.Exists([eh, p], \
-                           z3.And(self.ctx.recv(eh, self.ips, p), \
-                           z3.And(self.ctx.packet.src (p) == addr_a, self.ctx.packet.dest(p) == addr_b, \
-                                   self.ctx.src_port (p) == port_a,  self.ctx.dest_port (p) == port_b, \
-                                   self.ctime (addr_a, port_a, addr_b, port_b) == self.ctx.etime(self.ips, p, self.ctx.recv_event), \
-                                   z3.Not(z3.Or(aclConstraints)))))))
+        if len(aclConstraints) > 0:
+            solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b], self.cached(addr_a, port_a, addr_b, port_b) ==\
+                           z3.Exists([eh, p], \
+                               z3.And(self.ctx.recv(eh, self.ips, p), \
+                               z3.And(self.ctx.packet.src (p) == addr_a, self.ctx.packet.dest(p) == addr_b, \
+                                       self.ctx.src_port (p) == port_a,  self.ctx.dest_port (p) == port_b, \
+                                       self.ctime (addr_a, port_a, addr_b, port_b) == self.ctx.etime(self.ips, p, self.ctx.recv_event), \
+                                       z3.Not(z3.Or(aclConstraints)))))))
+        else:
+            solver.add(z3.ForAll([addr_a, port_a, addr_b, port_b], self.cached(addr_a, port_a, addr_b, port_b) ==\
+                           z3.Exists([eh, p], \
+                               z3.And(self.ctx.recv(eh, self.ips, p), \
+                               z3.And(self.ctx.packet.src (p) == addr_a, self.ctx.packet.dest(p) == addr_b, \
+                                       self.ctx.src_port (p) == port_a,  self.ctx.dest_port (p) == port_b, \
+                                       self.ctime (addr_a, port_a, addr_b, port_b) == self.ctx.etime(self.ips, p, self.ctx.recv_event))))))
 
     @property
     def z3Node (self):
@@ -55,7 +61,7 @@ class IPS (NetworkObject):
     @property
     def ACLs (self):
         return self.acls
-   
+
     def _ipsFunctions (self):
         self.cached = z3.Function ('__ips_cached_rules_%s'%(self.ips), self.ctx.address, z3.IntSort(), self.ctx.address, z3.IntSort(), z3.BoolSort())
         self.ctime = z3.Function ('__ips_cached_time_%s'%(self.ips), self.ctx.address, z3.IntSort(), self.ctx.address, z3.IntSort(), z3.IntSort())

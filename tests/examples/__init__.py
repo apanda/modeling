@@ -10,3 +10,4 @@ from dpiCompress2 import *
 from trivial import *
 from trivial_wan_opt import *
 from trivial_wan_opt_internal import *
+from trivial_wan_opt_dpi import *
