@@ -49,7 +49,7 @@ def TrivialPolicyTest ():
 
     net.SetIsolationConstraint(fw1, [A, p])
     net.SetIsolationConstraint(fw2, [B, p])
-    #net.SetIsolationConstraint(p, [fw1, fw2, ctx.fw3])
+    net.SetIsolationConstraint(p, [fw1, fw2, ctx.fw3])
     import z3
 
     n0 = z3.Const('__triv_node_0', ctx.node)
@@ -74,7 +74,7 @@ def TrivialPolicyTest ():
                         z3.Or(n0 == ctx.C, \
                               n0 == ctx.fw3), \
                               n1 == ctx.p), \
-                        z3.Not(z3.And(ctx.packet.src(p0) == ctx.a_A, ctx.packet.dest(p0) == ctx.a_B)))))
+                        z3.Not(z3.Or(ctx.packet.src(p0) == ctx.a_A, ctx.packet.src(p0) == ctx.a_B)))))
 
     net.Attach(A, B, fw1, fw2, p)
     check = components.PropertyChecker(ctx, net)
