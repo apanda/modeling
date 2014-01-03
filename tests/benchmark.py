@@ -101,6 +101,22 @@ assert is_true(result.model.eval(out.dpi_policy.packetDPIPredicate(out.ctx)(resu
 stop = time.time()
 print stop - start
 
+print "Running simple proxy test"
+ResetZ3()
+start = time.time()
+out = TrivialProxy()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.sat == result.result, \
+        "Nothing is blocking the way, packets should get from A -> B"
+assert is_true(result.model.eval(out.ctx.send(out.p.z3Node, out.b.z3Node, result.violating_packet))), \
+        "Violating packet was never sent"
+assert is_true(result.model.eval(out.ctx.recv(out.p.z3Node, out.b.z3Node, result.violating_packet))), \
+        "Violating packet was never received"
+assert is_false(result.model.eval(out.ctx.recv(out.a.z3Node, out.p.z3Node, result.violating_packet))), \
+        "The packet that gets to b was sent by a (instead of the proxy)"
+stop = time.time()
+print stop - start
+
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"
