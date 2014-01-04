@@ -12,3 +12,5 @@ from trivial_wan_opt import *
 from trivial_wan_opt_internal import *
 from trivial_wan_opt_dpi import *
 from trivial_proxy import *
+from trivial_proxy_erroneous import *
+from trivial_proxy_erroneous_multiple import *

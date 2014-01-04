@@ -6,6 +6,7 @@ __all__ = ['Core', \
            'AclFirewall', \
            'LearningFirewall', \
            'WebProxy', \
+           'ErroneousAclWebProxy', \
            'LoadBalancer', \
            'IPS', \
            'CompressionAlgorithm', \
@@ -23,6 +24,7 @@ from loadbalancer import LoadBalancer
 from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall
 from webproxy import WebProxy
+from erroneous_aclfull_proxy import ErroneousAclWebProxy
 from dpi_policy import DPIPolicy
 from ips import IPS
 from wan_opt import WanOptimizer

@@ -1,11 +1,12 @@
 import components
-def TrivialProxy ():
+def TrivialErroneousProxy ():
     ctx = components.Context(['a', 'b', 'p'], \
                             ['ip_a', 'ip_b', 'ip_p'])
     net = components.Network(ctx)
     a = components.EndHost(ctx.a, net, ctx)
     b = components.EndHost(ctx.b, net, ctx)
-    p = components.WebProxy(ctx.p, net, ctx)
+    p = components.ErroneousAclWebProxy(ctx.p, net, ctx)
+    p.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_b, ctx.ip_a)])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
                             (p, ctx.ip_p)])

@@ -117,6 +117,16 @@ assert is_false(result.model.eval(out.ctx.recv(out.a.z3Node, out.p.z3Node, resul
 stop = time.time()
 print stop - start
 
+print "Running simple erroneous proxy test"
+ResetZ3()
+start = time.time()
+out = TrivialErroneousProxy()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.unsat == result.result, \
+        "No way for packets to get from A -> B"
+stop = time.time()
+print stop - start
+
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"
