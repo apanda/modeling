@@ -127,6 +127,32 @@ assert z3.unsat == result.result, \
 stop = time.time()
 print stop - start
 
+print "Running simple erroneous proxy test with multiple players"
+ResetZ3()
+start = time.time()
+out = TrivialErroneousProxyMultiple()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.sat == result.result, \
+        "The presence of C implies packets can get through"
+assert z3.is_true(result.model.eval(out.ctx.packet.src(result.violating_packet) == out.ctx.ip_p)), \
+        "The violating packet must have started at the proxy, no direct path"
+cached = result.model[result.model[out.p.cached].else_value().decl()].as_list()
+assert len(cached) == 2, \
+        "This is not a failure per-se, manually inspect model to see what is going on"
+
+assert z3.is_true(result.model.eval(out.ctx.packet.body(result.violating_packet) == \
+                                        out.p.cresp(cached[0][0], cached[0][1]))), \
+        "Response should be a cached response"
+
+assert z3.is_true(result.model.eval(out.p.ctime(cached[0][0], cached[0][1]) < \
+                    out.ctx.etime(out.p.z3Node, result.violating_packet, out.ctx.send_event))), \
+        "Cannot send a cached response before it is actually cached"
+
+assert z3.is_true(result.model.eval(out.ctx.etime(out.p.z3Node, out.p.crespacket(cached[0][0], cached[0][1]), out.ctx.recv_event) < \
+                                    out.ctx.etime(out.p.z3Node, result.violating_packet, out.ctx.send_event)))
+stop = time.time()
+print stop - start
+
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"

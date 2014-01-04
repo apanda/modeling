@@ -89,11 +89,13 @@ class WebProxy (NetworkObject):
                                self.ctx.packet.body(p) == i, \
                                self.ctx.packet.dest(p) == a, \
                                self.ctx.dest_port(p) == self.ctx.dest_port(p2), \
+                               self.creqpacket(a, i) == p2, \
                                self.ctime(a, i) > self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                self.ctx.send(self.proxy, e2, p), \
                                z3.And(request_constraints), \
                                self.ctime(a, i) > self.ctx.etime(self.proxy, p, self.ctx.send_event), \
                                self.ctx.recv(e3, self.proxy, p3), \
+                               self.crespacket(a, i) == p3, \
                                self.ctx.src_port(p3) == self.ctx.dest_port(p), \
                                self.ctx.dest_port(p3) == self.ctx.src_port(p), \
                                self.ctx.packet.src(p3) == self.ctx.packet.dest(p), \
@@ -116,6 +118,8 @@ class WebProxy (NetworkObject):
         self.ctime = z3.Function('__webproxy_ctime_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.IntSort())
         self.cresp = z3.Function('__webproxy_cresp_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.IntSort())
         self.corigin = z3.Function('__webproxy_corigin_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.node)
+        self.crespacket = z3.Function('__webproxy_crespacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
+        self.creqpacket = z3.Function('__webproxy_creqpacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
 
         a1 = z3.Const('__webproxyfunc_cache_addr_%s'%(self.proxy), self.ctx.address)
         i1 = z3.Const('__webproxyfunc_cache_id_%s'%(self.proxy), z3.IntSort())
