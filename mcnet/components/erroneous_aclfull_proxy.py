@@ -51,6 +51,8 @@ class ErroneousAclWebProxy (NetworkObject):
         cached_packet = z3.And(self.cached(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.etime(self.proxy, p2, self.ctx.recv_event) > \
                                     self.ctime(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
+                                self.ctx.etime(self.proxy, p, self.ctx.send_event) > 
+                                    self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                 self.ctx.packet.body(p) == self.cresp(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \
                                 self.ctx.dest_port(p) == self.ctx.src_port(p2), \
@@ -65,7 +67,7 @@ class ErroneousAclWebProxy (NetworkObject):
                                       self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
                                       self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
                                       self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
-                                        self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
+                                         self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                       self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))]
         if len(self.acls) != 0:
             acl_constraint = z3.Not(z3.Or(map(lambda (s, d): \
@@ -93,6 +95,8 @@ class ErroneousAclWebProxy (NetworkObject):
         e2 = z3.Const('__webproxy_e2_%s'%(self.proxy), self.ctx.node)
         e3 = z3.Const('__webproxy_e3_%s'%(self.proxy), self.ctx.node)
         e4 = z3.Const('__webproxy_e4_%s'%(self.proxy), self.ctx.node)
+        e5 = z3.Const('__webproxy_e5_%s'%(self.proxy), self.ctx.node)
+        e6 = z3.Const('__webproxy_e6_%s'%(self.proxy), self.ctx.node)
         cache_conditions = \
                 z3.ForAll([a, i], \
                     z3.Implies(self.cached(a, i), \
@@ -100,18 +104,28 @@ class ErroneousAclWebProxy (NetworkObject):
                            z3.Not(self.ctx.hostHasAddr (self.proxy, a)), \
                            z3.Exists([e1, e2, e3, p, p2, p3], \
                              z3.And(\
-                               self.ctx.recv(e1, self.proxy, p), \
-                               self.ctx.packet.dest(p) == a, \
+                               self.ctx.recv(e1, self.proxy, p2), \
+                               self.ctx.packet.dest(p2) == a, \
+                               self.ctx.packet.body(p2) == i, \
                                self.ctx.packet.body(p) == i, \
-                               self.ctime(a, i) > self.ctx.etime(self.proxy, p, self.ctx.recv_event), \
-                               self.ctx.send(self.proxy, e2, p2), \
+                               self.ctx.packet.dest(p) == a, \
+                               self.ctx.dest_port(p) == self.ctx.dest_port(p2), \
+                               self.ctime(a, i) > self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
+                               self.ctx.send(self.proxy, e2, p), \
                                z3.And(request_constraints), \
-                               self.ctime(a, i) > self.ctx.etime(self.proxy, p2, self.ctx.send_event), \
+                               self.ctime(a, i) > self.ctx.etime(self.proxy, p, self.ctx.send_event), \
                                self.ctx.recv(e3, self.proxy, p3), \
-                               self.ctx.packet.src(p3) == a, \
-                               z3.ForAll([e4], \
-                                z3.Or(self.ctx.etime(e4, p3, self.ctx.send_event) == 0, \
-                                      self.ctx.etime(e4, p3, self.ctx.send_event) > self.ctx.etime(self.proxy, p2, self.ctx.send_event))), \
+                               self.ctx.src_port(p3) == self.ctx.dest_port(p), \
+                               self.ctx.dest_port(p3) == self.ctx.src_port(p), \
+                               self.ctx.packet.src(p3) == self.ctx.packet.dest(p), \
+                               self.ctx.packet.dest(p3) == self.ctx.packet.src(p), \
+                               z3.Exists([e5, e6], \
+                                 z3.And(
+                                   self.ctx.hostHasAddr (e5, a), \
+                                   self.ctx.recv(e6, e5, p), \
+                                   z3.ForAll([e4], \
+                                    z3.Or(self.ctx.etime(e4, p3, self.ctx.send_event) == 0, \
+                                          self.ctx.etime(e4, p3, self.ctx.send_event) > self.ctx.etime(e6, p, self.ctx.recv_event))))), \
                                self.cresp(a, i) == self.ctx.packet.body(p3), \
                                self.corigin(a, i) == self.ctx.packet.origin(p3), \
                                self.ctime(a, i) == self.ctx.etime(self.proxy, p3, self.ctx.recv_event))))))
