@@ -5,13 +5,11 @@ from withProxySat import *
 from withoutProxyAclFw import *
 from withoutProxyLearning import *
 from dpiFw import *
-from dpiCompress import *
-from dpiCompress2 import *
 from trivial import *
 from trivial_wan_opt import *
 from trivial_wan_opt_internal import *
 from trivial_wan_opt_dpi import *
 from trivial_proxy import *
-from trivial_proxy_erroneous import *
-from trivial_proxy_erroneous_multiple import *
-from trivial_proxy_erroneous_multiple_fw import *
+from erroneous_proxy import *
+from erroneous_proxy_3hosts import *
+from erroneous_proxy_3hosts_and_fw import *

@@ -1,5 +1,5 @@
 import components
-def TrivialErroneousProxy ():
+def ErroneousProxy ():
     ctx = components.Context(['a', 'b', 'p'], \
                             ['ip_a', 'ip_b', 'ip_p'])
     net = components.Network(ctx)

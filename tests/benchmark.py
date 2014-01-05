@@ -120,7 +120,7 @@ print stop - start
 print "Running simple erroneous proxy test"
 ResetZ3()
 start = time.time()
-out = TrivialErroneousProxy()
+out = ErroneousProxy()
 result = out.check.CheckIsolationProperty(out.a, out.b)
 assert z3.unsat == result.result, \
         "No way for packets to get from A -> B"
@@ -130,7 +130,7 @@ print stop - start
 print "Running simple erroneous proxy test with multiple players"
 ResetZ3()
 start = time.time()
-out = TrivialErroneousProxyMultiple()
+out = ErroneousProxyMultiple()
 result = out.check.CheckIsolationProperty(out.a, out.b)
 assert z3.sat == result.result, \
         "The presence of C implies packets can get through"
@@ -150,6 +150,16 @@ assert z3.is_true(result.model.eval(out.p.ctime(cached[0][0], cached[0][1]) < \
 
 assert z3.is_true(result.model.eval(out.ctx.etime(out.p.z3Node, out.p.crespacket(cached[0][0], cached[0][1]), out.ctx.recv_event) < \
                                     out.ctx.etime(out.p.z3Node, result.violating_packet, out.ctx.send_event)))
+stop = time.time()
+print stop - start
+
+print "Running simple erroneous proxy test with firewall"
+ResetZ3()
+start = time.time()
+out = ErroneousProxyMultiFw()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.unsat == result.result, \
+        "No way for packets to get from A -> B"
 stop = time.time()
 print stop - start
 

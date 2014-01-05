@@ -1,5 +1,5 @@
 import components
-def TrivialErroneousProxyMultiFw ():
+def ErroneousProxyMultiFw ():
     ctx = components.Context(['a', 'b', 'c', 'p', 'f'], \
                             ['ip_a', 'ip_b', 'ip_c', 'ip_p', 'ip_f'])
     net = components.Network(ctx)
