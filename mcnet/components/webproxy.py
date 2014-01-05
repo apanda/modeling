@@ -42,7 +42,7 @@ class WebProxy (NetworkObject):
         cached_packet = z3.And(self.cached(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.etime(self.proxy, p2, self.ctx.recv_event) > \
                                     self.ctime(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
-                                self.ctx.etime(self.proxy, p, self.ctx.send_event) > 
+                                self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
                                     self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                 self.ctx.packet.body(p) == self.cresp(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \

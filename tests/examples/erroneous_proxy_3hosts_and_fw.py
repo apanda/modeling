@@ -37,7 +37,7 @@ def ErroneousProxyMultiFw ():
 
     net.RoutingTable(p, [(ctx.ip_a, a), \
                          (ctx.ip_b, b), \
-                         (ctx.ip_c, c), \
+                         (ctx.ip_c, f), \
                          (ctx.ip_p, p)])
     net.Attach(a, b, c, p, f)
     class TrivialReturn (object):
