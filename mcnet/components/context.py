@@ -105,6 +105,8 @@ class Context(Core):
         # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
         self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
         self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
+        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
+        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
 
         # Rules for time
         # Received packets have time, don't receive before sent
