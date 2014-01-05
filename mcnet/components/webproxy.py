@@ -19,10 +19,20 @@ class WebProxy (NetworkObject):
         solver.add(self.constraints)
 
     def _webProxyConstraints (self):
-        p = z3.Const('__webproxy_constraint_packet1_%s'%(self.proxy), self.ctx.packet)
-        p2 = z3.Const('__webproxy_constraint_p2_%s'%(self.proxy), self.ctx.packet)
         eh = z3.Const('__webproxy_contraint_eh_%s'%(self.proxy), self.ctx.node)
         eh2 = z3.Const('__webproxy_contraint_eh2_%s'%(self.proxy), self.ctx.node)
+        # Conditions for the caching of packets
+        a = z3.Const('__webproxyfunc_cache_addr_%s'%(self.proxy), self.ctx.address)
+        i = z3.Const('__webproxyfunc_cache_body_%s'%(self.proxy), z3.IntSort())
+        p = z3.Const('__webproxy_req_packet_%s'%(self.proxy), self.ctx.packet)
+        p2 = z3.Const('__webproxy_req_packet_2_%s'%(self.proxy), self.ctx.packet)
+        p3 = z3.Const('__webproxy_res_packet_%s'%(self.proxy), self.ctx.packet)
+        e1 = z3.Const('__webproxy_e1_%s'%(self.proxy), self.ctx.node)
+        e2 = z3.Const('__webproxy_e2_%s'%(self.proxy), self.ctx.node)
+        e3 = z3.Const('__webproxy_e3_%s'%(self.proxy), self.ctx.node)
+        e4 = z3.Const('__webproxy_e4_%s'%(self.proxy), self.ctx.node)
+        e5 = z3.Const('__webproxy_e5_%s'%(self.proxy), self.ctx.node)
+        e6 = z3.Const('__webproxy_e6_%s'%(self.proxy), self.ctx.node)
 
         # Proxy sends its own address
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.proxy, eh, p), \
@@ -64,18 +74,6 @@ class WebProxy (NetworkObject):
                                         z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p2))),\
                                         cached_packet))))))
 
-        # Conditions for the caching of packets
-        a = z3.Const('__webproxyfunc_cache_addr_%s'%(self.proxy), self.ctx.address)
-        i = z3.Const('__webproxyfunc_cache_body_%s'%(self.proxy), z3.IntSort())
-        p = z3.Const('__webproxy_req_packet_%s'%(self.proxy), self.ctx.packet)
-        p2 = z3.Const('__webproxy_req_packet_2_%s'%(self.proxy), self.ctx.packet)
-        p3 = z3.Const('__webproxy_res_packet_%s'%(self.proxy), self.ctx.packet)
-        e1 = z3.Const('__webproxy_e1_%s'%(self.proxy), self.ctx.node)
-        e2 = z3.Const('__webproxy_e2_%s'%(self.proxy), self.ctx.node)
-        e3 = z3.Const('__webproxy_e3_%s'%(self.proxy), self.ctx.node)
-        e4 = z3.Const('__webproxy_e4_%s'%(self.proxy), self.ctx.node)
-        e5 = z3.Const('__webproxy_e5_%s'%(self.proxy), self.ctx.node)
-        e6 = z3.Const('__webproxy_e6_%s'%(self.proxy), self.ctx.node)
         cache_conditions = \
                 z3.ForAll([a, i], \
                     z3.Implies(self.cached(a, i), \
@@ -90,6 +88,7 @@ class WebProxy (NetworkObject):
                                self.ctx.packet.dest(p) == a, \
                                self.ctx.dest_port(p) == self.ctx.dest_port(p2), \
                                self.creqpacket(a, i) == p2, \
+                               self.creqopacket(a, i) == p, \
                                self.ctime(a, i) > self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                self.ctx.send(self.proxy, e2, p), \
                                z3.And(request_constraints), \
@@ -120,6 +119,7 @@ class WebProxy (NetworkObject):
         self.corigin = z3.Function('__webproxy_corigin_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.node)
         self.crespacket = z3.Function('__webproxy_crespacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
         self.creqpacket = z3.Function('__webproxy_creqpacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
+        self.creqopacket = z3.Function('__webproxy_creqopacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
 
         a1 = z3.Const('__webproxyfunc_cache_addr_%s'%(self.proxy), self.ctx.address)
         i1 = z3.Const('__webproxyfunc_cache_id_%s'%(self.proxy), z3.IntSort())
