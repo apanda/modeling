@@ -163,6 +163,35 @@ assert z3.unsat == result.result, \
 stop = time.time()
 print stop - start
 
+print "Running ACL proxy test with multiple player"
+ResetZ3()
+start = time.time()
+out = AclProxyMultiple()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.unsat == result.result, \
+        "No way for packets to get from A -> B"
+stop = time.time()
+print stop - start
+
+print "Running simple erroneous proxy test with firewall (Policy version)"
+ResetZ3()
+start = time.time()
+out = ErroneousProxyMultiFwPi()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.sat == result.result, \
+        "No way for packets to get from A -> B but we can't verify that here"
+stop = time.time()
+
+print "Running ACL proxy test with firewall (Policy version)"
+ResetZ3()
+start = time.time()
+out = AclProxyMultiFwPi()
+result = out.check.CheckIsolationProperty(out.a, out.b)
+assert z3.unsat == result.result, \
+        "No way for packets to get from A -> B but we can't verify that here"
+stop = time.time()
+
+print stop - start
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"

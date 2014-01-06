@@ -1,15 +1,15 @@
 import components
-def ErroneousProxyMultiFwPi ():
-    """This is really just the policy version of ErroneousProxyMultiFw. As shown by that function there really isn't a
-    way to violate isolation here. However by virtue of the policy not being path independent we cannot prove or
-    disprove anything interesting here."""
+def AclProxyMultiFwPi ():
+    """This is really just the policy version of ErroneousProxyMultiFw with AclFirewall. As shown by that function there really isn't a
+    way to violate isolation here. Here by using something that is path independent we can prove things without really having to deal 
+    with any of the other things"""
     ctx = components.Context(['a', 'b', 'c', 'p', 'f'], \
                             ['ip_a', 'ip_b', 'ip_c', 'ip_p', 'ip_f'])
     net = components.Network(ctx)
     a = components.EndHost(ctx.a, net, ctx)
     b = components.EndHost(ctx.b, net, ctx)
     # c = components.EndHost(ctx.c, net, ctx)
-    p = components.ErroneousAclWebProxy(ctx.p, net, ctx)
+    p = components.AclWebProxy(ctx.p, net, ctx)
     # f = components.AclFirewall(ctx.f, net, ctx)
     p.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_b, ctx.ip_a)])
     # f.AddAcls([(ctx.ip_c, ctx.ip_a), (ctx.ip_a, ctx.ip_c)])

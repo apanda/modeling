@@ -1,12 +1,12 @@
 import components
-def ErroneousProxyMultiple ():
+def AclProxyMultiple ():
     ctx = components.Context(['a', 'b', 'c', 'p'], \
                             ['ip_a', 'ip_b', 'ip_c', 'ip_p'])
     net = components.Network(ctx)
     a = components.EndHost(ctx.a, net, ctx)
     b = components.EndHost(ctx.b, net, ctx)
     c = components.EndHost(ctx.c, net, ctx)
-    p = components.ErroneousAclWebProxy(ctx.p, net, ctx)
+    p = components.AclWebProxy(ctx.p, net, ctx)
     net.SetIsolationConstraint (a, [p])
     net.SetIsolationConstraint (b, [p])
     net.SetIsolationConstraint (p, [a, b, c])

@@ -15,3 +15,5 @@ from erroneous_proxy_3hosts import *
 from erroneous_proxy_3hosts_and_fw import *
 from erroneous_proxy_3hosts_pi import *
 from erroneous_proxy_3hosts_and_fw_pi import *
+from aclproxy_3hosts import *
+from aclproxy_3hosts_and_fw_pi import *

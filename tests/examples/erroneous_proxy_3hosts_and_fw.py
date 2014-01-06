@@ -8,6 +8,9 @@ def ErroneousProxyMultiFw ():
     c = components.EndHost(ctx.c, net, ctx)
     p = components.ErroneousAclWebProxy(ctx.p, net, ctx)
     f = components.AclFirewall(ctx.f, net, ctx)
+    net.SetIsolationConstraint (a, [p])
+    net.SetIsolationConstraint (b, [p])
+    net.SetIsolationConstraint (p, [a, b, f])
     p.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_b, ctx.ip_a)])
     f.AddAcls([(ctx.ip_c, ctx.ip_a), (ctx.ip_a, ctx.ip_c)])
     net.setAddressMappings([(a, ctx.ip_a), \
