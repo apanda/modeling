@@ -2,7 +2,7 @@ from . import NetworkObject
 import z3
 class AclFirewall (NetworkObject):
     def _init(self, node, network, context):
-        self.fw = node
+        self.fw = node.z3Node
         self.ctx = context
         self.constraints = list ()
         self.acls = list ()

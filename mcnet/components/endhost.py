@@ -5,7 +5,7 @@ class EndHost (NetworkObject):
     def _init (self, node, network, context):
         self.constraints = list ()
         self.ctx = context
-        self.node = node
+        self.node = node.z3Node
         self._endHostRules()
 
     @property

@@ -1,5 +1,6 @@
 __all__ = ['Core', \
            'NetworkObject', \
+           'DumbNode', \
            'Context', \
            'Network', \
            'EndHost', \
@@ -18,6 +19,7 @@ __all__ = ['Core', \
            'destAddrPredicate', \
            'srcAddrPredicate']
 from core import Core, NetworkObject
+from dumb_node import DumbNode
 from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
 from endhost import EndHost
 from network import Network

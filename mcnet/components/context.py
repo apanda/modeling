@@ -1,6 +1,6 @@
 # Basic fields and other things required for model checking.
 import z3
-from . import Core
+from . import Core, DumbNode
 class Context(Core):
     """Context for all of the rest that follows. Every network needs one of
     these"""
@@ -23,6 +23,7 @@ class Context(Core):
     def _mkTypes (self, nodes, addresses):
         # Networks have nodes, nodes are quite important
         self.node, self.node_list = z3.EnumSort('Node', nodes)
+        self.node_list = map(DumbNode, self.node_list)
         nodes = zip(nodes, self.node_list)
         for ndn, ndv in nodes:
             setattr(self, ndn, ndv)

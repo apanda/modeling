@@ -3,7 +3,7 @@ import z3
 class LearningFirewall (NetworkObject):
     def _init (self, node, network, context):
         self.constraints = list ()
-        self.firewall = node
+        self.firewall = node.z3Node
         self.ctx = context
         network.SaneSend(self)
         self._firewallFunctions ()

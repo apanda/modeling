@@ -5,7 +5,7 @@ class LoadBalancer (NetworkObject):
     def _init (self, lbalancer, shared_addr, servers, context):
         self.constraints = list ()
         self.ctx = context
-        self.lbalancer = lbalancer
+        self.lbalancer = lbalancer.z3Node
         self.shared_addr = shared_addr
         self.servers = list()
         if servers:

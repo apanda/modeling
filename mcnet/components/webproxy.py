@@ -4,7 +4,7 @@ import z3
 class WebProxy (NetworkObject):
     """A caching web proxy"""
     def _init (self, node, network, context):
-        self.proxy = node
+        self.proxy = node.z3Node
         self.ctx = context
         self.constraints = list ()
         network.SaneSend(self)

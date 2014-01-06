@@ -6,7 +6,7 @@ class IPS (NetworkObject):
         """Policy is an object of type dpi_policy"""
         self.constraints = list ()
         self.policy = policy
-        self.ips = node
+        self.ips = node.z3Node
         self.ctx = context
         network.SaneSend(self)
         self._ipsFunctions ()
