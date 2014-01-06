@@ -92,6 +92,8 @@ class PropertyChecker (object):
         self.solver.pop()
         return IsolationResult (result, p, eh, model)
 
+    def AddExternalConstraints (self, constraints):
+        self.solver.add (constraints)
 
     def AddConstraints (self):
         self.ctx._addConstraints(self.solver)

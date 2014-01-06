@@ -57,8 +57,10 @@ def TrivialPolicyTest ():
     p0 = z3.Const('__triv_packet_0', ctx.packet)
 
     # This is a part of policy?
+    net.Attach(A, B, fw1, fw2, p)
+    check = components.PropertyChecker(ctx, net)
 
-    net.constraints.append( \
+    check.AddExternalConstraints( \
             z3.ForAll([n0, n1, p0], \
                 z3.Implies( \
                   z3.And(ctx.send(n0, n1, p0),\
@@ -66,7 +68,7 @@ def TrivialPolicyTest ():
                               n0 == ctx.fw3.z3Node)), \
                         z3.Not(ctx.packet.origin(p0) == ctx.A.z3Node))))
 
-    net.constraints.append( \
+    check.AddExternalConstraints( \
             z3.ForAll([n0, n1, p0], \
                 z3.Implies( \
                   z3.And(ctx.send(n0, n1, p0),\
@@ -74,7 +76,5 @@ def TrivialPolicyTest ():
                               n0 == ctx.fw3.z3Node)), \
                         z3.Not(z3.Or(ctx.packet.src(p0) == ctx.a_A, ctx.packet.src(p0) == ctx.a_B)))))
 
-    net.Attach(A, B, fw1, fw2, p)
-    check = components.PropertyChecker(ctx, net)
     res = check.CheckIsolationProperty(A, B)
     return res, check, ctx
