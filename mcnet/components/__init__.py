@@ -17,6 +17,10 @@ __all__ = ['Core', \
            'PropertyChecker', \
            'failurePredicate', \
            'destAddrPredicate', \
+           'CheckIsPathIndependentIsolated', \
+           'VERIFIED_ISOLATION', \
+           'VERIFIED_GLOBAL', \
+           'UNKNOWN', \
            'srcAddrPredicate']
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -34,3 +38,4 @@ from ips import IPS
 from wan_opt import WanOptimizer
 from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker
+from path_isolation_checker import CheckIsPathIndependentIsolated, VERIFIED_ISOLATION, VERIFIED_GLOBAL, UNKNOWN

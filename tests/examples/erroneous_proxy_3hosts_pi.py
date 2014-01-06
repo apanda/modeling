@@ -39,4 +39,5 @@ def ErroneousProxyMultiplePi ():
             self.c = c
             self.p = p
             self.check = components.PropertyChecker (ctx, net)
+            self.participants = [a, b, p]
     return TrivialReturn (net, ctx, a, b, ctx.c, p)

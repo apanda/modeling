@@ -1,6 +1,6 @@
 import components
-def AclProxyMultiFwPi ():
-    """This is really just the policy version of ErroneousProxyMultiFw with AclFirewall. As shown by that function there really isn't a
+def AclProxyMultiFw ():
+    """This is really just a version of ErroneousProxyMultiFw with AclFirewall. As shown by that function there really isn't a
     way to violate isolation here. Here by using something that is path independent we can prove things without really having to deal 
     with any of the other things"""
     ctx = components.Context(['a', 'b', 'c', 'p', 'f'], \
@@ -8,19 +8,19 @@ def AclProxyMultiFwPi ():
     net = components.Network(ctx)
     a = components.EndHost(ctx.a, net, ctx)
     b = components.EndHost(ctx.b, net, ctx)
-    # c = components.EndHost(ctx.c, net, ctx)
+    c = components.EndHost(ctx.c, net, ctx)
     p = components.AclWebProxy(ctx.p, net, ctx)
-    # f = components.AclFirewall(ctx.f, net, ctx)
-    p.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_b, ctx.ip_a)])
-    # f.AddAcls([(ctx.ip_c, ctx.ip_a), (ctx.ip_a, ctx.ip_c)])
+    f = components.AclFirewall(ctx.f, net, ctx)
     net.SetIsolationConstraint (a, [p])
     net.SetIsolationConstraint (b, [p])
-    net.SetIsolationConstraint (p, [a, b, ctx.f])
+    net.SetIsolationConstraint (p, [a, b, f])
+    p.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_b, ctx.ip_a)])
+    f.AddAcls([(ctx.ip_c, ctx.ip_a), (ctx.ip_a, ctx.ip_c)])
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
-                            (ctx.c, ctx.ip_c), \
+                            (c, ctx.ip_c), \
                             (p, ctx.ip_p), \
-                            (ctx.f, ctx.ip_f)])
+                            (f, ctx.ip_f)])
     net.RoutingTable(a, [(ctx.ip_a, a), \
                          (ctx.ip_b, p), \
                          (ctx.ip_c, p), \
@@ -31,11 +31,21 @@ def AclProxyMultiFwPi ():
                          (ctx.ip_c, p), \
                          (ctx.ip_p, p)])
 
+    net.RoutingTable(f, [(ctx.ip_a, p), \
+                         (ctx.ip_b, p), \
+                         (ctx.ip_c, c), \
+                         (ctx.ip_p, p)])
+
+    net.RoutingTable(c, [(ctx.ip_a, f), \
+                         (ctx.ip_b, f), \
+                         (ctx.ip_c, c), \
+                         (ctx.ip_p, f)])
+
     net.RoutingTable(p, [(ctx.ip_a, a), \
                          (ctx.ip_b, b), \
-                         #(ctx.ip_c, ctx.f), \
+                         (ctx.ip_c, f), \
                          (ctx.ip_p, p)])
-    net.Attach(a, b, p)
+    net.Attach(a, b, c, p, f)
     class TrivialReturn (object):
         def __init__ (self, net, ctx, a, b, c, p, f):
             self.net = net
@@ -46,5 +56,4 @@ def AclProxyMultiFwPi ():
             self.p = p
             self.f = f
             self.check = components.PropertyChecker (ctx, net)
-            self.participants = [a, b, p]
-    return TrivialReturn (net, ctx, a, b, ctx.c, p, ctx.f)
+    return TrivialReturn (net, ctx, a, b, c, p, f)

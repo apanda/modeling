@@ -46,4 +46,5 @@ def ErroneousProxyMultiFwPi ():
             self.p = p
             self.f = f
             self.check = components.PropertyChecker (ctx, net)
+            self.participants = [a, b, p]
     return TrivialReturn (net, ctx, a, b, ctx.c, p, ctx.f)

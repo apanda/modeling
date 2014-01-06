@@ -1,4 +1,5 @@
 import z3
+
 class PropertyChecker (object):
     """Actually check for properties in the network graph etc."""
     def __init__ (self, context, network):
@@ -8,15 +9,21 @@ class PropertyChecker (object):
         self.constraints = list ()
         self.primed = False
 
-    # Just use the NULL predicate
+    def ClearState (self):
+        self.solver.reset()
+        self.primed = False
+        self.constraints = list()
+
+    # TODO: Just use the NULL predicate
     def CheckIsolationProperty (self, src, dest):
         class IsolationResult (object):
-            def __init__ (self, result, violating_packet, last_hop, model = None):
+            def __init__ (self, result, violating_packet, last_hop, ctx, model = None):
+                self.ctx = ctx
                 self.result = result
                 self.violating_packet = violating_packet
                 self.last_hop = last_hop
                 self.model = model
-            
+
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
         if not self.primed:
@@ -31,12 +38,13 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model ()
         self.solver.pop()
-        return IsolationResult(result, p, eh, model)
+        return IsolationResult(result, p, eh, self.ctx, model)
 
-    # Convert to a predicate used by CheckImpliedIsolation
+    # TODO: Convert to a predicate used by CheckImpliedIsolation
     def CheckImpliedIsolation (self, srcn, destn, src, dest):
         class ImpliedIsolationResult (object):
-            def __init__ (self, result, violating_packet, last_hop, implied_packet, implied_last_hop, model = None):
+            def __init__ (self, result, violating_packet, last_hop, implied_packet, implied_last_hop, ctx, model = None):
+                self.ctx = ctx
                 self.result = result
                 self.violating_packet = violating_packet
                 self.last_hop = last_hop
@@ -64,12 +72,13 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model ()
         self.solver.pop()
-        return ImpliedIsolationResult(result, p, eh, pn, ehn, model)
+        return ImpliedIsolationResult(result, p, eh, pn, ehn, self.ctx, model)
 
     def CheckIsolatedIf (self, predicate, src, dest):
         """Check for isolation given a predicate on the packet"""
         class IsolationResult (object):
-            def __init__ (self, result, violating_packet, last_hop, model = None):
+            def __init__ (self, result, violating_packet, last_hop, ctx, model = None):
+                self.ctx = ctx
                 self.result = result
                 self.violating_packet = violating_packet
                 self.last_hop = last_hop
@@ -90,10 +99,14 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model ()
         self.solver.pop()
-        return IsolationResult (result, p, eh, model)
+        return IsolationResult (result, p, eh, self.ctx, model)
 
     def AddExternalConstraints (self, constraints):
+        self.solver.push ()
         self.solver.add (constraints)
+
+    def ClearExternalConstraints (self):
+        self.solver.pop ()
 
     def AddConstraints (self):
         self.ctx._addConstraints(self.solver)

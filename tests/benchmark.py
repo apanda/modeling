@@ -2,7 +2,7 @@ import z3
 from z3 import is_true, is_false
 from examples import *
 import time
-import mcnet.components
+import mcnet.components as components
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
@@ -181,6 +181,7 @@ result = out.check.CheckIsolationProperty(out.a, out.b)
 assert z3.sat == result.result, \
         "No way for packets to get from A -> B but we can't verify that here"
 stop = time.time()
+print stop - start
 
 print "Running ACL proxy test with firewall (Policy version)"
 ResetZ3()
@@ -190,8 +191,8 @@ result = out.check.CheckIsolationProperty(out.a, out.b)
 assert z3.unsat == result.result, \
         "No way for packets to get from A -> B but we can't verify that here"
 stop = time.time()
-
 print stop - start
+
 from policy_test import *
 ResetZ3()
 print "Policy Test SAT"
@@ -200,6 +201,46 @@ res, chk, ctx = TrivialPolicyTest ()
 assert res.result == z3.unsat, \
         "No one can produce bad packet in this case"
 print res.result
+stop = time.time()
+print stop - start
+
+
+print "Running automatic detection of path isolation: Erroneous proxy with firewall" 
+ResetZ3()
+start= time.time()
+policy_obj = ErroneousProxyMultiFwPi()
+full_obj = ErroneousProxyMultiFw()
+result = components.CheckIsPathIndependentIsolated (policy_obj.check, full_obj.check, policy_obj.a, policy_obj.b, full_obj.a, full_obj.b, policy_obj.participants)
+assert result.judgement == components.VERIFIED_GLOBAL, \
+        "Can't verify this locally"
+assert result.result == z3.unsat, \
+        "See previous"
+stop = time.time()
+print stop - start
+
+print "Running automatic detection of path isolation: ACL proxy with firewall" 
+ResetZ3()
+start= time.time()
+policy_obj = AclProxyMultiFwPi()
+full_obj = AclProxyMultiFw()
+result = components.CheckIsPathIndependentIsolated (policy_obj.check, full_obj.check, policy_obj.a, policy_obj.b, full_obj.a, full_obj.b, policy_obj.participants)
+assert result.judgement == components.VERIFIED_ISOLATION, \
+        "Should verify locally"
+assert result.result == z3.unsat, \
+        "See previous"
+stop = time.time()
+print stop - start
+
+print "Running automatic detection of path isolation: Erroneous proxy without firewall" 
+ResetZ3()
+start= time.time()
+policy_obj = ErroneousProxyMultiplePi()
+full_obj = ErroneousProxyMultiple()
+result = components.CheckIsPathIndependentIsolated (policy_obj.check, full_obj.check, policy_obj.a, policy_obj.b, full_obj.a, full_obj.b, policy_obj.participants)
+assert result.judgement == components.VERIFIED_GLOBAL, \
+        "Can't verify this locally"
+assert result.result == z3.sat, \
+        "See previous"
 stop = time.time()
 print stop - start
 
