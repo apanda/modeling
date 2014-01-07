@@ -11,6 +11,7 @@ __all__ = ['Core', \
            'AclWebProxy', \
            'WebLoadBalancer', \
            'LoadBalancer', \
+           'NetworkCounter', \
            'IPS', \
            'CompressionAlgorithm', \
            'DPIPolicy', \
@@ -30,6 +31,7 @@ from endhost import EndHost
 from network import Network
 from webloadbalancer import WebLoadBalancer
 from loadbalancer import LoadBalancer
+from counter import NetworkCounter
 from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall
 from webproxy import WebProxy

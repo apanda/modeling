@@ -101,12 +101,44 @@ class PropertyChecker (object):
         self.solver.pop()
         return IsolationResult (result, p, eh, self.ctx, model)
 
+    def CheckTraversalProperty (self, src, dest, traverse):
+        """Check that packets from src to destination always traverse the box traverse"""
+        class TraversalResult (object):
+            def __init__ (self, result, bad_packet, ctx, model = None):
+                self.ctx = ctx
+                self.model = model
+                self.result = result
+                self.violating_packet = bad_packet
+
+        # We want these to be in the path. Checking properties for an unreachable thing are well kind of strange.
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        assert(traverse in self.net.elements)
+
+        if not self.primed:
+            self.AddConstraints()
+        self.solver.push()
+        p = z3.Const('traversal_packet_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.packet)
+        n = z3.Const('traversal_packet_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.node)
+        # The packet is sent by the source
+        self.solver.add(z3.Exists([n], self.ctx.send(src.z3Node, n, p)))
+        # And received by the destination
+        self.solver.add(z3.Exists([n], self.ctx.recv(n, dest.z3Node, p)))
+        # But never really goes through the node we would like
+        self.solver.add(z3.Not(z3.Exists([n], self.ctx.recv(n, traverse.z3Node, p))))
+        result = self.solver.check()
+        model = None
+        if result == z3.sat:
+            model = self.solver.model ()
+        self.solver.pop()
+        return TraversalResult (result, p, self.ctx, model) 
+
     def AddExternalConstraints (self, constraints):
         self.solver.push ()
         self.solver.add (constraints)
 
     def ClearExternalConstraints (self):
-        self.solver.pop ()
+        self.ClearState()
 
     def AddConstraints (self):
         self.ctx._addConstraints(self.solver)
