@@ -9,6 +9,7 @@ class LoadBalancer (NetworkObject):
         self.net = net
         self.net.SaneSend (self) 
         self.constraints = list()
+        self._populateLoadBalancerConstraints()
 
     @property
     def z3Node (self):
@@ -31,18 +32,19 @@ class LoadBalancer (NetworkObject):
                      self.ctx.send(self.balancer, n0, p0), \
                      self.ctx.send(self.balancer, n1, p1)
                     ]
-        self.constraints.append(z3.Implies(z3.And(hash_same), \
-                                            n0 == n1))
+        self.constraints.append(z3.ForAll([n0, p0, n1, p1], \
+                                z3.Implies(z3.And(hash_same), \
+                                            n0 == n1)))
         
-        self.constraints.append(z3.Implies(
-                                   z3.ForAll([n0, p0], \
+        self.constraints.append(z3.ForAll([n0, p0], \
+                                  z3.Implies(\
                                       self.ctx.send(self.balancer, n0, p0), \
-                                   z3.Exists([n1], \
-                                      z3.And( \
-                                          self.ctx.recv(n1, self.balancer, p0)), \
-                                          n1 != n0, \
+                                    z3.And( \
+                                        z3.Exists([n1], \
+                                          z3.And(self.ctx.recv(n1, self.balancer, p0), \
+                                            n1 != n0)), \
                                           z3.Not(z3.Exists([n2], \
                                               z3.And(n2 != n0, \
-                                                self.send(self.balancer, n2, p0)))), \
+                                                self.ctx.send(self.balancer, n2, p0)))), \
                                           self.ctx.etime(self.balancer, p0, self.ctx.send_event) > \
                                             self.ctx.etime(self.balancer, p0, self.ctx.recv_event)))))
