@@ -212,6 +212,46 @@ assert z3.is_false(result.model.eval(out.l.hash_function(result.ctx.src_port(p0)
 stop = time.time()
 print stop - start
 
+print "Running LoadBalancer traversal check"
+ResetZ3()
+start = time.time()
+out = TrivialLbalancer()
+result = out.check.CheckTraversalProperty(out.a, out.b, out.f)
+assert z3.sat == result.result, \
+        "There are packets that can go from A to B without going through F"
+stop = time.time()
+print stop - start
+
+print "Running simple counter example"
+ResetZ3()
+start = time.time()
+out = TrivialCtrExample ()
+result = out.check.CheckTraversalProperty(out.a, out.b, out.c)
+assert z3.unsat == result.result, \
+        "Must go through the counter to get to B"
+stop = time.time()
+print stop - start
+
+print "Running LoadBalancer traversal check"
+ResetZ3()
+start = time.time()
+out = TrivialLbalancer()
+result = out.check.CheckTraversalThroughGroup(out.a, out.b, [out.f])
+assert z3.sat == result.result, \
+        "There are packets that can go from A to B without going through F"
+stop = time.time()
+print stop - start
+
+print "Running simple counter example"
+ResetZ3()
+start = time.time()
+out = TrivialCtrExample ()
+result = out.check.CheckTraversalThroughGroup(out.a, out.b, [out.c])
+assert z3.unsat == result.result, \
+        "Must go through the counter to get to B"
+stop = time.time()
+print stop - start
+
 print "Running simple erroneous proxy test with firewall (Policy version)"
 ResetZ3()
 start = time.time()

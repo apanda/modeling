@@ -119,13 +119,49 @@ class PropertyChecker (object):
             self.AddConstraints()
         self.solver.push()
         p = z3.Const('traversal_packet_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.packet)
-        n = z3.Const('traversal_packet_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.node)
+        n = z3.Const('traversal_node_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.node)
         # The packet is sent by the source
         self.solver.add(z3.Exists([n], self.ctx.send(src.z3Node, n, p)))
         # And received by the destination
         self.solver.add(z3.Exists([n], self.ctx.recv(n, dest.z3Node, p)))
         # But never really goes through the node we would like
         self.solver.add(z3.Not(z3.Exists([n], self.ctx.recv(n, traverse.z3Node, p))))
+        result = self.solver.check()
+        model = None
+        if result == z3.sat:
+            model = self.solver.model ()
+        self.solver.pop()
+        return TraversalResult (result, p, self.ctx, model) 
+
+    def CheckTraversalThroughGroup (self, src, dest, traversal_group):
+        """Check if all packets traverse through one of a group of elements"""
+        class TraversalResult (object):
+            def __init__ (self, result, bad_packet, ctx, model = None):
+                self.ctx = ctx
+                self.model = model
+                self.result = result
+                self.violating_packet = bad_packet
+
+        # We want these to be in the path. Checking properties for an unreachable thing are well kind of strange.
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        for t in traversal_group:
+            assert(t in self.net.elements)
+
+        if not self.primed:
+            self.AddConstraints()
+        self.solver.push()
+        p = z3.Const('traversal_packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        n0 = z3.Const('traversal_node0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n1 = z3.Const('traversal_node1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        # The packet is sent by the source
+        self.solver.add(z3.Exists([n0], self.ctx.send(src.z3Node, n0, p)))
+        # And received by the destination
+        self.solver.add(z3.Exists([n0], self.ctx.recv(n0, dest.z3Node, p)))
+        # But never really goes through the nodes we would like
+        self.solver.add(z3.Not(z3.Exists([n0, n1], \
+                z3.And(self.ctx.recv(n0, n1, p), \
+                    z3.Or(map(lambda t: n1 == t.z3Node, traversal_group))))))
         result = self.solver.check()
         model = None
         if result == z3.sat:

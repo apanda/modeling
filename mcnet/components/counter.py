@@ -46,14 +46,15 @@ class NetworkCounter (NetworkObject):
         # Make sure packets go one at a time
         self.constraints.append(z3.ForAll([p0, t0], \
                               z3.Implies(z3.And(self.ctx.etime(self.node, p0, self.ctx.send_event) == t0, \
-                                               t0 != 0), 
+                                               t0 != 0), \
                                            z3.ForAll([p1], \
                                                 z3.Or(p0 == p1, \
                                                    self.ctx.etime(self.node, p1, \
                                                                  self.ctx.send_event) != \
                                                        t0)))))
 
-        #self.constraints.append(z3.ForAll([a0, a1], 
+        # TODO: Figure out if this needs to be implemented.
+        #self.constraints.append(z3.ForAll([a0, a1],
                                 #self.count_func(a0, a1, 0) == 0))
 
         #self.constraints.append(z3.ForAll([p0, t0], \
