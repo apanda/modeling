@@ -1,6 +1,7 @@
 # Class for network functionality
 from . import Core, destAddrPredicate, NetworkObject
 import z3
+import collections
 class Network (Core):
     """Represent a network, this encompases both routing and wiring"""
     def _init(self,  context):
@@ -60,9 +61,15 @@ class Network (Core):
             # that might drop the packet instead of forwarding it.
 
             # \forall p: send(n, e, p) \land p.dest == e[0] \Rightarrow e == e[1]
-            self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
+            if not isinstance(dnode, collections.Iterable):
+                self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
                                                predicate(p)), \
                                                eh == dnode.z3Node)))
+            else:
+                self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
+                                               predicate(p)), \
+                                                z3.Or(map(lambda dn: eh == dn.z3Node, \
+                                                    dnode)))))            
 
 
         neg_policy = z3.Not(z3.Or(map(lambda (pred, dnode): pred(p), policy)))

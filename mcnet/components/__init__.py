@@ -9,6 +9,7 @@ __all__ = ['Core', \
            'WebProxy', \
            'ErroneousAclWebProxy', \
            'AclWebProxy', \
+           'WebLoadBalancer', \
            'LoadBalancer', \
            'IPS', \
            'CompressionAlgorithm', \
@@ -27,6 +28,7 @@ from dumb_node import DumbNode
 from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
 from endhost import EndHost
 from network import Network
+from webloadbalancer import WebLoadBalancer
 from loadbalancer import LoadBalancer
 from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall

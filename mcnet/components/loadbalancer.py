@@ -1,55 +1,48 @@
 from . import NetworkObject
 import z3
 class LoadBalancer (NetworkObject):
-    """Load balancers can be used to split traffic among multipler servers"""
-    def _init (self, lbalancer, shared_addr, servers, context):
-        self.constraints = list ()
+    """As opposed to balancing between servers, this load balancer just balances between paths. This both makes it
+    simpler and perhaps more interesting. Who knows"""
+    def _init (self, balancer, net, context):
         self.ctx = context
-        self.lbalancer = lbalancer.z3Node
-        self.shared_addr = shared_addr
-        self.servers = list()
-        if servers:
-            self.AddServers (servers)
-        self.frozen = False
+        self.balancer = balancer.z3Node
+        self.net = net
+        self.net.SaneSend (self) 
+        self.constraints = list()
 
-    def AddServers (self, servers):
-        assert(not self.frozen)
-        self.servers.extend(servers)
-
-    def _addConstraints (self, solver):
-        if not self.frozen:
-            self.frozen = True
-            self._loadBalancerRules(self.lbalancer, self.shared_addr, self.servers)
-        solver.add(self.constraints)
-    
     @property
     def z3Node (self):
-        return self.lbalancer
+        return self.balancer
+    
+    def _addConstraints (self, solver):
+        solver.add(self.constraints)
 
-    def _loadBalancerRules (self, lbalancer, shared_addr, servers):
-        # No sane send, want to send out packets meant for me
-        flow_hash_func = z3.Function('__lb_flowHashFunc_%s'%(lbalancer), self.ctx.packet, z3.IntSort())
-        flow_hash_packet = z3.Const('__lb_fhash_packet1_%s'%(lbalancer), self.ctx.packet)
-        self.constraints.append(z3.ForAll([flow_hash_packet], flow_hash_func(flow_hash_packet) < len(servers)))
-        self.constraints.append(z3.ForAll([flow_hash_packet], flow_hash_func(flow_hash_packet) ==\
-                                                        (self.ctx.dest_port(flow_hash_packet) + \
-                                                        self.ctx.src_port(flow_hash_packet) % len(servers))))
-       
-        packet0 = z3.Const('__lb_packet1_%s'%(lbalancer), self.ctx.packet)
-        node0 = z3.Const('__lb_node1_%s'%(lbalancer), self.ctx.node)
-        node1 = z3.Const('__lb_node2_%s'%(lbalancer), self.ctx.node)
-        # Load balancer does not invent packets
-        self.constraints.append(z3.ForAll([node0, packet0], z3.Implies(self.ctx.send(lbalancer, node0, packet0), \
-                z3.Exists([node1], \
-                 z3.And(self.ctx.recv(node1, lbalancer, packet0), \
-                 self.ctx.etime(lbalancer, packet0, self.ctx.recv_event) < \
-                    self.ctx.etime(lbalancer, packet0, self.ctx.send_event))))))
-        for idx, server in zip(range(len(servers)), servers):
-            self.constraints.append(z3.ForAll([node0, packet0], z3.Implies(\
-                  z3.And(\
-                    self.ctx.recv(node0, lbalancer, packet0), \
-                    self.ctx.packet.dest (packet0) == shared_addr, \
-                    flow_hash_func (packet0) == idx),
-                  z3.And(self.ctx.send(lbalancer, server, packet0),
-                    self.ctx.etime(lbalancer, packet0, self.ctx.recv_event) < \
-                        self.ctx.etime(lbalancer, packet0, self.ctx.send_event)))))
+    def _populateLoadBalancerConstraints (self):
+        self.hash_function = z3.Function ('load_balancer_hash_%s'%(self.balancer), z3.IntSort (), z3.IntSort (), z3.IntSort ())
+        p0 = z3.Const('_load_balancer_p0_%s'%(self.balancer), self.ctx.packet)
+        p1 = z3.Const('_load_balancer_p1_%s'%(self.balancer), self.ctx.packet)
+        n0 = z3.Const('_load_balancer_n0_%s'%(self.balancer), self.ctx.node)
+        n1 = z3.Const('_load_balancer_n1_%s'%(self.balancer), self.ctx.node)
+        n2 = z3.Const('_load_balancer_n2_%s'%(self.balancer), self.ctx.node)
+        hash_same = [self.ctx.packet.src(p0) == self.ctx.packet.src(p1), \
+                     self.ctx.packet.dest(p0) == self.ctx.packet.dest(p1), \
+                     self.hash_function(self.ctx.src_port(p0), self.ctx.dest_port(p0)) == \
+                        self.hash_function(self.ctx.src_port(p1), self.ctx.dest_port(p1)), \
+                     self.ctx.send(self.balancer, n0, p0), \
+                     self.ctx.send(self.balancer, n1, p1)
+                    ]
+        self.constraints.append(z3.Implies(z3.And(hash_same), \
+                                            n0 == n1))
+        
+        self.constraints.append(z3.Implies(
+                                   z3.ForAll([n0, p0], \
+                                      self.ctx.send(self.balancer, n0, p0), \
+                                   z3.Exists([n1], \
+                                      z3.And( \
+                                          self.ctx.recv(n1, self.balancer, p0)), \
+                                          n1 != n0, \
+                                          z3.Not(z3.Exists([n2], \
+                                              z3.And(n2 != n0, \
+                                                self.send(self.balancer, n2, p0)))), \
+                                          self.ctx.etime(self.balancer, p0, self.ctx.send_event) > \
+                                            self.ctx.etime(self.balancer, p0, self.ctx.recv_event)))))
