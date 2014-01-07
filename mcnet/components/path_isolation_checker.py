@@ -36,12 +36,13 @@ def CheckIsPathIndependentIsolated (checker_path, checker_full, psrc, pdest, fsr
     participants = map(lambda l: l[0], result.model[result.model[result.ctx.etime].else_value().decl()].as_list()[:-1])
     z3PathElements = map(lambda n: n.z3Node, path_elements)
     bad_participants = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), participants)
-    
+
     if len(bad_participants) == 0:
         return PathIndependenceResult(VERIFIED_ISOLATION, result)
 
     # OK so now we know that there are bad participants. In the normal way of the world we could just try globally but
-    # we want to see if this really is path independent or not.
+    # we want to see if this really is path independent or not. Plus checking globally can be super expensive, so let
+    # us attempt to not do that.
     p = z3.Const('path_independent_packet', result.ctx.packet)
     elements_to_consider = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), map(lambda l: l.z3Node, \
             result.ctx.node_list))
