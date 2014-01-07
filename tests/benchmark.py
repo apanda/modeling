@@ -206,6 +206,9 @@ assert z3.is_true(result.model.eval(result.ctx.send(out.l.z3Node, out.f.z3Node, 
         "We required a packet to go through the firewall"
 assert z3.is_true(result.model.eval(result.ctx.etime(out.b.z3Node, p0, result.ctx.recv_event) == 0)), \
         "We required a packet to go through the firewall, the firewall should drop it"
+p1 = result.violating_packet
+assert z3.is_false(result.model.eval(out.l.hash_function(result.ctx.src_port(p0), result.ctx.dest_port(p0)) == \
+                        out.l.hash_function(result.ctx.src_port(p1), result.ctx.dest_port(p1))))
 stop = time.time()
 print stop - start
 
