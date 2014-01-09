@@ -2,8 +2,6 @@ import components
 import itertools
 
 def LSRRFwExample (size):
-    #left_nodes = [chr(c) for c in xrange(ord('a'), ord('m') + 1)]
-    #right_nodes = [chr(c) for c in xrange(ord('n'), ord('z') + 1)]
     left_nodes = [chr(c) for c in xrange(ord('a'), ord('a') + size)]
     right_nodes = [chr(c) for c in xrange(ord('a') + size, ord('a') + 2 * size)]
     end_hosts = ['e0', 'e1']

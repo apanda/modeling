@@ -275,6 +275,23 @@ for sz in xrange(3, 6):
     stop = time.time()
     print stop - start
 
+for sz in xrange(2, 5):
+    print "Running num node test with size %d"%(sz)
+    ResetZ3()
+    start = time.time()
+    obj = NumFwTest (sz)
+    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
+    assert z3.unsat == ret.result, \
+            "No way to go"
+    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
+    assert z3.sat == ret.result, \
+            "Nothing stopping this"
+    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_3)
+    assert z3.sat == ret.result, \
+            "Nothing stopping this"
+    stop = time.time()
+    print stop - start
+
 print "Running simple erroneous proxy test with firewall (Policy version)"
 ResetZ3()
 start = time.time()
