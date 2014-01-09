@@ -69,7 +69,7 @@ class Network (Core):
                 self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
                                                predicate(p)), \
                                                 z3.Or(map(lambda dn: eh == dn.z3Node, \
-                                                    dnode)))))            
+                                                    dnode)))))
 
 
         neg_policy = z3.Not(z3.Or(map(lambda (pred, dnode): pred(p), policy)))

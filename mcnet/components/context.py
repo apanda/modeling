@@ -45,7 +45,8 @@ class Context(Core):
                        ('dest', self.address), \
                        ('origin', self.node), \
                        ('body', z3.IntSort()), \
-                       ('seq', z3.IntSort()))
+                       ('seq', z3.IntSort()), \
+                       ('options', z3.IntSort()))
         self.packet = packet.create()
 
         # Some functions to keep everything running
@@ -77,7 +78,8 @@ class Context(Core):
                 self.packet.origin(p1) == self.packet.origin(p2), \
                 self.packet.seq(p1) == self.packet.seq(p2), \
                 self.src_port(p1) == self.src_port(p2), \
-                self.dest_port(p1) == self.dest_port(p2))
+                self.dest_port(p1) == self.dest_port(p2), \
+                self.packet.options(p1) == self.packet.options(p2))
 
     def PacketContentEqual (self, p1, p2):
         return self.packet.body(p1) == self.packet.body(p2)

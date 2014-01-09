@@ -7,14 +7,14 @@ class LoadBalancer (NetworkObject):
         self.ctx = context
         self.balancer = balancer.z3Node
         self.net = net
-        self.net.SaneSend (self) 
+        self.net.SaneSend (self)
         self.constraints = list()
         self._populateLoadBalancerConstraints()
 
     @property
     def z3Node (self):
         return self.balancer
-    
+
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 
@@ -35,7 +35,7 @@ class LoadBalancer (NetworkObject):
         self.constraints.append(z3.ForAll([n0, p0, n1, p1], \
                                 z3.Implies(z3.And(hash_same), \
                                             n0 == n1)))
-        
+
         self.constraints.append(z3.ForAll([n0, p0], \
                                   z3.Implies(\
                                       self.ctx.send(self.balancer, n0, p0), \

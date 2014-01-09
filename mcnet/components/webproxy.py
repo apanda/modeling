@@ -19,6 +19,7 @@ class WebProxy (NetworkObject):
         solver.add(self.constraints)
 
     def _webProxyConstraints (self):
+        # The web proxy deliberately does not require that IP options not change
         eh = z3.Const('__webproxy_contraint_eh_%s'%(self.proxy), self.ctx.node)
         eh2 = z3.Const('__webproxy_contraint_eh2_%s'%(self.proxy), self.ctx.node)
         # Conditions for the caching of packets
@@ -48,6 +49,7 @@ class WebProxy (NetworkObject):
                                 self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \
                                 self.ctx.dest_port(p) == self.ctx.src_port(p2), \
                                 self.ctx.src_port(p) == self.ctx.dest_port(p2), \
+                                self.ctx.packet.options(p) == 0, \
                                 self.ctx.packet.origin(p) == self.corigin(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)))
 
         # Conditions to send out a request
@@ -56,6 +58,7 @@ class WebProxy (NetworkObject):
                                       self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
                                       self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
                                       self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
+                                      self.ctx.packet.options(p) == 0, \
                                       self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
                                       self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
                                       self.ctx.etime(self.proxy, p, self.ctx.send_event) > \

@@ -131,7 +131,7 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model ()
         self.solver.pop()
-        return TraversalResult (result, p, self.ctx, model) 
+        return TraversalResult (result, p, self.ctx, model)
 
     def CheckTraversalThroughGroup (self, src, dest, traversal_group):
         """Check if all packets traverse through one of a group of elements"""
@@ -167,7 +167,7 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model ()
         self.solver.pop()
-        return TraversalResult (result, p, self.ctx, model) 
+        return TraversalResult (result, p, self.ctx, model)
 
     def AddExternalConstraints (self, constraints):
         self.solver.push ()
@@ -182,3 +182,8 @@ class PropertyChecker (object):
         for el in self.net.elements:
             el._addConstraints(self.solver)
         self.primed = True
+
+    def PrintTimeline (self, ret):
+        print '\n'.join(map(lambda l: str('(%s, %s, %s) -> %s'%(l[0], l[1], l[2], l[3])), \
+               sorted(ret.model[ret.model[ret.ctx.etime].else_value().decl()].as_list()[:-1], \
+               key=lambda l: l[-1].as_long())))

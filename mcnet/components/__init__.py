@@ -14,6 +14,8 @@ __all__ = ['Core', \
            'NetworkCounter', \
            'IPS', \
            'CompressionAlgorithm', \
+           'LSRROption', \
+           'LSRRRouter', \
            'DPIPolicy', \
            'WanOptimizer', \
            'PropertyChecker', \
@@ -43,3 +45,4 @@ from wan_opt import WanOptimizer
 from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker
 from path_isolation_checker import CheckIsPathIndependentIsolated, VERIFIED_ISOLATION, VERIFIED_GLOBAL, UNKNOWN
+from lsrr import LSRROption, LSRRRouter

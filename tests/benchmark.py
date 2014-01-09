@@ -252,6 +252,29 @@ assert z3.unsat == result.result, \
 stop = time.time()
 print stop - start
 
+print "Running LSRR test"
+ResetZ3()
+start = time.time()
+obj = LSRRExample ()
+ret = obj.check.CheckIsolatedIf(lambda p: obj.ctx.send(obj.b.z3Node, obj.e1.z3Node, p), obj.e0, obj.e1)
+assert z3.sat == ret.result, \
+        "Satisfiable, no blocks"
+assert z3.is_true(ret.model.eval(ret.ctx.send(obj.b.z3Node, obj.e1.z3Node, ret.violating_packet))), \
+        "Need to go through b"
+stop = time.time()
+print stop - start
+
+for sz in xrange(3, 6):
+    print "Running complex LSRR test with size %d"%(sz)
+    ResetZ3()
+    start = time.time()
+    obj = LSRRFwExample (sz)
+    ret = obj.check.CheckIsolationProperty(obj.e0, obj.e1)
+    assert z3.sat == ret.result, \
+            "Satisfiable, no blocks"
+    stop = time.time()
+    print stop - start
+
 print "Running simple erroneous proxy test with firewall (Policy version)"
 ResetZ3()
 start = time.time()
@@ -284,7 +307,7 @@ stop = time.time()
 print stop - start
 
 
-print "Running automatic detection of path isolation: Erroneous proxy with firewall" 
+print "Running automatic detection of path isolation: Erroneous proxy with firewall"
 ResetZ3()
 start= time.time()
 policy_obj = ErroneousProxyMultiFwPi()
@@ -297,7 +320,7 @@ assert result.result == z3.unsat, \
 stop = time.time()
 print stop - start
 
-print "Running automatic detection of path isolation: ACL proxy with firewall" 
+print "Running automatic detection of path isolation: ACL proxy with firewall"
 ResetZ3()
 start= time.time()
 policy_obj = AclProxyMultiFwPi()
@@ -310,7 +333,7 @@ assert result.result == z3.unsat, \
 stop = time.time()
 print stop - start
 
-print "Running automatic detection of path isolation: Erroneous proxy without firewall" 
+print "Running automatic detection of path isolation: Erroneous proxy without firewall"
 ResetZ3()
 start= time.time()
 policy_obj = ErroneousProxyMultiplePi()

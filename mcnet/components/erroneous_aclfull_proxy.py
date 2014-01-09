@@ -60,24 +60,26 @@ class ErroneousAclWebProxy (NetworkObject):
         cached_packet = z3.And(self.cached(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.etime(self.proxy, p2, self.ctx.recv_event) > \
                                     self.ctime(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
-                                self.ctx.etime(self.proxy, p, self.ctx.send_event) > 
+                                self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
                                     self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                                 self.ctx.packet.body(p) == self.cresp(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                                 self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \
                                 self.ctx.dest_port(p) == self.ctx.src_port(p2), \
                                 self.ctx.src_port(p) == self.ctx.dest_port(p2), \
+                                self.ctx.packet.options(p) == 0, \
                                 self.ctx.packet.origin(p) == self.corigin(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)))
 
         request_constraints = [z3.Not(self.ctx.hostHasAddr(self.proxy, self.ctx.packet.dest(p2))), \
-                                      self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
-                                      self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
-                                      self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
-                                      self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
-                                      self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
-                                      self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
-                                      self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
-                                         self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
-                                      self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))]
+                               self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
+                               self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
+                               self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
+                               self.ctx.packet.options(p) == 0, \
+                               self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
+                               self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
+                               self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
+                               self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
+                                  self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
+                               self.ctx.hostHasAddr(self.proxy, self.ctx.packet.src(p))]
         if len(self.acls) != 0:
             acl_constraint = map(lambda (s, d): \
                                             z3.Not(z3.And(self.ctx.packet.src(p2) == s, \

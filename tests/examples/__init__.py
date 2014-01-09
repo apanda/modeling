@@ -20,3 +20,5 @@ from aclproxy_3hosts_and_fw_pi import *
 from aclproxy_3hosts_and_fw import *
 from trivial_lbalancer import *
 from trivial_ctr_example import *
+from lsrr_example import *
+from lsrr_fw_example import *
