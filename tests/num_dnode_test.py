@@ -9,15 +9,15 @@ def ResetZ3 ():
     z3.main_ctx()
 
 for it in xrange(0, 10):
-    for sz in xrange(2, 100):
+    for sz in xrange(2, 10):
         ResetZ3()
-        obj = NumNodesTest (sz)
+        obj = NumDumbNodesTest (sz)
         start = time.time()
         # Set timeout to some largish number
-        obj.check.solver.set(timeout=1000000)
+        obj.check.solver.set(timeout=10000000)
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
-        assert z3.unsat == ret.result, \
-                "No way to go"
+        assert z3.sat == ret.result, \
+                "Nothing stopping this"
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
         assert z3.sat == ret.result, \
                 "Nothing stopping this"

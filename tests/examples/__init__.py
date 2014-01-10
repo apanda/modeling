@@ -24,3 +24,4 @@ from lsrr_example import *
 from lsrr_fw_example import *
 from increasing_path_test import *
 from increasing_node_test import *
+from increasing_dumb_node_test import *

@@ -3,6 +3,7 @@ __all__ = ['Core', \
            'DumbNode', \
            'Context', \
            'Network', \
+           'NullNode', \
            'EndHost', \
            'AclFirewall', \
            'LearningFirewall', \
@@ -29,6 +30,7 @@ __all__ = ['Core', \
 from core import Core, NetworkObject
 from dumb_node import DumbNode
 from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
+from null_node import NullNode
 from endhost import EndHost
 from network import Network
 from webloadbalancer import WebLoadBalancer
