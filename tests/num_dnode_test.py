@@ -7,9 +7,14 @@ import mcnet.components as components
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
+    z3.set_param('auto_config', False)
+    z3.set_param('smt.mbqi', True)
+    z3.set_param('model.compact', True)
+    z3.set_param('smt.pull_nested_quantifiers', True)
+    z3.set_param('smt.mbqi.max_iterations', 10000)
 
 for it in xrange(0, 10):
-    for sz in xrange(2, 10):
+    for sz in xrange(2, 50):
         ResetZ3()
         obj = NumDumbNodesTest (sz)
         start = time.time()

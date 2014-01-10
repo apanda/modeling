@@ -7,6 +7,11 @@ import mcnet.components as components
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
+    z3.set_param('auto_config', False)
+    z3.set_param('smt.mbqi', True)
+    z3.set_param('model.compact', True)
+    z3.set_param('smt.pull_nested_quantifiers', True)
+    z3.set_param('smt.mbqi.max_iterations', 10000)
 
 for sz in xrange(1, 20):
     ResetZ3()
