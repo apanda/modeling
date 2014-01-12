@@ -26,3 +26,4 @@ from increasing_path_test import *
 from increasing_node_test import *
 from increasing_dumb_node_test import *
 from increasing_policy_node_test import *
+from increasing_policy_node_test2 import *

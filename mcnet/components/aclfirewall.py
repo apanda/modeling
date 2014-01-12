@@ -32,7 +32,7 @@ class AclFirewall (NetworkObject):
             return
         p = z3.Const('__firewall_Packet_%s'%(self.fw), self.ctx.packet)
         eh = z3.Const('__firewall_node1_%s'%(self.fw), self.ctx.node)
-        if len(conditions) != 0:
+        if len(self.acls) != 0:
             conditions = list()
             # Firewall rules
             for rule in self.acls:

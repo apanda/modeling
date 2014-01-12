@@ -16,7 +16,7 @@ def ResetZ3 ():
 for it in xrange(0, 100):
     for sz in xrange(1, 1000000):
         ResetZ3()
-        obj = NumPolicyNodesTest (sz)
+        obj = NumPolicyNodesTest2 (sz)
         start = time.time()
         # Set timeout to some largish number
         obj.check.solver.set(timeout=10000000)
