@@ -22,7 +22,7 @@ for it in xrange(0, 100):
         obj.check.solver.set(timeout=10000000)
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
         result = 'bad'
-        if z3.sat == ret.result, \
+        if z3.sat == ret.result:
             result = 'good'
             bad_in_row = 0
         else:
