@@ -27,3 +27,4 @@ from increasing_node_test import *
 from increasing_dumb_node_test import *
 from increasing_policy_node_test import *
 from increasing_policy_node_test2 import *
+from lsrr_denyfw_example import *
