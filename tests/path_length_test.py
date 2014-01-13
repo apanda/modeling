@@ -22,13 +22,13 @@ for sz in xrange(1, 200):
     obj.check.solver.set(timeout=10000000)
     ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
     bad = False
-    if z3.unsat == ret.result:
+    if z3.unsat != ret.result:
         bad = True
     ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
-    if z3.sat == ret.result:
+    if z3.sat != ret.result:
         bad = True
     ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_3)
-    if z3.sat == ret.result:
+    if z3.sat != ret.result:
         bad = True
     stop = time.time()
     print "%d %f %s"%(sz, stop - start, "bad" if bad else "good")
