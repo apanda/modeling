@@ -1,0 +1,19 @@
+1 0.490737
+2 1.009164
+3 1.328422
+4 2.387273
+5 2.717005
+6 3.118135
+7 17.032580
+8 8.225213
+9 3534.934454
+10 52.885929
+11 162.661747
+12 527.838072
+13 801.127602
+14 561.966808
+15 2257.095668
+Traceback (most recent call last):
+  File "tests/path_length_test.py", line 36, in <module>
+    "Nothing stopping this"
+AssertionError: Nothing stopping this
