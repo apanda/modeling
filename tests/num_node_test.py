@@ -23,12 +23,6 @@ for it in xrange(0, 10):
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
         assert z3.unsat == ret.result, \
                 "No way to go"
-        ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
-        assert z3.sat == ret.result, \
-                "Nothing stopping this"
-        ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_3)
-        assert z3.sat == ret.result, \
-                "Nothing stopping this"
         stop = time.time()
         print "%d %f"%(sz, stop - start)
 
