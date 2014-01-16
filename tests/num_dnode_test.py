@@ -24,12 +24,6 @@ for it in xrange(0, 10):
         bad = False
         if z3.sat != ret.result:
             bad = True
-        ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
-        if z3.sat != ret.result:
-            bad = True
-        ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_3)
-        if z3.sat != ret.result:
-            bad = True
         stop = time.time()
         print "%d %f %s"%(sz, stop - start, "bad" if bad else "good")
         if bad:
