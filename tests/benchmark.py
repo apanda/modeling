@@ -3,9 +3,17 @@ from z3 import is_true, is_false
 from examples import *
 import time
 import mcnet.components as components
+import random
+import sys
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
+    z3.set_param('auto_config', False)
+    z3.set_param('smt.mbqi', True)
+    z3.set_param('model.compact', True)
+    z3.set_param('smt.pull_nested_quantifiers', True)
+    z3.set_param('smt.mbqi.max_iterations', 10000)
+    z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 
 print "Running simple trivial test"
 ResetZ3 ()
@@ -279,16 +287,10 @@ for sz in xrange(2, 5):
     print "Running num node test with size %d"%(sz)
     ResetZ3()
     start = time.time()
-    obj = NumFwTest (sz)
+    obj = NumNodesTest (sz)
     ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
     assert z3.unsat == ret.result, \
             "No way to go"
-    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_2)
-    assert z3.sat == ret.result, \
-            "Nothing stopping this"
-    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_3)
-    assert z3.sat == ret.result, \
-            "Nothing stopping this"
     stop = time.time()
     print stop - start
 

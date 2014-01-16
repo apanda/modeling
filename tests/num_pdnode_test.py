@@ -3,6 +3,8 @@ from z3 import is_true, is_false
 from examples import *
 import time
 import mcnet.components as components
+import random
+import sys
 """Check time as increase in nodes"""
 def ResetZ3 ():
     z3._main_ctx = None
@@ -12,9 +14,14 @@ def ResetZ3 ():
     z3.set_param('model.compact', True)
     z3.set_param('smt.pull_nested_quantifiers', True)
     z3.set_param('smt.mbqi.max_iterations', 10000)
+    z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
+iters = 10
 bad_in_row = 0
-for it in xrange(0, 100):
-    for sz in xrange(1, 1000000):
+for sz in xrange(1, 1000000):
+    times = []
+    all_bad = True
+    for it in xrange(0, iters):
+        bad = True
         ResetZ3()
         obj = NumPolicyNodesTest (sz)
         start = time.time()
@@ -23,13 +30,16 @@ for it in xrange(0, 100):
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
         result = 'bad'
         if z3.sat == ret.result:
-            result = 'good'
-            bad_in_row = 0
-        else:
-            bad_in_row += 1
+            bad = False
         stop = time.time()
-        print "%d %f %s"%(sz, stop - start, result)
-        assert bad_in_row <= 5, \
-                "Too many failures"
-            
+        if not bad:
+            times.append(stop - start)
+            all_bad = False
+    print "%d %s %s"%(sz, ' '.join(map(str, times)), "bad" if all_bad else "good")
+    if all_bad:
+        bad_in_row += 1
+    else:
+        bad_in_row = 0
+    assert bad_in_row <= 5, \
+            "Too many failures"
 
