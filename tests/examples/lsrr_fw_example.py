@@ -2,8 +2,8 @@ import components
 import itertools
 
 def LSRRFwExample (size):
-    left_nodes = [chr(c) for c in xrange(ord('a'), ord('a') + size)]
-    right_nodes = [chr(c) for c in xrange(ord('a') + size, ord('a') + 2 * size)]
+    left_nodes = ['l_%d'%(l) for l in xrange(size)]
+    right_nodes = ['r_%d'%(r) for r in xrange(size)]
     end_hosts = ['e0', 'e1']
     firewalls = ['f0']
 

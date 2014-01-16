@@ -2,8 +2,8 @@ import components
 import itertools
 
 def LSRRDenyFwExample (size):
-    left_nodes = [chr(c) for c in xrange(ord('a'), ord('a') + size)]
-    right_nodes = [chr(c) for c in xrange(ord('a') + size, ord('a') + 2 * size)]
+    left_nodes = ['l_%d'%(l) for l in xrange(size)]
+    right_nodes = ['r_%d'%(r) for r in xrange(size)]
     end_hosts = ['e0', 'e1']
     firewalls = ['f0']
 
@@ -37,12 +37,8 @@ def LSRRDenyFwExample (size):
     address_map = [(o, a) for (o, a) in zip(all_node_objects, addresses)]
     net.setAddressMappings(address_map)
 
-    firewalls[0].AddAcls([(ctx.ip_e0, ctx.ip_e1), \
-                          (ctx.ip_e1, ctx.ip_e0)])
-    #left_right_acls = [(getattr(ctx, 'ip_%s'%(ol.z3Node)), getattr(ctx, 'ip_%s'%(orr.z3Node))) \
-                        #for (ol, orr) in itertools.product(left_nodes[:-1], right_nodes)]
-    #right_left_acls = [(getattr(ctx, 'ip_%s'%(orr.z3Node)), getattr(ctx, 'ip_%s'%(ol.z3Node))) \
-                        #for (ol, orr) in itertools.product(left_nodes[:-1], right_nodes)]
+    #firewalls[0].AddAcls([(ctx.ip_e0, ctx.ip_e1), \
+                          #(ctx.ip_e1, ctx.ip_e0)])
 
     firewalls[0].AddAcls([(getattr(ctx, 'ip_%s'%(left_nodes[-1].z3Node)), getattr(ctx, 'ip_%s'%(right_nodes[-1].z3Node)))])
 

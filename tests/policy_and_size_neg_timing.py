@@ -14,7 +14,7 @@ def ResetZ3 ():
     z3.set_param('smt.pull_nested_quantifiers', True)
     z3.set_param('smt.mbqi.max_iterations', 10000)
 for it in xrange(0, 5):
-    for sz in xrange(2, 11):
+    for sz in xrange(2, 500):
         ResetZ3()
         start = time.time()
         obj = LSRRDenyFwExample (sz)
