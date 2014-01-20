@@ -6,7 +6,7 @@ class CompressionAlgorithm (Core):
        - compress
        - decompress
        Decompress is the inverse of compress."""
-    PRIMES = pyprimes.primes() 
+    PRIMES = pyprimes.primes()
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
@@ -27,11 +27,11 @@ class CompressionAlgorithm (Core):
         self.constraints.append(z3.ForAll([uncompressed], self.compress(uncompressed) == uncompressed + self.const))
 
         self.constraints.append(z3.ForAll([uncompressed], self.decompress(uncompressed) == uncompressed - self.const))
-        
+
         # Decompression is the inverse of compression
         self.constraints.append(z3.ForAll([uncompressed],\
-                                self.decompress(self.compress(uncompressed)) == uncompressed)) 
-        
+                                self.decompress(self.compress(uncompressed)) == uncompressed))
+
     def packetCompressionPredicate (self, context):
         return lambda p: self.compress(context.packet.body(p))
 
