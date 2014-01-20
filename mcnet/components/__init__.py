@@ -6,6 +6,8 @@ __all__ = ['Core', \
            'NullNode', \
            'EndHost', \
            'AclFirewall', \
+           'HTTPFirewall', \
+           'DenyHTTPFirewall', \
            'DenyingAclFirewall', \
            'LearningFirewall', \
            'WebProxy', \
@@ -40,6 +42,8 @@ from counter import NetworkCounter
 from aclfirewall import AclFirewall
 from deny_aclfirewall import DenyingAclFirewall
 from learningfirewall import LearningFirewall
+from l7firewall import HTTPFirewall
+from denyl7firewall import DenyHTTPFirewall
 from webproxy import WebProxy
 from erroneous_aclfull_proxy import ErroneousAclWebProxy
 from aclfull_proxy import AclWebProxy

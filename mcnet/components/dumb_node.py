@@ -8,6 +8,6 @@ class DumbNode (NetworkObject):
     @property
     def z3Node (self):
         return self.node
-    
+
     def _addConstraints (self, solver):
         pass

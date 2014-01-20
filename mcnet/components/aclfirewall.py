@@ -43,11 +43,11 @@ class AclFirewall (NetworkObject):
                                             self.ctx.packet.dest(p) == ada))
             # Actually enforce firewall rules
             # Actually enforce firewall rules
-            # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p)) 
+            # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p))
             solver.add(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p),
                         z3.Not(z3.Or(conditions)))))
 
-    def _firewallSendRules (self): 
+    def _firewallSendRules (self):
         p = z3.Const('__firewall_Packet_%s'%(self.fw), self.ctx.packet)
         eh = z3.Const('__firewall_node1_%s'%(self.fw), self.ctx.node)
         eh2 = z3.Const('__firewall_node2_%s'%(self.fw), self.ctx.node)
