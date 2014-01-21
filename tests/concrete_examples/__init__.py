@@ -3,3 +3,5 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 from lsrr_fw_example import *
 from proxy_appfw import *
 from dpiFw import *
+from perf_test import *
+from proxy_appfw_policy import *

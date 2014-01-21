@@ -24,7 +24,7 @@ def LSRRFwTriv (sz):
     #b = components.LSRRRouter (ctx.b, ip_lsr_field, net, ctx)
     lsrrs = [components.LSRRRouter (getattr(ctx, n), ip_lsr_field, net, ctx) for n in lsrr_boxes]
     lsrr_addresses = [getattr(ctx, 'ip_%s'%(l.z3Node)) for l in lsrrs]
-    f = components.AclFirewall (ctx.f, net, ctx)
+    f = components.DenyingAclFirewall (ctx.f, net, ctx)
     address_mappings = [(e0, ctx.ip_e0), \
                         (e1, ctx.ip_e1), \
                           (f, ctx.ip_f)]
@@ -36,7 +36,8 @@ def LSRRFwTriv (sz):
                             #(f, ctx.ip_f)])
     net.SetGateway(e0, lsrrs[0])
     net.SetGateway(e1, f)
-    f.AddAcls([(ctx.ip_e0, ctx.ip_e1), (ctx.ip_e1, ctx.ip_e0)])
+    #f.AddAcls([(ctx.ip_e0, ctx.ip_e1), (ctx.ip_e1, ctx.ip_e0)])
+    f.AddAcls([(lsrr_addresses[-1], ctx.ip_e1), (ctx.ip_e1, lsrr_addresses[0])])
 
     firewall_routing_table = [(ctx.ip_e0, lsrrs[-1]), (ctx.ip_e1, e1)]
     firewall_routing_table.extend([(ad, lsrrs[-1]) for ad in lsrr_addresses])
