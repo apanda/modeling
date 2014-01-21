@@ -1,0 +1,75 @@
+import components
+import itertools
+
+def LSRRDenyFwProfExample (size):
+    left_nodes = ['l_%d'%(l) for l in xrange(1)]
+    right_nodes = ['r_%d'%(r) for r in xrange(1)]
+    end_hosts = ['e0', 'e1']
+    firewalls = ['f0']
+
+    all_nodes = []
+
+    all_nodes.extend(left_nodes)
+    all_nodes.extend(right_nodes)
+    all_nodes.extend(end_hosts)
+    all_nodes.extend(firewalls)
+    addresses = ['ip_%s'%(n) for n in all_nodes]
+    other_addresses = ['ip_fk_%d'%(n) for n in xrange(2 * size)]
+    ctx_addresses = list()
+    ctx_addresses.extend(addresses)
+    ctx_addresses.extend(other_addresses)
+
+    ctx = components.Context(all_nodes, ctx_addresses)
+    net = components.Network(ctx)
+    # Register something that tells us about LSR
+    ip_lsr_field = components.LSRROption ('ip_lsr', ctx)
+    ctx.AddPolicy (ip_lsr_field)
+
+    end_hosts = [components.EndHost(getattr(ctx, e), net, ctx) for e in end_hosts]
+    [e0, e1] = end_hosts
+    firewalls = [components.AclFirewall(getattr(ctx, f), net, ctx) for f in firewalls]
+    left_nodes =[components.LSRRRouter(getattr(ctx, l), ip_lsr_field, net, ctx) for l in left_nodes]
+    right_nodes =[components.LSRRRouter(getattr(ctx, l), ip_lsr_field, net, ctx) for l in right_nodes]
+
+    all_node_objects = []
+    all_node_objects.extend(left_nodes)
+    all_node_objects.extend(right_nodes)
+    all_node_objects.extend(end_hosts)
+    all_node_objects.extend(firewalls)
+
+    addresses = [getattr(ctx, a) for a in addresses]
+    address_map = [(o, a) for (o, a) in zip(all_node_objects, addresses)]
+    net.setAddressMappings(address_map)
+
+    #firewalls[0].AddAcls([(ctx.ip_e0, ctx.ip_e1), \
+                          #(ctx.ip_e1, ctx.ip_e0)])
+    firewalls[0].AddAcls([(ctx.ip_e0, ctx.ip_e1), \
+                          (ctx.ip_l_0, ctx.ip_e1)])
+    other_acls = [(getattr(ctx, 'ip_fk_%d'%(2 * i)), getattr(ctx, 'ip_fk_%d'%((2 * i) + 1))) \
+                    for i in xrange(size)]
+    firewalls[0].AddAcls(other_acls)
+    e0_routing_table = [(getattr(ctx, 'ip_%s'%(ol.z3Node)), ol) for ol in left_nodes]
+    e0_routing_table.append((ctx.ip_e1, firewalls[0]))
+    net.RoutingTable(e0, e0_routing_table)
+
+    left_routing_table = [(getattr(ctx, 'ip_%s'%(orr.z3Node)), firewalls[0]) for orr in right_nodes]
+    left_routing_table.append((ctx.ip_e0, e0))
+    for ol in left_nodes:
+        net.RoutingTable(ol, left_routing_table)
+
+    right_routing_table = [(getattr(ctx, 'ip_%s'%(ol.z3Node)), firewalls[0]) for ol in left_nodes]
+    right_routing_table.append((ctx.ip_e1, e1))
+    for orr in right_nodes:
+        net.RoutingTable(orr, right_routing_table)
+
+    firewall_routing_table = [(a, o) for (a, o) in zip(addresses, all_node_objects)]
+    net.RoutingTable(firewalls[0], firewall_routing_table)
+    net.Attach(*all_node_objects)
+    class LSRRReturn (object):
+        def __init__ (self, net, ctx, **nodes):
+            self.net = net
+            self.ctx = ctx
+            for k, v in nodes.iteritems():
+                setattr(self, k, v)
+            self.check = components.PropertyChecker (ctx, net)
+    return LSRRReturn (net, ctx, **dict(zip(all_nodes, all_node_objects)))

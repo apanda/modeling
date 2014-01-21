@@ -16,24 +16,26 @@ def ResetZ3 ():
     z3.set_param('smt.pull_nested_quantifiers', True)
     z3.set_param('smt.mbqi.max_iterations', 10000)
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
-iters = 10
+iters = 15
 bad_in_row = 0
-for sz in xrange(2, 500):
+for sz in xrange(1, 500):
     times = []
     all_bad = True
+    real_size = 0
     for it in xrange(0, iters):
         bad = False
         ResetZ3()
+        obj = LSRRDenyFwProfExample (sz)
         start = time.time()
-        obj = LSRRDenyFwExample (sz)
         ret = obj.check.CheckIsolationProperty(obj.e0, obj.e1)
         if z3.sat != ret.result:
             bad = True
         stop = time.time()
+        real_size = len(obj.f0.ACLs)
         if not bad:
             times.append(stop - start)
             all_bad = False
-    print "%d %s %s"%(sz, ' '.join(map(str, times)), "bad" if all_bad else "good")
+    print "%d %s %s"%(real_size, ' '.join(map(str, times)), "bad" if all_bad else "good")
     if all_bad:
         bad_in_row += 1
     else:
