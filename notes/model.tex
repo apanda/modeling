@@ -14,8 +14,11 @@ to be $address$es
 \item $dest$: $dest\in address$.
 \item $origin$: $origin\in node$. This is a pseudofield in the packet tracking its true origin (which is important for
 answering questions about isolation).
-\item $id$: $id\in \mathbb{N}$. This is an unconstrained field that allows Z3 to create several copies of the same packet if necessary. By default
-Z3 treats objects where all members are equal as equivalent.
+\item $body$: $body\in \mathbb{N}$. Payload 
+\item $seq$: $seq\in \mathbb{N}$. Sequence number.
+\item $options$: IP Options: represented as integer.
+\item $src_port$: Source port
+\item $dest_port$: Destination port
 \end{itemize}
 For the rest of the document identifiers $p, p_1,\ldots$ represent packets.
 \item $etype = \left\{R, S\right\}$ The event type, this is used to record times at which packets are received and sent. $R$ represents
@@ -34,6 +37,7 @@ to node mapping is onto).
 \item $send: e_1, e_2, p \rightarrow boolean$ True if $e_1$ sent $e_2$ packet $p$.
 \item $recv: e_1, e_2, p \rightarrow boolean$ True if $e_2$ received packet $p$ from $e_1$.
 \item $etime: e, p, E \rightarrow \tau$ The time at which event $\left( e, p, E \right)$ occurs.
+\item $failed: e, \tau \rightarrow boolean$ True if $e$ is failed at time $\tau$
 \end{itemize}
 
 Given these functions and types we layer them on to produce the test network. We go bottom up starting with the network:
@@ -42,14 +46,12 @@ Given these functions and types we layer them on to produce the test network. We
 \subsubsection{Basic Conditions}
 These are basic conditions we assume for the entire network:
 \begin{itemize}
-\item $\forall e, a:\ hostHasAddr(e, a)\iff addrToHost(a) = e$: Addresses are symmetric
 \item $\forall e_1, e_2, p:\ recv(e_1, e_2, p) \iff send(e_1, e_2, p)$: No packet loss
-\item $\forall e_1, e_2, p:\ recv(e_1, e_2, p) \Rightarrow \exists e_3:\ send(addrToHost(p.src), e_3, p)$: Network doesn't
-invent packets, packet source is correct.
 \item Don't consider loopback packets, we have really no control over them.
 \begin{align*}
 \forall e_1, e_2, p:& send(e_1, e_2, p) \Rightarrow e_1 \neq e_2\\
 \forall e_1, e_2, p:& recv(e_1, e_2. p) \Rightarrow e_1 \neq e_2\\
+\forall e_1, e_2, p:& send(e_1, e_2, p) \Rightarrow p.src \neq p.dest\\
 \end{align*}
 \item And a set of rules for time:
 \begin{itemize}
@@ -69,36 +71,11 @@ invent packets, packet source is correct.
 \begin{align*}
     \forall e_1, p:& \neg(\exists e_2:\ send(e_1, e_2, p)) \implies etime(e_1, p, S) = 0
 \end{align*}
+\item No sends or receives when failed
 \end{itemize}
 \end{itemize}
 
-\subsubsection{Adjacency Conditions}
-These are used to impose network topology (i.e. deal with cases where two nodes aren't connected and cannot send
-messages). A set of these conditions are imposed for each node in the network.
-In this particular case $e$ is the node $adj \subset node$ is the set of nodes adjacent to $e$.
-\begin{align*}
-\forall e_i, p:& send(e, e_i, p) \Rightarrow e_i \in adj\\
-\forall e_1, p:& recv(e_i, e, p) \Rightarrow e_i \in adj
-\end{align*}
-
-\subsubsection{Routing Tables}
-These are essentially the same as routing tables in real networks. We can populate these using, for instance, the output
-of HSA (since we can extend these conditions to match on arbitrary packet criterion). Currently they are expressed in
-terms of destination:
-
-For now a table $T \subset address\times node = \left\{ (a, e) \right\}$ is a set of $address$-$node$ tuples indicating what node gets the packet
-next. Given such a table $T$ for a node $e$ we impose the following condition:
-\begin{align*}
-\forall t\in T:& \forall e_i, p:\ send(e, e_i, p) \land p.dest = t.a \Rightarrow e_i = t.e
-\end{align*}
-
-\subsubsection{Correctly Send}
-This is just a condition that we add to a lot of the middleboxes (it is not assumed by default). Below we mark when this
-is used. It basically says that a node $e$ will only send a packet $p$ if $p$'s destination is not $e$.
-\begin{align}\label{eq:sanesend}
-\forall e_1, p:& send(e, e_1, p) \Rightarrow \neg hostHasAddr(e, p.dest)
-\end{align}
-
+\eat{
 \subsection{End Hosts}
 End hosts are just nodes with a couple of extra constraints. For endhost $e$:
 \begin{itemize}
@@ -149,3 +126,4 @@ packets a webproxy sends. These are actually somewhat incomplete (we are not acc
 reason is that currently I model all endhosts as endhosts instead of as servers and client, which would make this
 somewhat more reasonable.
 \end{itemize}
+}
