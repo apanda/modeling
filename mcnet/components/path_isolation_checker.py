@@ -44,10 +44,13 @@ def CheckIsPathIndependentIsolated (checker_path, checker_full, psrc, pdest, fsr
     # we want to see if this really is path independent or not. Plus checking globally can be super expensive, so let
     # us attempt to not do that.
     p = z3.Const('path_independent_packet', result.ctx.packet)
-    elements_to_consider = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), map(lambda l: l.z3Node, \
-            result.ctx.node_list))
-    constraint = z3.And(map(lambda n: z3.ForAll([p], result.ctx.etime(n, p, result.ctx.send_event) == 0), \
-                        elements_to_consider))
+    #elements_to_consider = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), map(lambda l: l.z3Node, \
+            #result.ctx.node_list))
+    #constraint = z3.And(map(lambda n: z3.ForAll([p], result.ctx.etime(n, p, result.ctx.send_event) == 0), \
+                        #elements_to_consider))
+    n = z3.Const('path_independent_node', result.ctx.node)
+    constraint = z3.ForAll([n, p], z3.Implies(result.ctx.etime(n, p, result.ctx.send_event) > 0, \
+                                    z3.Or(map(lambda x: n == x, z3PathElements))))
     checker_path.AddExternalConstraints(constraint)
     result2 = checker_path.CheckIsolationProperty (psrc, pdest)
     checker_path.ClearExternalConstraints ()

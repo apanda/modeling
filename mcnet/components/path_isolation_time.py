@@ -6,7 +6,7 @@ VERIFIED_ISOLATION = 1
 VERIFIED_GLOBAL = 2
 UNKNOWN = 3
 
-def CheckIsPathIndependentIsolatedTime (checker_path, checker_full, psrc, pdest, fsrc, fdest, path_elements):
+def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements):
     """Check isolation based on path independence. This is modified so that when things are not isolated it does not
     try to compute the actual result once it knows."""
     class PathIndependenceResult (object):
@@ -28,7 +28,6 @@ def CheckIsPathIndependentIsolatedTime (checker_path, checker_full, psrc, pdest,
 
     if result.result == z3.unknown:
         # Hmm let us see what comes of the big thing.
-        result = checker_full.CheckIsolationProperty (fsrc, fdest)
         # We really do not know what in the world happened. So really it is possible that it was all path independent
         # and such but really things didn't work out
         return PathIndependenceResult(UNKNOWN, result)
@@ -46,16 +45,18 @@ def CheckIsPathIndependentIsolatedTime (checker_path, checker_full, psrc, pdest,
     # we want to see if this really is path independent or not. Plus checking globally can be super expensive, so let
     # us attempt to not do that.
     p = z3.Const('path_independent_packet', result.ctx.packet)
-    elements_to_consider = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), map(lambda l: l.z3Node, \
-            result.ctx.node_list))
-    constraint = z3.And(map(lambda n: z3.ForAll([p], result.ctx.etime(n, p, result.ctx.send_event) == 0), \
-                        elements_to_consider))
+    #elements_to_consider = filter(lambda p: not any(map(lambda z: p is z, z3PathElements)), map(lambda l: l.z3Node, \
+            #result.ctx.node_list))
+    #constraint = z3.And(map(lambda n: z3.ForAll([p], result.ctx.etime(n, p, result.ctx.send_event) == 0), \
+                        #elements_to_consider))
+    n = z3.Const('path_independent_node', result.ctx.node)
+    constraint = z3.ForAll([n, p], z3.Implies(result.ctx.etime(n, p, result.ctx.send_event) > 0, \
+                                    z3.Or(map(lambda x: n == x, z3PathElements))))
     checker_path.AddExternalConstraints(constraint)
     result2 = checker_path.CheckIsolationProperty (psrc, pdest)
     checker_path.ClearExternalConstraints ()
     if result2.result != result.result:
         # Definitely not path independent.
-        #result_final = checker_full.CheckIsolationProperty (fsrc, fdest)
         return PathIndependenceResult (VERIFIED_GLOBAL, result, result2)
     else:
         return PathIndependenceResult (VERIFIED_ISOLATION, result2)

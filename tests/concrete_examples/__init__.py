@@ -5,3 +5,4 @@ from proxy_appfw import *
 from dpiFw import *
 from perf_test import *
 from proxy_appfw_policy import *
+from proxy_appfw_policy_scale import *

@@ -26,6 +26,7 @@ __all__ = ['Core', \
            'failurePredicate', \
            'destAddrPredicate', \
            'CheckIsPathIndependentIsolated', \
+           'CheckIsPathIndependentIsolatedTime', \
            'VERIFIED_ISOLATION', \
            'VERIFIED_GLOBAL', \
            'UNKNOWN', \
@@ -53,4 +54,5 @@ from wan_opt import WanOptimizer
 from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker
 from path_isolation_checker import CheckIsPathIndependentIsolated, VERIFIED_ISOLATION, VERIFIED_GLOBAL, UNKNOWN
+from path_isolation_time import CheckIsPathIndependentIsolatedTime
 from lsrr import LSRROption, LSRRRouter
