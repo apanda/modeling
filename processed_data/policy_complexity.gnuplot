@@ -28,7 +28,6 @@ set ylabel  "Time (seconds)"
 set xlabel "# of ACL Rules"
 #set xrange [2:110]
 #set yrange [0.03:5000]
-set logscale y
 set nokey
 set output "policy_size.pdf"
 plot "policy-and-size" using 1:2 w p lc -1 lt 1 lw 1 pt 1 

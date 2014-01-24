@@ -75,7 +75,6 @@ These are basic conditions we assume for the entire network:
 \end{itemize}
 \end{itemize}
 
-\eat{
 \subsection{End Hosts}
 End hosts are just nodes with a couple of extra constraints. For endhost $e$:
 \begin{itemize}
@@ -108,10 +107,34 @@ The logical model for a stateful firewall $f$ with ACL table $A$ is:
 
 \begin{itemize}
 \item The correct sending condition from equation~\ref{eq:sanesend}.
-\item $\forall a, b:\ cached(a, b) \iff \exists e, p:\ recv(e, f, p) \land p.src = a \land p.dest = b\land (a, b) \not
-    \in A \land ctime(a, b) = etime(f, p, R)$: Cache based on packets that are received.
-\item $\forall e, p:\ send(f, e, p) \Rightarrow (cached(p.src, p.dest) \land ctime(p.src, p.dest) \geq etime(f, p, R))
-    \lor (cached(p.dest, p.src) \land ctime(p.dest, p.src) \geq etime(f, p, R))$. Send if cached.
+\item ACL based constraint for caching
+    \begin{align*}
+        \forall a, x, b, y:\ cached(a, x, b, y) \iff \\
+        \ \exists e, p:\ recv(e, f, p)\\
+        \ \ \land p.src = a\\
+        \ \ \land p.src\_port = x\\
+        \ \ \land p.dest = b\\
+        \ \ \land p.dest\_port = y\\
+        \ \ \land ctime(a, x, b, y) = etime(f, p, R)\\
+        \ \ \land \lnot \left(a, b\right) \in A
+    \end{align*}
+\item Do not invent packets
+     \begin{align*}
+         \forall e, p:\ send(f, e, p) \implies\\
+         \ \exists e_2:\ recv(e_2, f, p)\\
+         \ \ \left(\nexists e_3:\ e_3 \neq e \land send(f, e_3, p)\right)\\
+         \ \ etime(f, p, R) < etime(f, p, S)
+     \end{align*}
+\item Actual sends
+        \begin{align*}
+            \forall e, p:\ send(f, e, p) \implies\\
+            \ (cached(p.src, p.src\_port, p.dest, p.dest\_port) \land\\
+             \  \     ctime(p.src, p.src\_port, p.dest, p.dest\_port) \leq\\
+             \ \ \    etime(f, p, R))
+             \ \lor (cached(p.dest, p.dest\_port, p.src, p.src\_port) \land\\
+             \  \     ctime(p.dest, p.dest\_port, p.src, p.src\_port) \leq\\
+             \ \ \    etime(f, p, R))
+        \end{align*}
 \end{itemize}
 
 \subsection{Web Proxy}
@@ -126,4 +149,21 @@ packets a webproxy sends. These are actually somewhat incomplete (we are not acc
 reason is that currently I model all endhosts as endhosts instead of as servers and client, which would make this
 somewhat more reasonable.
 \end{itemize}
-}
+
+\subsection{Compression Box}
+First we define a couple of global functions (actually we can define many of them they are just a kind of algorithm)
+$compress$ and $uncompress$. Compression box is represented by $c$.
+
+\begin{itemize}
+    \item $\forall x, y \in \mathbb{Z}: compress(x) = y \implies uncompress(y) = x$
+    \item 
+        \begin{align*}
+            \forall e_1, p_1:\ send(c, e_1, p_1) \implies\\
+            \ \exists e_2, p_2:&\  recv(e_2, c, p_2)\\
+                               &\land PacketHeaderEqual(p_1, p_2)\\
+                               &\land p_1.body = compress(p_2.body)\\
+                               &\land \left(\nexists e_3:\ e_3 \neq e_1 \land send(c, e_3, p_1)\right)\\
+                               &\land etime(c, p_1, S) > etime(c, p_2, R)
+        \end{align*}
+\end{itemize}
+

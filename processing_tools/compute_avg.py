@@ -10,4 +10,4 @@ for l in f:
         continue
     s = sum(obs)
     avg = s/float(len(obs))
-    print "%d %f %f %d"%(num, avg, s, len(obs))
+    print "%s %f %f %d"%(num, avg, s, len(obs))

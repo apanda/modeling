@@ -26,10 +26,10 @@ set ytics nomirror
      #"data_for_graph_10" index 1 using 1:2 w linespoints lc 9 lt 0 lw 1 pt 3 title "40 Gbps"
 set ylabel  "Time (seconds)"
 set xlabel "# of Nodes"
-set xrange [:28]
-set yrange [0:150]
+#set xrange [:28]
+set yrange [0:50]
 #set logscale y
 set key off
-set output "path_length.pdf"
-plot "path-length-timing" using 1:2 w p lc -1 lt 0 lw 1 pt 2
+set output "path_independence.pdf"
+plot "path-independence-timing" using 1:2 w p lc -1 lt 0 lw 1 pt 2
 reset
