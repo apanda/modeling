@@ -61,7 +61,7 @@ def TestL7FirewallJustRun (iters):
         start = time.time()
         ret = full_obj.check.CheckIsolationProperty(full_obj.c, full_obj.a)
         stop = time.time()
-        assert ret.judgement == 2
+        assert ret.result == z3.sat
         times.append(stop - start)
     print "L7FWPathIndep %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
 funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
