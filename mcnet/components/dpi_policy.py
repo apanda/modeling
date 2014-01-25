@@ -19,4 +19,4 @@ class DPIPolicy (Core):
         solver.add(self.constraints)
 
     def packetDPIPredicate (self, context):
-        return lambda p: self.dpi_match(context.packet.body(p))
+        return lambda p: self.dpi_match(context.packet.orig_body(p))

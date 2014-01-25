@@ -63,6 +63,7 @@ class AclWebProxy (NetworkObject):
                          self.ctx.etime(self.proxy, p, self.ctx.send_event) > \
                              self.ctx.etime(self.proxy, p2, self.ctx.recv_event), \
                          self.ctx.packet.body(p) == self.cresp(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
+                         self.ctx.packet.orig_body(p) == self.corigbody(self.ctx.packet.dest(p2), self.ctx.packet.body(p2)), \
                          self.ctx.packet.dest(p) == self.ctx.packet.src(p2), \
                          self.ctx.dest_port(p) == self.ctx.src_port(p2), \
                          self.ctx.src_port(p) == self.ctx.dest_port(p2), \
@@ -73,6 +74,7 @@ class AclWebProxy (NetworkObject):
                                self.ctx.packet.origin(p2) == self.ctx.packet.origin(p),
                                self.ctx.packet.dest(p2) == self.ctx.packet.dest(p), \
                                self.ctx.packet.body(p2) == self.ctx.packet.body(p), \
+                               self.ctx.packet.orig_body(p2) == self.ctx.packet.orig_body(p), \
                                self.ctx.packet.seq(p2) == self.ctx.packet.seq(p), \
                                self.ctx.hostHasAddr(self.ctx.packet.origin(p2), self.ctx.packet.src(p2)), \
                                self.ctx.dest_port(p2) == self.ctx.dest_port(p), \
@@ -130,6 +132,7 @@ class AclWebProxy (NetworkObject):
                                     z3.Or(self.ctx.etime(e4, p3, self.ctx.send_event) == 0, \
                                           self.ctx.etime(e4, p3, self.ctx.send_event) > self.ctx.etime(e5, p, self.ctx.recv_event))))), \
                                self.cresp(a, i) == self.ctx.packet.body(p3), \
+                               self.corigbody(a, i) == self.ctx.packet.orig_body(p3), \
                                self.corigin(a, i) == self.ctx.packet.origin(p3), \
                                self.ctime(a, i) == self.ctx.etime(self.proxy, p3, self.ctx.recv_event), \
                                *request_constraints)))))
@@ -139,6 +142,7 @@ class AclWebProxy (NetworkObject):
         self.cached = z3.Function('__webproxy_cached_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.BoolSort())
         self.ctime = z3.Function('__webproxy_ctime_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.IntSort())
         self.cresp = z3.Function('__webproxy_cresp_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.IntSort())
+        self.corigbody = z3.Function('__webproxy_corigbody_%s'%(self.proxy), self.ctx.address, z3.IntSort(), z3.IntSort())
         self.corigin = z3.Function('__webproxy_corigin_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.node)
         self.crespacket = z3.Function('__webproxy_crespacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)
         self.creqpacket = z3.Function('__webproxy_creqpacket_%s'%(self.proxy), self.ctx.address, z3.IntSort(), self.ctx.packet)

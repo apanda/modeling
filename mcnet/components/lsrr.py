@@ -77,6 +77,7 @@ class LSRRRouter (NetworkObject):
                               self.ctx.src_port(p0) == self.ctx.src_port(p1), \
                               self.ctx.dest_port(p0) == self.ctx.dest_port(p1), \
                               self.ctx.packet.body(p0) == self.ctx.packet.body(p1), \
+                              self.ctx.packet.orig_body(p0) == self.ctx.packet.orig_body(p1), \
                               self.ctx.packet.seq(p0) == self.ctx.packet.seq(p1), \
                               self.ctx.packet.options(p0) == self.ctx.packet.options(p1), \
                               self.ctx.packet.origin(p0) == self.ctx.packet.origin(p1), \

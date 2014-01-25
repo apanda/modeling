@@ -30,6 +30,7 @@ class WanOptimizer (NetworkObject):
                            z3.And(self.ctx.recv(e2, self.opt, p2), \
                             self.ctx.PacketsHeadersEqual(p1, p2), \
                             self.ctx.packet.body(p1) == self.transformation(self.ctx.packet.body(p2)), \
+                            self.ctx.packet.orig_body(p1) == self.ctx.packet.orig_body(p2), \
                             z3.Not(z3.Exists([e3], \
                                 z3.And(e3 != e1, \
                                     self.ctx.send(self.opt, e3, p2)))), \

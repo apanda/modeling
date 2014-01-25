@@ -44,6 +44,7 @@ class Context(Core):
                        ('src', self.address), \
                        ('dest', self.address), \
                        ('origin', self.node), \
+                       ('orig_body', z3.IntSort()), \
                        ('body', z3.IntSort()), \
                        ('seq', z3.IntSort()), \
                        ('options', z3.IntSort()))
