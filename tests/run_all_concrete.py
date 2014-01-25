@@ -10,7 +10,7 @@ def TestDPIFw(iters):
         ReseedZ3()
         pobj = dpiFw()
         start = time.time()
-        ret = pobj.check.CheckIsolatedIf(pobj.dpi_policy.packetDpiPredicate(pobj.ctx), pobj.a, pobj.b)
+        ret = pobj.check.CheckIsolatedIf(pobj.dpi_policy.packetDPIPredicate(pobj.ctx), pobj.a, pobj.b)
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
