@@ -14,7 +14,7 @@ def TestDPIFw(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "DPIFw %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "DPIFw %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
 def TestLSRRFwBig(iters):
     times = []
@@ -26,7 +26,7 @@ def TestLSRRFwBig(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "LSRRFwBig %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "LSRRFwBig %d %f %f %fi %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
 def TestLSRRFwNormal(iters):
     times = []
@@ -38,7 +38,7 @@ def TestLSRRFwNormal(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "LSRRFwNorm %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "LSRRFwNorm %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
 def TestL7FirewallPathIndependence(iters):
     times = []
@@ -51,7 +51,7 @@ def TestL7FirewallPathIndependence(iters):
         stop = time.time()
         assert ret.judgement == 2
         times.append(stop - start)
-    print "L7FWPathIndep %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "L7FWPathIndep %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
 def TestL7FirewallJustRun (iters):
     times = []
@@ -63,7 +63,7 @@ def TestL7FirewallJustRun (iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "L7FWPathJR %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "L7FWPathJR %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
 if __name__ == "__main__":
     if len(sys.argv) != 2:
