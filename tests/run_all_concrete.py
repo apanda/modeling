@@ -63,7 +63,7 @@ def TestL7FirewallJustRun (iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "L7FWPathIndep %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
+    print "L7FWPathJR %d %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times))
 funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
 if __name__ == "__main__":
     if len(sys.argv) != 2:
