@@ -26,7 +26,7 @@ def TestLSRRFwBig(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
-    print "LSRRFwBig %d %f %f %fi %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
+    print "LSRRFwBig %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
 def TestLSRRFwNormal(iters):
     times = []
