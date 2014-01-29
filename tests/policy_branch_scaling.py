@@ -18,7 +18,7 @@ def ResetZ3 ():
 iters = 5
 bad_in_row = 0
 for naddress in xrange(1, 200):
-    for nbranch in xrange(1, 10):
+    for nbranch in xrange(1, 20):
         times = []
         all_bad = True
         for it in xrange(0, iters):
