@@ -33,3 +33,4 @@ from load_balancer_fw_example import *
 from lsrr_fw_triv import *
 from testl7firewall import *
 from testl7firewallproxy import *
+from policy_test import *
