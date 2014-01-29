@@ -29,7 +29,6 @@ for sz in xrange(2, 50):
         stop = time.time()
         if z3.sat != ret.result:
             bad = True
-        stop = time.time()
         if not bad:
             times.append(stop - start)
             all_bad = False
