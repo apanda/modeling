@@ -101,7 +101,7 @@ def TestL7FirewallJustRun (iters, raw_data):
     print >>raw_data, ""
     print "L7FWPathIndep %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
     print "L7FWPathJR %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
-funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'fwbigfail': TestLSRRFwBigFail, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
+funcs = {'dpifw': TestDPIFw, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print >>sys.stderr, "Usage: %s iters raw_data"%(sys.argv[0])
