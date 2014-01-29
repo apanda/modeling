@@ -1,11 +1,12 @@
-from concrete_examples import dpiFw, LSRRFwTriv, L7FirewallProxy, L7FirewallProxyPolicy, ReseedZ3 
+from concrete_examples import dpiFw, LSRRFwTriv, L7FirewallProxy, L7FirewallProxyPolicy, ReseedZ3, LSRRFwBroken 
 from mcnet.components import CheckIsPathIndependentIsolated
 import numpy as np
 import sys
 import time
 import z3
-def TestDPIFw(iters):
+def TestDPIFw(iters, raw_data):
     times = []
+    print >>raw_data, "TestDPIFw"
     for i in xrange(iters):
         ReseedZ3()
         pobj = dpiFw()
@@ -14,10 +15,14 @@ def TestDPIFw(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
     print "DPIFw %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
-def TestLSRRFwBig(iters):
+def TestLSRRFwBig(iters, raw_data):
     times = []
+    print >>raw_data, "TestLSRRFwBig"
     for i in xrange(iters):
         ReseedZ3()
         pobj = LSRRFwTriv(4)
@@ -26,10 +31,30 @@ def TestLSRRFwBig(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
     print "LSRRFwBig %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
-def TestLSRRFwNormal(iters):
+def TestLSRRFwBigFail(iters, raw_data):
     times = []
+    print >>raw_data, "TestLSRRFwBigFail"
+    for i in xrange(iters):
+        ReseedZ3()
+        pobj = LSRRFwBroken(4)
+        start = time.time()
+        ret = pobj.check.CheckIsolationProperty(pobj.e0, pobj.e1)
+        stop = time.time()
+        assert ret.result == z3.sat
+        times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
+    print "LSRRFwBigFail %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
+
+def TestLSRRFwNormal(iters, raw_data):
+    times = []
+    print >>raw_data, "TestLSRRFwNorm"
     for i in xrange(iters):
         ReseedZ3()
         pobj = LSRRFwTriv(2)
@@ -38,10 +63,14 @@ def TestLSRRFwNormal(iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
     print "LSRRFwNorm %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
-def TestL7FirewallPathIndependence(iters):
+def TestL7FirewallPathIndependence(iters, raw_data):
     times = []
+    print >>raw_data, "TestL7FirewallPathIndependence"
     for i in xrange(iters):
         ReseedZ3()
         full_obj = L7FirewallProxy()
@@ -51,10 +80,14 @@ def TestL7FirewallPathIndependence(iters):
         stop = time.time()
         assert ret.judgement == 2
         times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
     print "L7FWPathIndep %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 
-def TestL7FirewallJustRun (iters):
+def TestL7FirewallJustRun (iters, raw_data):
     times = []
+    print >>raw_data, "TestL7FirewallJustRun"
     for i in xrange(iters):
         ReseedZ3()
         full_obj = L7FirewallProxy()
@@ -63,14 +96,19 @@ def TestL7FirewallJustRun (iters):
         stop = time.time()
         assert ret.result == z3.sat
         times.append(stop - start)
+        print >>raw_data, (stop - start)
+    print >>raw_data, ""
+    print >>raw_data, ""
+    print "L7FWPathIndep %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
     print "L7FWPathJR %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
-funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
+funcs = {'dpifw': TestDPIFw, 'fwbig':TestLSRRFwBig, 'fwnorm':TestLSRRFwNormal, 'fwbigfail': TestLSRRFwBigFail, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print >>sys.stderr, "Usage: %s iters"%(sys.argv[0])
+    if len(sys.argv) != 3:
+        print >>sys.stderr, "Usage: %s iters raw_data"%(sys.argv[0])
         sys.exit(1)
     iters = int(sys.argv[1])
+    raw_data = open(sys.argv[2], 'w+')
     for n, f in funcs.iteritems():
         print >>sys.stderr, "Running %s"%(n)
-        f(iters)
+        f(iters, raw_data)
     
