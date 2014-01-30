@@ -57,7 +57,7 @@ def TestLSRRFwNormal(iters, raw_data):
     print >>raw_data, "TestLSRRFwNorm"
     for i in xrange(iters):
         ReseedZ3()
-        pobj = LSRRFwTriv(2)
+        pobj = LSRRFwTriv(1)
         start = time.time()
         ret = pobj.check.CheckIsolationProperty(pobj.e0, pobj.e1)
         stop = time.time()
@@ -99,7 +99,6 @@ def TestL7FirewallJustRun (iters, raw_data):
         print >>raw_data, (stop - start)
     print >>raw_data, ""
     print >>raw_data, ""
-    print "L7FWPathIndep %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
     print "L7FWPathJR %d %f %f %f %f"%(len(times), sum(times), sum(times)/len(times), np.std(times), np.median(times))
 funcs = {'dpifw': TestDPIFw, 'fwnorm':TestLSRRFwNormal, 'l7fwpi':TestL7FirewallPathIndependence, 'l7fwjr':TestL7FirewallJustRun}
 if __name__ == "__main__":
