@@ -17,14 +17,14 @@ def ResetZ3 ():
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 iters = 5
 bad_in_row = 0
-for sz in xrange(15000, 1000, -1000):
+for sz in xrange(30000, 1000, -1000):
     times = []
     all_bad = True
     for it in xrange(0, iters):
         bad = False
         ResetZ3()
-        pobj = FixedL7Proxy(sz)
         start = time.time()
+        pobj = FixedL7Proxy(sz)
         ret = pobj.check.CheckIsolationProperty(pobj.s, pobj.a)
         stop = time.time()
         if z3.unsat != ret.result:
