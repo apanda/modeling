@@ -25,5 +25,5 @@ for i in xrange(it):
     ret2 = pobj.check.CheckIsolationProperty(pobj.a, pobj.b)
     stop = time.time()
     assert ret2.result == z3.sat
-    print >>sys.stderr, "%d %f %f"%(i, stop - start)
+    print >>sys.stderr, "%d %f"%(i, stop - start)
 
