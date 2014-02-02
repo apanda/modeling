@@ -23,7 +23,7 @@ class Context(Core):
     def _mkTypes (self, nodes, addresses):
         # Networks have nodes, nodes are quite important
         self.node, self.node_list = z3.EnumSort('Node', nodes)
-        self.node_list = map(DumbNode, self.node_list)
+        self.node_list = map(lambda n: DumbNode(self, n), self.node_list)
         nodes = zip(nodes, self.node_list)
         for ndn, ndv in nodes:
             setattr(self, ndn, ndv)

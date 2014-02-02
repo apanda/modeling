@@ -25,9 +25,6 @@ class EndHost (NetworkObject):
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.node, eh, p), \
             self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p)))))
 
-        self.constraints.append(z3.ForAll([eh, eh2, p], z3.Implies(z3.And(self.ctx.send(eh, eh2, p), \
-                        self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p))), \
-                    z3.Exists([eh3], self.ctx.send(self.node, eh3, p)))))
         # Packet sent always has origin set correctly
         self.constraints.append(z3.ForAll([eh, p],
             z3.Implies(self.ctx.send(self.node, eh, p), \
@@ -42,6 +39,7 @@ class EndHost (NetworkObject):
         # Constraints on packet received
         # Let us assume that packet received always have the right IP address (alternately the network stack can just
         # drop these).
+        # FIXME: Eventually look at whether this can be s
         self.constraints.append(z3.ForAll([eh, p], \
                 z3.Implies(self.ctx.recv(eh, self.node, p), \
                     self.ctx.hostHasAddr(self.node, self.ctx.packet.dest(p)))))
