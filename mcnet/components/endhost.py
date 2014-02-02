@@ -17,22 +17,34 @@ class EndHost (NetworkObject):
 
     def _endHostRules (self):
         eh = z3.Const('__nodeRules_Node', self.ctx.node)
+        eh2 = z3.Const('__nodeRules_Node2', self.ctx.node)
+        eh3 = z3.Const('__nodeRules_Node3', self.ctx.node)
         p = z3.Const('__nodeRules_Packet', self.ctx.packet)
-        # \forall e_1, p: send(h, e_1, p) \Rightarrow hostHasAddr (h, p.src)
-        # \forall e_1, p: send(h, e_1, p) \Rightarrow p.origin = h
+        # Constraints on packets sent
+        # Packet sent always has source address set to something reasonable
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.node, eh, p), \
             self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p)))))
-        
+
+        self.constraints.append(z3.ForAll([eh, eh2, p], z3.Implies(z3.And(self.ctx.send(eh, eh2, p), \
+                        self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p))), \
+                    z3.Exists([eh3], self.ctx.send(self.node, eh3, p)))))
+        # Packet sent always has origin set correctly
         self.constraints.append(z3.ForAll([eh, p],
             z3.Implies(self.ctx.send(self.node, eh, p), \
                     self.ctx.packet.origin(p) ==\
                                 self.node)))
-        
-        # Body dutifully recorded
+        # Body dutifully recorded 
         self.constraints.append(z3.ForAll([eh, p],
             z3.Implies(self.ctx.send(self.node, eh, p), \
                     self.ctx.packet.body(p) ==\
                                 self.ctx.packet.orig_body(p))))
+
+        # Constraints on packet received
+        # Let us assume that packet received always have the right IP address (alternately the network stack can just
+        # drop these).
+        self.constraints.append(z3.ForAll([eh, p], \
+                z3.Implies(self.ctx.recv(eh, self.node, p), \
+                    self.ctx.hostHasAddr(self.node, self.ctx.packet.dest(p)))))
 
     @property
     def isEndHost (self):

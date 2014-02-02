@@ -7,11 +7,9 @@ class PropertyChecker (object):
         self.net = network
         self.solver = z3.Solver()
         self.constraints = list ()
-        self.primed = False
 
     def ClearState (self):
         self.solver.reset()
-        self.primed = False
         self.constraints = list()
 
     # TODO: Just use the NULL predicate
@@ -26,9 +24,8 @@ class PropertyChecker (object):
 
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
-        if not self.primed:
-            self.AddConstraints()
         self.solver.push ()
+        self.AddConstraints()
         p = z3.Const('__reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         self.solver.add(z3.Exists([eh], self.ctx.recv(eh, dest.z3Node, p)))
@@ -54,9 +51,8 @@ class PropertyChecker (object):
 
         assert(srcn in self.net.elements)
         assert(destn in self.net.elements)
-        if not self.primed:
-            self.AddConstraints()
         self.solver.push()
+        self.AddConstraints()
         pn = z3.Const('__implied_reachability_neg_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         ehn = z3.Const('__implied_reachability_neg_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         p = z3.Const('__implied_reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
@@ -86,9 +82,8 @@ class PropertyChecker (object):
 
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
-        if not self.primed:
-            self.AddConstraints()
         self.solver.push()
+        self.AddConstraints()
         p = z3.Const('__reachability_Packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         eh = z3.Const('__reachability_last_Node_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         self.solver.add(z3.Exists([eh], z3.And(predicate(p), \
@@ -115,8 +110,7 @@ class PropertyChecker (object):
         assert(dest in self.net.elements)
         assert(traverse in self.net.elements)
 
-        if not self.primed:
-            self.AddConstraints()
+        self.AddConstraints()
         self.solver.push()
         p = z3.Const('traversal_packet_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.packet)
         n = z3.Const('traversal_node_%s_%s_%s'%(src.z3Node, dest.z3Node, traverse.z3Node), self.ctx.node)
@@ -148,9 +142,8 @@ class PropertyChecker (object):
         for t in traversal_group:
             assert(t in self.net.elements)
 
-        if not self.primed:
-            self.AddConstraints()
         self.solver.push()
+        self.AddConstraints()
         p = z3.Const('traversal_packet_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
         n0 = z3.Const('traversal_node0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         n1 = z3.Const('traversal_node1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
@@ -181,7 +174,6 @@ class PropertyChecker (object):
         self.net._addConstraints(self.solver)
         for el in self.net.elements:
             el._addConstraints(self.solver)
-        self.primed = True
 
     def PrintTimeline (self, ret):
         print '\n'.join(map(lambda l: str('(%s, %s, %s) -> %s'%(l[0], l[1], l[2], l[3])), \
