@@ -10,14 +10,11 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
     """Check isolation based on path independence. This is modified so that when things are not isolated it does not
     try to compute the actual result once it knows."""
     class PathIndependenceResult (object):
-        def __init__ (self, judgement, isolation_result, other_result = None):
-            self.result = isolation_result.result
-            self.other_result = other_result
-            self.violating_packet = isolation_result.violating_packet
-            self.last_hop = isolation_result.last_hop
-            self.model = isolation_result.model
+        def __init__ (self, judgement, overapprox_result, underapprox_result = None):
+            self.overapprox_result = overapprox_result
+            self.underappox_result = underapprox_result
             self.judgement = judgement
-            self.ctx = isolation_result.ctx
+            self.ctx = underapprox_result.ctx
 
     result = checker_path.CheckIsolationProperty (psrc, pdest)
 

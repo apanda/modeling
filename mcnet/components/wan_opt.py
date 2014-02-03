@@ -6,7 +6,7 @@ class WanOptimizer (NetworkObject):
         self.ctx = context
         self.constraints = list ()
         self.transformation = transformation
-        network.SaneSend (self)
+        network.SaneSend (self, self.constraints)
         self._wanOptSendRule ()
 
     @property

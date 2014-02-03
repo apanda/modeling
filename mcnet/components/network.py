@@ -21,12 +21,12 @@ class Network (Core):
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 
-    def SaneSend (self, node):
+    def SaneSend (self, node, constraints):
         eh = z3.Const('__saneSend_eh_%s'%(node), self.ctx.node)
         p = z3.Const('__saneSend_p_%s'%(node), self.ctx.packet)
         # Don't send packets meant for node
         # \forall e, p:\ send (f, e, p) \Rightarow \neg hostHasAddr (f, p.dest)
-        self.constraints.append(z3.ForAll([eh, p], \
+        constraints.append(z3.ForAll([eh, p], \
             z3.Implies(self.ctx.send(node.z3Node, eh, p), \
                 z3.Not(self.ctx.hostHasAddr(node.z3Node, self.ctx.packet.dest(p))))))
 

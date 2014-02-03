@@ -7,7 +7,7 @@ class WebProxy (NetworkObject):
         self.proxy = node.z3Node
         self.ctx = context
         self.constraints = list ()
-        network.SaneSend(self)
+        network.SaneSend(self, self.constraints)
         self._webProxyFunctions ()
         self._webProxyConstraints ()
 

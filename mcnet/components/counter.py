@@ -8,7 +8,7 @@ class NetworkCounter (NetworkObject):
         self.ctx = ctx
         self.constraints = list()
         self._constraints ()
-        self.net.SaneSend(self)
+        self.net.SaneSend(self, self.constraints)
 
     @property
     def z3Node (self):

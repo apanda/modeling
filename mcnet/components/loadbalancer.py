@@ -7,8 +7,8 @@ class LoadBalancer (NetworkObject):
         self.ctx = context
         self.balancer = balancer.z3Node
         self.net = net
-        self.net.SaneSend (self)
         self.constraints = list()
+        self.net.SaneSend (self, self.constraints)
         self._populateLoadBalancerConstraints()
 
     @property

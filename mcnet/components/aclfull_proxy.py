@@ -9,7 +9,7 @@ class AclWebProxy (NetworkObject):
         self.ctx = context
         self.constraints = list ()
         self.acls = list ()
-        network.SaneSend(self)
+        network.SaneSend(self, self.constraints)
         self._webProxyFunctions ()
         self._webProxyConstraints ()
 

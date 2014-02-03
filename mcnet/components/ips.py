@@ -8,7 +8,7 @@ class IPS (NetworkObject):
         self.policy = policy
         self.ips = node.z3Node
         self.ctx = context
-        network.SaneSend(self)
+        network.SaneSend(self, self.constraints)
         self._ipsFunctions ()
         self._ipsSendRules ()
         self.acls = []

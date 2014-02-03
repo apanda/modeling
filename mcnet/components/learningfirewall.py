@@ -5,7 +5,7 @@ class LearningFirewall (NetworkObject):
         self.constraints = list ()
         self.firewall = node.z3Node
         self.ctx = context
-        network.SaneSend(self)
+        network.SaneSend(self, self.constraints)
         self._firewallFunctions ()
         self._firewallSendRules ()
         self.acls = []

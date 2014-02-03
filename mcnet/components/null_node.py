@@ -6,7 +6,7 @@ class NullNode (NetworkObject):
         self.ctx = ctx
         self.node = node.z3Node
         self.constraints = list ()
-        self.net.SaneSend (self)
+        self.net.SaneSend (self, self.constraints)
         self._nullNode ()
     
     @property

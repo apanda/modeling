@@ -6,7 +6,7 @@ class AclFirewall (NetworkObject):
         self.ctx = context
         self.constraints = list ()
         self.acls = list ()
-        network.SaneSend (self)
+        network.SaneSend (self, self.constraints)
         self._firewallSendRules ()
 
     @property

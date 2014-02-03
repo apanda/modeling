@@ -6,7 +6,7 @@ class DenyHTTPFirewall (NetworkObject):
         self.constraints = list ()
         self.fw = node.z3Node
         self.ctx = context
-        network.SaneSend(self)
+        network.SaneSend(self, self.constraints)
         self._firewallSendRules ()
         self.acls = []
 

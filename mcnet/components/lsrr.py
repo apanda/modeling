@@ -26,9 +26,9 @@ class LSRRRouter (NetworkObject):
         self.router = router.z3Node
         self.net = network
         self.ctx = context
-        self.net.SaneSend (self)
-        self.option = lsrr_option.LSRROption
         self.constraints = list ()
+        self.net.SaneSend (self, self.constraints)
+        self.option = lsrr_option.LSRROption
         self.LSRRConstraints ()
 
     def _addConstraints (self, solver):
