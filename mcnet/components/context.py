@@ -19,11 +19,13 @@ class Context(Core):
         solver.add(self.constraints)
         for policy in self.policies:
             policy._addConstraints (solver)
+        for n in self.node_list:
+            n._addConstraints(solver)
 
     def _mkTypes (self, nodes, addresses):
         # Networks have nodes, nodes are quite important
         self.node, self.node_list = z3.EnumSort('Node', nodes)
-        self.node_list = map(lambda n: DumbNode(self, n), self.node_list)
+        self.node_list = map(lambda n: DumbNode(n, self), self.node_list)
         nodes = zip(nodes, self.node_list)
         for ndn, ndv in nodes:
             setattr(self, ndn, ndv)
@@ -49,6 +51,7 @@ class Context(Core):
                        ('seq', z3.IntSort()), \
                        ('options', z3.IntSort()))
         self.packet = packet.create()
+        self.origPacket = z3.Function('origPacket', self.packet, self.packet)
 
         # Some functions to keep everything running
         # hostHasAddr: self.node -> self.address -> boolean

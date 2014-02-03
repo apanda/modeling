@@ -36,6 +36,11 @@ class EndHost (NetworkObject):
                     self.ctx.packet.body(p) ==\
                                 self.ctx.packet.orig_body(p))))
 
+        self.constraints.append(z3.ForAll([eh, p],
+            z3.Implies(self.ctx.send(self.node, eh, p), \
+                    self.ctx.origPacket(p) ==\
+                                p)))
+
         # Constraints on packet received
         # Let us assume that packet received always have the right IP address (alternately the network stack can just
         # drop these).
