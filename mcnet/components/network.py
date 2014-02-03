@@ -12,6 +12,12 @@ class Network (Core):
     def Attach (self, *elements):
         self.elements.extend(elements)
 
+    def Detach (self, *elements):
+        """Remove elements from network model: useful when trying to find
+        minimal set of elements to model"""
+        for e in elements:
+            self.elements.remove(e)
+
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 

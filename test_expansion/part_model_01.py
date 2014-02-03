@@ -12,7 +12,7 @@ def PartModel01 ():
     net.setAddressMappings([(getattr(ctx, n), getattr(ctx, a)) \
                            for n, a in zip(parts, addresses)])
     # Just build a and b
-    construct = ['a', 'b']
+    construct = ['a', 'b', 'f']
     constructed = {}
     for c in construct:
         constructed[c] = type_dict[c](getattr(ctx, c), net, ctx)
