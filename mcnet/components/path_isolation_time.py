@@ -17,6 +17,7 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
             self.ctx = overapprox_result.ctx
 
     result = checker_path.CheckIsolationProperty (psrc, pdest)
+    print "Finished overapproximate check"
 
     if result.result == z3.unsat:
         # If we are being conservative then this is sufficient; but it
@@ -50,7 +51,9 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
     constraint = z3.ForAll([n, p], z3.Implies(result.ctx.etime(n, p, result.ctx.send_event) > 0, \
                                     z3.Or(map(lambda x: n == x, z3PathElements))))
     checker_path.AddExternalConstraints(constraint)
+    print "Running under-approximate check"
     result2 = checker_path.CheckIsolationProperty (psrc, pdest)
+    print "Done running under-approximate check"
     checker_path.ClearExternalConstraints ()
     if result2.result != result.result:
         # Definitely not path independent.
