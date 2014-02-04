@@ -17,14 +17,15 @@ class SubgraphProblem (object):
         """The origin of packets we want to isolate"""
         return self._origin
     @origin.setter
-    def set_origin (self, origin):
+    def origin (self, origin):
         self._origin = origin
 
     @property
     def target (self):
         """The target of our isolation property: i.e. we want to make sure origin cannot send to target"""
         return self._target
-    def set_target (self, tgt):
+    @target.setter
+    def target (self, tgt):
         self._target = tgt
 
     @property
@@ -37,7 +38,7 @@ class SubgraphProblem (object):
         """Network for the problem. We assume none of the nodes have been attached."""
         return self._network
     @network.setter
-    def set_network (self, net):
+    def network (self, net):
         self._network = net
 
     @property
@@ -45,7 +46,7 @@ class SubgraphProblem (object):
         """Dictionary of string -> network objects."""
         return self._node_map
     @node_map.setter
-    def set_node_map (self, net):
+    def node_map (self, net):
         self._node_map = net
 
     @property
@@ -53,5 +54,5 @@ class SubgraphProblem (object):
         """Transfer functions, 'coz you know they are useful"""
         return self._tfunctions
     @tfunctions.setter
-    def set_tfunctions (self, net):
+    def tfunctions (self, net):
         self._tfunctions = net

@@ -9,6 +9,12 @@ class Network (Core):
         self.constraints = list()
         self.elements = list()
 
+    def Copy (self):
+        copy = Network(self.ctx)
+        copy.constraints = list(self.constraints)
+        copy.elements = list(self.elements)
+        return copy
+
     def Attach (self, *elements):
         self.elements.extend(elements)
 

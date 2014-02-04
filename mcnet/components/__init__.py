@@ -30,6 +30,8 @@ __all__ = ['Core', \
            'VERIFIED_ISOLATION', \
            'VERIFIED_GLOBAL', \
            'UNKNOWN', \
+           'SubgraphProblem', \
+           'FindSubgraph', \
            'srcAddrPredicate']
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -55,4 +57,6 @@ from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker
 from path_isolation_checker import CheckIsPathIndependentIsolated, VERIFIED_ISOLATION, VERIFIED_GLOBAL, UNKNOWN
 from path_isolation_time import CheckIsPathIndependentIsolatedTime
+from find_subgraph_problem import SubgraphProblem
+from find_subgraph import FindSubgraph
 from lsrr import LSRROption, LSRRRouter

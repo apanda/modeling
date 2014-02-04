@@ -14,7 +14,7 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
             self.overapprox_result = overapprox_result
             self.underappox_result = underapprox_result
             self.judgement = judgement
-            self.ctx = underapprox_result.ctx
+            self.ctx = overapprox_result.ctx
 
     result = checker_path.CheckIsolationProperty (psrc, pdest)
 
