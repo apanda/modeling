@@ -41,11 +41,24 @@ def Part02Subgraph (nlsrr):
     for lsrr in lsrr_boxes:
         constructed[lsrr] = LSRRRouter (getattr(ctx, lsrr), ip_lsr_field, net, ctx)
 
-    base_routes = [x for x in zip(map(lambda a:getattr(ctx, a), e_address), \
-                                  map(lambda f:constructed[f], firewalls))]
-    base_routes.extend([x for x in zip(map(lambda a:getattr(ctx, a), lsrr_address), \
+    routing = {}
+    eh_addresses = [getattr(ctx, a) for a in e_address]
+    for i in xrange(len(endhosts)):
+        node_routes = [(eh_addresses[j], constructed[firewalls[j]]) for j in xrange(len(endhosts)) if j != i]
+        node_routes.extend([x for x in zip(map(lambda a:getattr(ctx, a), lsrr_address), \
                                        map(lambda n:constructed[n], lsrr_boxes))])
-    routing = {n: list(base_routes) for n in nodes}
+        routing[endhosts[i]] = node_routes
+    for i in xrange(len(firewalls)):
+        node_routes = [(eh_addresses[j], constructed[firewalls[j]]) for j in xrange(len(endhosts)) if j != i]
+        node_routes.append((eh_addresses[i], constructed[endhosts[i]]))
+        node_routes.extend([x for x in zip(map(lambda a:getattr(ctx, a), lsrr_address), \
+                                       map(lambda n:constructed[n], lsrr_boxes))])
+        routing[firewalls[i]] = node_routes
+    lsrr_base_routes =[x for x in zip(map(lambda a:getattr(ctx, a), lsrr_address), \
+                                       map(lambda n:constructed[n], lsrr_boxes))]
+    lsrr_base_routes.extend([(eh_addresses[i], constructed[firewalls[i]]) for i in xrange(len(firewalls))])
+    routing.update({n:lsrr_base_routes for n in lsrr_boxes})
+    #for fidx
 
     prob = SubgraphProblem(ctx)
     prob.network = net
