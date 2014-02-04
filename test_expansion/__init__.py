@@ -3,3 +3,4 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 from full_model import FullModel
 from part_model_01 import PartModel01
 from subgraph_model import PartSubgraph 
+from large_subgraph_model import Part02Subgraph
