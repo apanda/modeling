@@ -50,6 +50,7 @@ def FindSubgraph (problem):
         new_elements = set(elements) - set(map(str, map(lambda n:n.z3Node, active_nodes)))
         active_nodes.extend(map(lambda n: problem.node_map[n], list(new_elements)))
         for element in new_elements:
+            curr_net.Attach(problem.node_map[element])
             curr_net.RoutingTable(problem.node_map[element], problem.tfunctions[element])
     if len(active_nodes) == len(problem.node_map.keys()):
         print "Found the entire graph"
