@@ -1,5 +1,5 @@
 from mcnet.components import SubgraphProblem, EndHost, AclFirewall, Context, Network, LSRRRouter, LSRROption
-def Part02Subgraph (nlsrr):
+def Subgraph02 (nlsrr):
     # Initialization
     lsrr_boxes = ['l%d'%(l) for l in xrange(nlsrr)]
     lsrr_address = ['ip_%s'%(l) for l in lsrr_boxes]

@@ -11,17 +11,36 @@ def FindSubgraph (problem):
     active_nodes = [problem.origin, problem.target]
     curr_net = problem.network.Copy()
     curr_net.Attach(*active_nodes)
-    solver = PropertyChecker (problem.ctx, curr_net)
+
     curr_net.RoutingTable(problem.origin, problem.tfunctions[str(problem.origin.z3Node)])
     curr_net.RoutingTable(problem.target, problem.tfunctions[str(problem.target.z3Node)])
     while len(active_nodes) < len(problem.node_map.keys()):
+        solver = PropertyChecker (problem.ctx, curr_net)
         print "Checking active_nodes are %s"%(' '.join(map(str, map(lambda n: n.z3Node, active_nodes))))
         ret = CheckIsPathIndependentIsolatedTime (solver,  \
                                            problem.origin, \
                                            problem.target, \
                                            active_nodes)
         if ret.judgement == VERIFIED_ISOLATION:
+            print "We verified that the model was good the result was %s"%(ret.overapprox_result.result)
+            if ret.overapprox_result.result != z3.unsat:
+                print "Over approx model"
+                solver.PrintRecv(ret.overapprox_result)
+                print
+                solver.PrintTimeline(ret.overapprox_result)
+                if ret.underapprox_result:
+                    print "Under approx model"
+                    solver.PrintRecv(ret.underapprox_result)
+                    print
+                    solver.PrintTimeline(ret.underapprox_result)
             break
+        else:
+            print "We verified that the model was not good the result was %s"%(ret.overapprox_result.result)
+            if ret.overapprox_result.result != z3.unsat:
+                print "Over approx model"
+                solver.PrintRecv(ret.overapprox_result)
+                print
+                solver.PrintTimeline(ret.overapprox_result)
         assert(ret.judgement != UNKNOWN)
         # Figure out a way to add things
         model = ret.overapprox_result.model

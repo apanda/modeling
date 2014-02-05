@@ -1,5 +1,5 @@
 from mcnet.components import SubgraphProblem, EndHost, AclFirewall, Context, Network
-def PartSubgraph ():
+def Subgraph01 ():
     parts = ['a', 'b', 'f0', 'f1', 'f2', 'g', 'h', 'i']
     addresses = ['ip_%s'%(n) for n in parts]
     ctx = Context(parts, addresses)

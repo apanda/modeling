@@ -12,7 +12,7 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
     class PathIndependenceResult (object):
         def __init__ (self, judgement, overapprox_result, underapprox_result = None):
             self.overapprox_result = overapprox_result
-            self.underappox_result = underapprox_result
+            self.underapprox_result = underapprox_result
             self.judgement = judgement
             self.ctx = overapprox_result.ctx
 
@@ -59,4 +59,4 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
         # Definitely not path independent.
         return PathIndependenceResult (VERIFIED_GLOBAL, result, result2)
     else:
-        return PathIndependenceResult (VERIFIED_ISOLATION, result2)
+        return PathIndependenceResult (VERIFIED_ISOLATION, result, result2)

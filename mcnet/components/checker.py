@@ -179,3 +179,7 @@ class PropertyChecker (object):
         print '\n'.join(map(lambda l: str('(%s, %s, %s) -> %s'%(l[0], l[1], l[2], l[3])), \
                sorted(ret.model[ret.model[ret.ctx.etime].else_value().decl()].as_list()[:-1], \
                key=lambda l: l[-1].as_long())))
+
+    def PrintRecv (self, ret):
+        print '\n'.join(map(lambda l: str('(%s, %s, %s) -> %s'%(l[0], l[1], l[2], l[3])), \
+                    ret.model[ret.model[ret.ctx.recv].else_value().decl()].as_list()[:-1]))
