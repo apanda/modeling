@@ -9,7 +9,7 @@ from . import CheckIsPathIndependentIsolatedTime, \
 def FindSubgraph (problem):
     print "Starting out"
     active_nodes = [problem.origin, problem.target]
-    curr_net = problem.network.Copy()
+    curr_net = problem.network
     curr_net.Attach(*active_nodes)
 
     curr_net.RoutingTable(problem.origin, problem.tfunctions[str(problem.origin.z3Node)])
