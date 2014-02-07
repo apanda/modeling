@@ -6,9 +6,9 @@ def Subgraph01 ():
     routing = {'a': [(ctx.ip_b, ctx.f0), (ctx.ip_g, ctx.g)], \
                'b': [(ctx.ip_a, ctx.f0), (ctx.ip_g, ctx.g)], \
                'g': [(ctx.ip_a, ctx.a), (ctx.ip_b, ctx.b), (ctx.ip_h, ctx.f1), (ctx.ip_i, ctx.f2)], \
-               'h': [(ctx.ip_a, ctx.f1), (ctx.ip_b, ctx.f1), (ctx.ip_g, ctx.f1)], \
-               'i': [(ctx.ip_a, ctx.f2), (ctx.ip_b, ctx.f2), (ctx.ip_g, ctx.f2)], \
-               'f0': [(ctx.ip_a, ctx.a), (ctx.ip_b, ctx.b), (ctx.ip_g, ctx.g)], \
+               'h': [(ctx.ip_a, ctx.f0), (ctx.ip_b, ctx.f0), (ctx.ip_g, ctx.f1)], \
+               'i': [(ctx.ip_a, ctx.f0), (ctx.ip_b, ctx.f0), (ctx.ip_g, ctx.f2)], \
+               'f0': [(ctx.ip_a, ctx.a), (ctx.ip_b, ctx.b)], \
                'f1': [(ctx.ip_a, ctx.f0), (ctx.ip_b, ctx.f0), (ctx.ip_g, ctx.g), (ctx.ip_h, ctx.h), (ctx.ip_i, ctx.f2)], \
                'f2': [(ctx.ip_a, ctx.f0), (ctx.ip_b, ctx.f0), (ctx.ip_g, ctx.g), (ctx.ip_h, ctx.f1), (ctx.ip_i, ctx.i)]}
     net = Network(ctx)
