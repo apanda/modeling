@@ -2,6 +2,8 @@ import z3
 import random
 import sys
 def ResetZ3Perf ():
+    global z3
+    z3 = reload(z3)
     z3._main_ctx = None
     z3.main_ctx()
     z3.set_param('auto_config', False)
@@ -12,10 +14,14 @@ def ResetZ3Perf ():
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 
 def ReseedZ3 ():
+    global z3
+    z3 = reload(z3)
     z3._main_ctx = None
     z3.main_ctx()
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 
 def ResetZ3 ():
+    global z3
+    z3 = reload(z3)
     z3._main_ctx = None
     z3.main_ctx()

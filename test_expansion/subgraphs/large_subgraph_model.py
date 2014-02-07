@@ -62,8 +62,8 @@ def Subgraph02 (nlsrr):
 
     prob = SubgraphProblem(ctx)
     prob.network = net
-    prob.origin = constructed['e0']
-    prob.target = constructed['e1']
+    prob.origin = 'e0'
+    prob.target = 'e1'
     prob.node_map = constructed
     prob.tfunctions = routing
     return prob

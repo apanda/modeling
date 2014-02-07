@@ -6,12 +6,11 @@ iters = 1
 if len(sys.argv) > 1:
     iters = int(sys.argv[1])
 for i in xrange(iters):
-    ResetZ3Perf ()
     start = time.time()
-    p = Subgraph01 ()
+    p = Subgraph01
     components = FindSubgraph(p)
     stop = time.time()
     print 'Found subgraph:'
-    print ' '.join(map(str, map(lambda n: n.z3Node, components)))
+    print ' '.join(map(str, components))
     print 'TIME TAKEN = %f'%(stop - start)
     

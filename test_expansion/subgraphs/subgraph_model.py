@@ -15,9 +15,6 @@ def Subgraph01 ():
     net.setAddressMappings([(getattr(ctx, n), getattr(ctx, a)) \
                            for n, a in zip(parts, addresses)])
 
-    #constructed = {}
-    #for c in construct:
-        #constructed[c] = type_dict[c](getattr(ctx, c), net, ctx)
     constructed = \
             {'a': EndHost(ctx.a, net, ctx), \
              'b': EndHost(ctx.b, net, ctx), \
@@ -30,8 +27,8 @@ def Subgraph01 ():
     constructed['f0'].AddAcls([(ctx.ip_a, ctx.ip_b)])
     prob = SubgraphProblem(ctx)
     prob.network = net
-    prob.origin = constructed['a']
-    prob.target = constructed['b']
+    prob.origin = 'a'
+    prob.target = 'b'
     prob.node_map = constructed
     prob.tfunctions = routing
     return prob
