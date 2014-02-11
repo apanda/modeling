@@ -137,6 +137,9 @@ class Context(Core):
         self.constraints.append(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))), \
                                     self.etime(eh1, p, self.send_event) == 0)))
 
+        # recv_time is always < send_time (even for a packet created and sent this is true).
+        self.constraints.append(z3.ForAll([eh1, p], self.etime(eh1, p, self.recv_event) < self.etime(eh1, p, self.send_event)))
+
         self.constraints.append(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < Core.MAX_PORT)))
         self.constraints.append(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < Core.MAX_PORT)))
 
