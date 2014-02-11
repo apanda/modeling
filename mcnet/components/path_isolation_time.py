@@ -12,12 +12,6 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
     try to compute the actual result once it knows."""
     class PathIndependenceResult (object):
         def __init__ (self, judgement, overapprox_result, underapprox_result = None):
-            print overapprox_result
-            print underapprox_result
-            print overapprox_result.result
-            if underapprox_result:
-                print underapprox_result.result
-                print underapprox_result.model
             self.overapprox_result = overapprox_result
             self.underapprox_result = underapprox_result
             self.judgement = judgement
