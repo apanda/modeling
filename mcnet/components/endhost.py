@@ -37,13 +37,17 @@ class EndHost (NetworkObject):
                 z3.Implies(z3.And(self.ctx.send(n, n2, p), \
                         self.ctx.packet.origin(p) == self.node), \
                         z3.Or(n == self.node, \
-                              z3.Exists([n3], \
-                                z3.And(self.ctx.recv(n3, n, p), \
-                                       self.ctx.etime(n, p, self.ctx.send_event) > \
-                                        self.ctx.etime(n, p, self.ctx.recv_event)))))))#,\
-                              #z3.Exists([n4, p2], 
+                              z3.Exists([n3, p2], \
+                                z3.And(self.ctx.recv(n3, n, p2), \
+                                       self.ctx.packet.origin(p2) == self.node, \
+                                       self.ctx.etime(n, p2, self.ctx.send_event) > \
+                                        self.ctx.etime(n, p2, self.ctx.recv_event)))))))
+                                #z3.Exists([n4, p2], 
                                   #z3.And(self.ctx.packet.origin(p2) == self.node, \
-                                          #self.ctx.recv(n4, n, p2)))))))
+                                        #self.ctx.PacketContentEqual(p, p2), \
+                                        #self.ctx.recv(n4, n, p2), \
+                                        #self.ctx.etime(n, p, self.ctx.send_event) > \
+                                          #self.ctx.etime(n, p2, self.ctx.recv_event)))))))
 
     def _endHostRules (self):
         eh = z3.Const('__nodeRules_Node', self.ctx.node)
