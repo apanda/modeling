@@ -23,7 +23,6 @@ __all__ = ['Core', \
            'DPIPolicy', \
            'WanOptimizer', \
            'PropertyChecker', \
-           'failurePredicate', \
            'destAddrPredicate', \
            'CheckIsPathIndependentIsolated', \
            'CheckIsPathIndependentIsolatedTime', \
@@ -36,7 +35,7 @@ __all__ = ['Core', \
            'srcAddrPredicate']
 from core import Core, NetworkObject
 from dumb_node import DumbNode
-from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
+from context import Context, destAddrPredicate, srcAddrPredicate
 from null_node import NullNode
 from endhost import EndHost
 from network import Network

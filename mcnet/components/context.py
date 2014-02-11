@@ -69,11 +69,6 @@ class Context(Core):
         self.src_port = z3.Function('sport', self.packet, z3.IntSort())
         self.dest_port = z3.Function('dport', self.packet, z3.IntSort())
 
-        # Model failure
-        # fail := node -> bool
-        # TODO: Consider failure time
-        self.failed = z3.Function('failure', self.node, z3.BoolSort())
-
     def PacketsHeadersEqual (self, p1, p2):
         """Return conditions that two packets have identical headers"""
         return z3.And(\
@@ -143,13 +138,10 @@ class Context(Core):
 
         self.constraints.append(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < Core.MAX_PORT)))
         self.constraints.append(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < Core.MAX_PORT)))
-
-        # No sends or recvs when failed.
-        self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.send(eh1, eh2, p))))))
-        self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.recv(eh2, eh1, p))))))
-
-def failurePredicate (context):
-    return lambda node:  z3.Not(context.failed (node.z3Node))
+        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), \
+                                 z3.Not(z3.Exists([eh3], \
+                                            z3.And(eh3 != eh1, \
+                                                    self.recv(eh3, eh2, p)))))))
 
 def destAddrPredicate (context, address):
     return lambda p: context.packet.dest(p) == address

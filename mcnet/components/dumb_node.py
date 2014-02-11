@@ -25,26 +25,32 @@ class DumbNode (NetworkObject):
                                                        self.ctx.PacketsHeadersEqual(p, p2), \
                                                        self.ctx.etime(self.node, p, self.ctx.send_event) > \
                                                         self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
-        solver.append(z3.ForAll([n, p], \
-                z3.Implies(self.ctx.send(self.node, n, p), \
-                    z3.Or(self.ctx.packet.origin(p) == self.node, \
-                        z3.Exists([n2, p2], \
-                            z3.And(self.ctx.recv(n2, self.node, p2), \
-                            self.ctx.packet.origin(p2) == self.ctx.packet.origin(p), \
-                            self.ctx.etime(self.node, p, self.ctx.send_event) > \
-                                self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
-        #solver.append(z3.ForAll([n, p], \
-                #z3.Implies(self.ctx.send(self.node, n2, p), \
-                        #z3.Or(self.ctx.packet.origin(p) == self.node, \
-                              #z3.Exists([n2, p2], \
-                                #z3.And(self.ctx.recv(n2, self.node, p2), \
-                                       #self.ctx.packet.origin(p2) == self.ctx.packet.origin(p), \
-                                       #self.ctx.etime(self.node, p, self.ctx.send_event) > \
-                                        #self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
-        # Same with origin
         #solver.append(z3.ForAll([n, p], \
                 #z3.Implies(self.ctx.send(self.node, n, p), \
                     #z3.Or(self.ctx.packet.origin(p) == self.node, \
-                          #z3.Exists([p2], z3.And(self.ctx.etime(self.node, p2, self.ctx.recv_event) > 0, \
-                                                   #self.ctx.packet.origin(p2) ==\
-                                                        #self.ctx.packet.origin(p)))))))
+                        #z3.Exists([n2, p2], \
+                            #z3.And(self.ctx.recv(n2, self.node, p2), \
+                            #self.ctx.packet.origin(p2) == self.ctx.packet.origin(p), \
+                            #self.ctx.etime(self.node, p, self.ctx.send_event) > \
+                                #self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
+        solver.append(z3.ForAll([n, p], \
+                z3.Implies(self.ctx.send(self.node, n, p), \
+                    z3.Or( self.ctx.packet.origin(p) == self.node, \
+                           z3.Exists([n2], \
+                              z3.And(self.ctx.recv(n2, self.node, p), \
+                                     self.ctx.etime(self.node, p, self.ctx.recv_event) < \
+                                        self.ctx.etime(self.node, p, self.ctx.send_event))), \
+                           z3.Exists([n2, p2], \
+                                z3.And(self.ctx.recv(n2, self.node, p2), \
+                                        self.ctx.PacketsHeadersEqual(p, p2), \
+                                        self.ctx.packet.orig_body(p) == self.ctx.packet.orig_body(p2), \
+                                        self.ctx.etime(self.node, p2, self.ctx.recv_event) < \
+                                            self.ctx.etime(self.node, p, self.ctx.send_event))), \
+                            z3.Exists([n2, p2], \
+                                z3.And(self.ctx.recv(n2, self.node, p2), \
+                                        self.ctx.hostHasAddr(self.node, self.ctx.packet.dest(p2)), \
+                                        self.ctx.packet.origin(p) == self.ctx.packet.origin(p2), \
+                                        self.ctx.packet.orig_body(p) == self.ctx.packet.orig_body(p2), \
+                                        self.ctx.etime(self.node, p2, self.ctx.recv_event) < \
+                                            self.ctx.etime(self.node, p, self.ctx.send_event)))))))
+
