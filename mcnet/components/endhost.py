@@ -40,7 +40,7 @@ class EndHost (NetworkObject):
                               z3.Exists([n3, p2], \
                                 z3.And(self.ctx.recv(n3, n, p2), \
                                        self.ctx.packet.origin(p2) == self.node, \
-                                       self.ctx.etime(n, p2, self.ctx.send_event) > \
+                                       self.ctx.etime(n, p, self.ctx.send_event) > \
                                         self.ctx.etime(n, p2, self.ctx.recv_event)))))))
                                 #z3.Exists([n4, p2], 
                                   #z3.And(self.ctx.packet.origin(p2) == self.node, \
