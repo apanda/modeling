@@ -27,7 +27,7 @@ class DumbNode (NetworkObject):
                                                         self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
         self.constraints.append(z3.ForAll([n, p], \
                 z3.Implies(self.ctx.send(self.node, n2, p), \
-                        z3.Or(self.ctx.packet.origin(p) == self.node), \
+                        z3.Or(self.ctx.packet.origin(p) == self.node, \
                               z3.Exists([n2, p2], \
                                 z3.And(self.ctx.recv(n2, self.node, p2), \
                                        self.ctx.packet.origin(p2) == self.ctx.packet.origin(p), \

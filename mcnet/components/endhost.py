@@ -25,15 +25,15 @@ class EndHost (NetworkObject):
         p2 = z3.Const('__nodeRules_Packet2', self.ctx.packet)
 
         # Same with origin
-        self.constraints.append(z3.ForAll([n, n2, p], \
-                z3.Implies(z3.And(self.ctx.send(n, n2, p), \
-                        self.ctx.packet.origin(p) == self.node), \
-                        z3.Or(n == self.node, \
-                              z3.Exists([n3, p2], \
-                                z3.And(self.ctx.recv(n3, n, p2), \
-                                       self.ctx.packet.origin(p2) == self.node, \
-                                       self.ctx.etime(n, p, self.ctx.send_event) > \
-                                        self.ctx.etime(n, p2, self.ctx.recv_event)))))))
+        #self.constraints.append(z3.ForAll([n, n2, p], \
+                #z3.Implies(z3.And(self.ctx.send(n, n2, p), \
+                        #self.ctx.packet.origin(p) == self.node), \
+                        #z3.Or(n == self.node, \
+                              #z3.Exists([n3, p2], \
+                                #z3.And(self.ctx.recv(n3, n, p2), \
+                                       #self.ctx.packet.origin(p2) == self.node, \
+                                       #self.ctx.etime(n, p, self.ctx.send_event) > \
+                                        #self.ctx.etime(n, p2, self.ctx.recv_event)))))))
                                 #z3.Exists([n4, p2], 
                                   #z3.And(self.ctx.packet.origin(p2) == self.node, \
                                         #self.ctx.PacketContentEqual(p, p2), \
