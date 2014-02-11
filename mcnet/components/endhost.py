@@ -24,14 +24,6 @@ class EndHost (NetworkObject):
         p = z3.Const('__nodeRules_Packet', self.ctx.packet)
         p2 = z3.Const('__nodeRules_Packet2', self.ctx.packet)
 
-        ## When packets are sent they take their sending address from one of two places
-        #self.constraints.append(z3.ForAll([n, p], \
-                #z3.Implies(self.ctx.send(self.node, n, p), \
-                    #z3.Or(self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p)), \
-                       #z3.Exists([n2, p2], z3.And(self.ctx.recv(n2, self.node, p2), \
-                                                       #self.ctx.PacketsHeadersEqual(p, p2), \
-                                                       #self.ctx.etime(self.node, p, self.ctx.send_event) > \
-                                                        #self.ctx.etime(self.node, p2, self.ctx.recv_event)))))))
         # Same with origin
         self.constraints.append(z3.ForAll([n, n2, p], \
                 z3.Implies(z3.And(self.ctx.send(n, n2, p), \
@@ -40,8 +32,8 @@ class EndHost (NetworkObject):
                               z3.Exists([n3, p2], \
                                 z3.And(self.ctx.recv(n3, n, p2), \
                                        self.ctx.packet.origin(p2) == self.node, \
-                                       self.ctx.etime(n, p, self.ctx.send_event) >= \
-                                        self.ctx.etime(n, p2, self.ctx.recv_event) + 1))))))
+                                       self.ctx.etime(n, p, self.ctx.send_event) > \
+                                        self.ctx.etime(n, p2, self.ctx.recv_event)))))))
                                 #z3.Exists([n4, p2], 
                                   #z3.And(self.ctx.packet.origin(p2) == self.node, \
                                         #self.ctx.PacketContentEqual(p, p2), \
