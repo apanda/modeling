@@ -48,7 +48,7 @@ def FindSubgraph (problem):
         prob = problem ()
         curr_net = prob.network
 
-        for element in active_nodes:
+        for element in prob.tfunctions.iterkeys():
             curr_net.RoutingTable(prob.node_map[element], prob.tfunctions[element])
             curr_net.SetIsolationConstraint(prob.node_map[element], map(lambda n: prob.node_map[n], isolation_map[element]))
         print "Attaching %s"%(' '.join(map(str, map(lambda n: prob.node_map[n].z3Node, active_nodes))))

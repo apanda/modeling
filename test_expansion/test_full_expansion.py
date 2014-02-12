@@ -11,7 +11,7 @@ for i in xrange(iters):
     prob = Subgraph01()
     curr_net = prob.network
     active_nodes = ['a', 'g', 'b', 'f0']
-    for element in active_nodes:
+    for element in prob.tfunctions.iterkeys():
         curr_net.RoutingTable(prob.node_map[element], prob.tfunctions[element])
     print "Attaching %s"%(' '.join(map(str, map(lambda n: prob.node_map[n].z3Node, active_nodes))))
     curr_net.Attach(*map(lambda n: prob.node_map[n], active_nodes))
