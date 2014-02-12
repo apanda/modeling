@@ -10,7 +10,7 @@ for i in xrange(iters):
     start = time.time()
     prob = Subgraph01()
     curr_net = prob.network
-    active_nodes = prob.tfunctions.iterkeys()
+    active_nodes = prob.tfunctions.keys()
     for element in prob.tfunctions.iterkeys():
         curr_net.RoutingTable(prob.node_map[element], prob.tfunctions[element])
     print "Attaching %s"%(' '.join(map(str, map(lambda n: prob.node_map[n].z3Node, active_nodes))))
