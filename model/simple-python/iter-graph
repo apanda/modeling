@@ -1,0 +1,146 @@
+Running timing tests
+Two Learning Firewalls
+unsat
+unsat
+0.65623497963
+Without Proxy ACL Firewall
+unsat
+unsat
+sat
+sat
+0.241543054581
+Without Proxy Learning Firewall
+unsat
+unsat
+0.163035154343
+With proxy SAT
+sat
+sat
+3.90484189987
+With proxy SAT implied
+sat
+0.456211090088
+Without proxy ACL firewall (Graph)
+unsat
+unsat
+sat
+sat
+0.271510839462
+Without proxy Learning firewall (Graph)
+unsat
+unsat
+sat
+sat
+0.941932916641
+With proxy 2 learning firewall (Graph)
+This iter 8.254445
+This iter 5.059139
+This iter 9.024481
+This iter 7.504809
+This iter 9.434712
+This iter 4.434971
+This iter 19.309314
+This iter 4.681771
+This iter 4.118185
+This iter 9.980565
+This iter 12.535389
+This iter 5.227031
+This iter 13.231490
+This iter 11.628768
+This iter 6.153692
+This iter 5.748083
+This iter 5.071228
+This iter 3.782959
+This iter 5.998769
+This iter 25.207502
+This iter 5.510701
+This iter 5.956447
+This iter 5.460384
+This iter 6.925617
+This iter 6.970323
+This iter 7.268645
+This iter 18.305403
+This iter 18.614353
+This iter 6.953950
+This iter 5.664594
+This iter 5.936593
+This iter 9.066133
+This iter 7.729532
+This iter 23.034876
+This iter 6.180886
+This iter 5.661480
+This iter 18.952855
+This iter 12.277970
+This iter 4.407519
+This iter 5.814452
+This iter 52.823506
+This iter 11.843722
+This iter 10.101947
+This iter 7.360098
+This iter 5.577874
+This iter 6.309672
+This iter 8.246177
+This iter 100.926879
+This iter 9.328183
+This iter 16.800836
+unsat
+unsat
+sat
+sat
+11.8479781914
+With proxy 1 learning firewall (Graph)
+This iter 20.502046
+This iter 74.594864
+This iter 36.801284
+This iter 5.439663
+This iter 35.414166
+This iter 7.611491
+This iter 5.276424
+This iter 12.014236
+This iter 345.537688
+This iter 35.230041
+This iter 47.244792
+This iter 5.249667
+This iter 17.195566
+This iter 693.743994
+This iter 9.579649
+This iter 67.590115
+This iter 17.627417
+This iter 14.605030
+This iter 16.575727
+This iter 31.556553
+This iter 8.096574
+This iter 5.285645
+This iter 15.717344
+This iter 14.168468
+This iter 11.710895
+This iter 95.762587
+This iter 7.800549
+This iter 51.382978
+This iter 16.604899
+This iter 11.845026
+This iter 61.134614
+This iter 41.334745
+This iter 12.339829
+This iter 6.902268
+This iter 147.047548
+This iter 5.999642
+This iter 12.958507
+This iter 132.357149
+This iter 92.621056
+This iter 15.101237
+This iter 4.020864
+This iter 6.700192
+This iter 40.340371
+This iter 24.092738
+This iter 4.663464
+This iter 5.859015
+This iter 27.653140
+This iter 7.938664
+This iter 9.026464
+This iter 13.130547
+sat
+sat
+sat
+sat
+48.1797486353
