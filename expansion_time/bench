@@ -1,0 +1,64 @@
+Running simple trivial test
+0.117636203766
+Running timing tests
+Two Learning Firewalls
+unsat
+unsat
+sat
+sat
+8.09739279747
+Running simple compression test
+0.549111127853
+Running simple compression-decompression test
+3.19220876694
+Running simple compression-DPI-decompression test
+40.1984121799
+Running simple proxy test
+0.24590086937
+Running simple erroneous proxy test
+0.385694026947
+Running simple erroneous proxy test with multiple players
+2.79787707329
+Running simple erroneous proxy test with firewall
+1.28758311272
+Running ACL proxy test with multiple player
+0.505187988281
+Running simple LoadBalancer test
+0.363386154175
+Running more complex LoadBalancer test
+0.661993026733
+Running LoadBalancer traversal check
+0.365664958954
+Running simple counter example
+0.112138032913
+Running LoadBalancer traversal check
+0.333128929138
+Running simple counter example
+0.113158941269
+Running LSRR test
+1.29964113235
+Running complex LSRR test with size 3
+684.464540005
+Running complex LSRR test with size 4
+1071.62685204
+Running complex LSRR test with size 5
+6070.47613692
+Running num node test with size 2
+0.349766969681
+Running num node test with size 3
+0.411968946457
+Running num node test with size 4
+2.09872317314
+Running simple erroneous proxy test with firewall (Policy version)
+32.555439949
+Running ACL proxy test with firewall (Policy version)
+2.35384702682
+Policy Test SAT
+unsat
+2.52699398994
+Running automatic detection of path isolation: Erroneous proxy with firewall
+19.9378631115
+Running automatic detection of path isolation: ACL proxy with firewall
+1185.85645103
+Running automatic detection of path isolation: Erroneous proxy without firewall
+5.20128893852
