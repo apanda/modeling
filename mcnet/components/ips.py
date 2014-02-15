@@ -17,9 +17,9 @@ class IPS (NetworkObject):
         solver.add(self.constraints)
         p = z3.Const('__ips_acl_Packet_%s'%(self.ips), self.ctx.packet)
         addr_a = z3.Const ('__ips_acl_cache_a_%s'%(self.ips), self.ctx.address)
-        port_a = z3.Const('__ips_acl_port_a_%s'%(self.ips), z3.IntSort())
+        port_a = z3.Const('__ips_acl_port_a_%s'%(self.ips), self.ctx.port_sort)
         addr_b = z3.Const ('__ips_acl_cache_b_%s'%(self.ips), self.ctx.address)
-        port_b = z3.Const('__ips_acl_port_b_%s'%(self.ips), z3.IntSort())
+        port_b = z3.Const('__ips_acl_port_b_%s'%(self.ips), self.ctx.port_sort)
         aclConstraints = map(lambda (a, b): z3.And(self.ctx.packet.src(p) == a, \
                                               self.ctx.packet.dest(p) == b),
                                               self.acls)
@@ -63,18 +63,13 @@ class IPS (NetworkObject):
         return self.acls
 
     def _ipsFunctions (self):
-        self.cached = z3.Function ('__ips_cached_rules_%s'%(self.ips), self.ctx.address, z3.IntSort(), self.ctx.address, z3.IntSort(), z3.BoolSort())
-        self.ctime = z3.Function ('__ips_cached_time_%s'%(self.ips), self.ctx.address, z3.IntSort(), self.ctx.address, z3.IntSort(), z3.IntSort())
+        self.cached = z3.Function ('__ips_cached_rules_%s'%(self.ips), self.ctx.address, self.ctx.port_sort, self.ctx.address, self.ctx.port_sort, z3.BoolSort())
+        self.ctime = z3.Function ('__ips_cached_time_%s'%(self.ips), self.ctx.address, self.ctx.port_sort, self.ctx.address,
+                self.ctx.port_sort, z3.IntSort())
         addr_a = z3.Const ('__ips_addr_cache_a_%s'%(self.ips), self.ctx.address)
-        port_a = z3.Const('__ips_addr_port_a_%s'%(self.ips), z3.IntSort())
+        port_a = z3.Const('__ips_addr_port_a_%s'%(self.ips), self.ctx.port_sort)
         addr_b = z3.Const ('__ips_addr_cache_b_%s'%(self.ips), self.ctx.address)
-        port_b = z3.Const('__ips_addr_port_b_%s'%(self.ips), z3.IntSort())
-        self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], z3.Implies(\
-                        z3.Or(port_a < 0, \
-                              port_a > Core.MAX_PORT, \
-                              port_b < 0, \
-                              port_a > Core.MAX_PORT), \
-                        z3.Not(self.cached(addr_a, port_a, addr_b, port_b)))))
+        port_b = z3.Const('__ips_addr_port_b_%s'%(self.ips), self.ctx.port_sort)
         self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], self.ctime (addr_a, port_a, addr_b, port_b) \
                                             >= 0))
         self.constraints.append(z3.ForAll([addr_a, port_a, addr_b, port_b], z3.Implies(\

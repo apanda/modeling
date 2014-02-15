@@ -19,7 +19,7 @@ class LoadBalancer (NetworkObject):
         solver.add(self.constraints)
 
     def _populateLoadBalancerConstraints (self):
-        self.hash_function = z3.Function ('load_balancer_hash_%s'%(self.balancer), z3.IntSort (), z3.IntSort (), z3.IntSort ())
+        self.hash_function = z3.Function ('load_balancer_hash_%s'%(self.balancer), self.ctx.port_sort, self.ctx.port_sort, z3.IntSort ())
         p0 = z3.Const('_load_balancer_p0_%s'%(self.balancer), self.ctx.packet)
         p1 = z3.Const('_load_balancer_p1_%s'%(self.balancer), self.ctx.packet)
         n0 = z3.Const('_load_balancer_n0_%s'%(self.balancer), self.ctx.node)

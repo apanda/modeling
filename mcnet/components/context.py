@@ -42,16 +42,19 @@ class Context(Core):
 
         # Networks have packets
         packet = z3.Datatype('Packet')
+        self.body_sort = z3.BitVecSort(64)
+        self.seq_sort = z3.BitVecSort(32)
+        self.port_sort = z3.BitVecSort(8)
+        self.options_sort = z3.BitVecSort(32)
         packet.declare('packet', \
                        ('src', self.address), \
                        ('dest', self.address), \
                        ('origin', self.node), \
-                       ('orig_body', z3.IntSort()), \
-                       ('body', z3.IntSort()), \
-                       ('seq', z3.IntSort()), \
-                       ('options', z3.IntSort()))
+                       ('orig_body', self.body_sort), \
+                       ('body', self.body_sort), \
+                       ('seq', self.seq_sort), \
+                       ('options', self.options_sort))
         self.packet = packet.create()
-        self.origPacket = z3.Function('origPacket', self.packet, self.packet)
 
         # Some functions to keep everything running
         # hostHasAddr: self.node -> self.address -> boolean
@@ -66,8 +69,8 @@ class Context(Core):
         # Time at which packet is processed
         # etime := node -> packet -> event -> int
         self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
-        self.src_port = z3.Function('sport', self.packet, z3.IntSort())
-        self.dest_port = z3.Function('dport', self.packet, z3.IntSort())
+        self.src_port = z3.Function('sport', self.packet, self.port_sort)
+        self.dest_port = z3.Function('dport', self.packet, self.port_sort)
 
     def PacketsHeadersEqual (self, p1, p2):
         """Return conditions that two packets have identical headers"""
@@ -136,8 +139,6 @@ class Context(Core):
         self.constraints.append(z3.ForAll([eh1, p], z3.Or(self.etime(eh1, p, self.send_event) == 0, \
                                 self.etime(eh1, p, self.recv_event) < self.etime(eh1, p, self.send_event))))
 
-        self.constraints.append(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < Core.MAX_PORT)))
-        self.constraints.append(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < Core.MAX_PORT)))
         self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), \
                                  z3.Not(z3.Exists([eh3], \
                                             z3.And(eh3 != eh1, \

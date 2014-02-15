@@ -11,6 +11,7 @@ class CompressionAlgorithm (Core):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
         self.const = next(CompressionAlgorithm.PRIMES)
+        self.body_sort = z3.BitVecSort(64)
         self.constraints = list ()
         self._createCompressionFunction ()
 
@@ -19,9 +20,9 @@ class CompressionAlgorithm (Core):
 
     def _createCompressionFunction (self):
         """Declare functions add some constraints to this etc"""
-        self.compress = z3.Function ('%s_compress'%(self.name), z3.IntSort(), z3.IntSort())
-        self.decompress = z3.Function ('%s_decompress'%(self.name), z3.IntSort(), z3.IntSort())
-        uncompressed = z3.Const('__compression_%s_uncompressed'%(self.name), z3.IntSort())
+        self.compress = z3.Function ('%s_compress'%(self.name), self.body_sort, self.body_sort)
+        self.decompress = z3.Function ('%s_decompress'%(self.name), self.body_sort, self.body_sort)
+        uncompressed = z3.Const('__compression_%s_uncompressed'%(self.name), self.body_sort)
 
         # Assume that compression changes data, because well that makes sense
         self.constraints.append(z3.ForAll([uncompressed], self.compress(uncompressed) == uncompressed + self.const))
