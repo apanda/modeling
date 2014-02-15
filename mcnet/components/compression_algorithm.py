@@ -11,7 +11,8 @@ class CompressionAlgorithm (Core):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
         self.const = next(CompressionAlgorithm.PRIMES)
-        self.body_sort = z3.BitVecSort(64)
+        #self.body_sort = z3.BitVecSort(64)
+        self.body_sort = z3.IntSort()
         self.constraints = list ()
         self._createCompressionFunction ()
 
