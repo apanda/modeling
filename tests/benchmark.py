@@ -87,27 +87,27 @@ assert is_false(result.model.eval(out.ctx.send(out.w0.z3Node, out.w1.z3Node, res
 stop = time.time()
 print stop - start
 
-print "Running simple compression-DPI-decompression test"
-ResetZ3()
-start = time.time()
-out = TrivialWanOptimizerAndDPI()
-result = out.check.CheckIsolatedIf(out.dpi_policy.packetDPIPredicate(out.ctx), out.a, out.b)
-assert z3.sat == result.result, \
-        "Nothing is blocking the way, packets should get from A -> B"
-assert is_true(result.model.eval(out.ctx.send(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
-        "Violating packet was never sent"
-assert is_true(result.model.eval(out.ctx.recv(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
-        "Violating packet was never received"
-assert is_true(result.model.eval(out.ctx.recv(out.a.z3Node, out.w0.z3Node, result.violating_packet))), \
-        "The packet that gets to b was sent by a"
-assert is_false(result.model.eval(out.ctx.send(out.w0.z3Node, out.d.z3Node, result.violating_packet))), \
-        "The original packet never goes through the network"
-assert is_false(result.model.eval(out.ctx.send(out.d.z3Node, out.w1.z3Node, result.violating_packet))), \
-        "The original packet never goes through the network"
-assert is_true(result.model.eval(out.dpi_policy.packetDPIPredicate(out.ctx)(result.violating_packet))), \
-        "The packet violates DPI"
-stop = time.time()
-print stop - start
+#print "Running simple compression-DPI-decompression test"
+#ResetZ3()
+#start = time.time()
+#out = TrivialWanOptimizerAndDPI()
+#result = out.check.CheckIsolatedIf(out.dpi_policy.packetDPIPredicate(out.ctx), out.a, out.b)
+#assert z3.sat == result.result, \
+        #"Nothing is blocking the way, packets should get from A -> B"
+#assert is_true(result.model.eval(out.ctx.send(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
+        #"Violating packet was never sent"
+#assert is_true(result.model.eval(out.ctx.recv(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
+        #"Violating packet was never received"
+#assert is_true(result.model.eval(out.ctx.recv(out.a.z3Node, out.w0.z3Node, result.violating_packet))), \
+        #"The packet that gets to b was sent by a"
+#assert is_false(result.model.eval(out.ctx.send(out.w0.z3Node, out.d.z3Node, result.violating_packet))), \
+        #"The original packet never goes through the network"
+#assert is_false(result.model.eval(out.ctx.send(out.d.z3Node, out.w1.z3Node, result.violating_packet))), \
+        #"The original packet never goes through the network"
+#assert is_true(result.model.eval(out.dpi_policy.packetDPIPredicate(out.ctx)(result.violating_packet))), \
+        #"The packet violates DPI"
+#stop = time.time()
+#print stop - start
 
 print "Running simple proxy test"
 ResetZ3()
