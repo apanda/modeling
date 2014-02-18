@@ -55,7 +55,12 @@ print "Running simple compression test"
 ResetZ3()
 start = time.time()
 out = TrivialWanOptimizer()
-result = out.check.CheckIsolationProperty(out.a, out.b)
+result = out.check.CheckIsolatedIf(lambda p: out.ctx.packet.body(p) != 0 and out.ctx.packet.body(p) !=
+        out.gzip.compress(out.ctx.packet.body(p)), out.a, out.b)
+print result.model[result.violating_packet]
+print result.model.eval(out.ctx.packet.body(result.violating_packet))
+print result.model[out.gzip.const]
+print result.model.eval(out.gzip.compress(out.ctx.packet.body(result.violating_packet)))
 assert z3.sat == result.result, \
         "Nothing is blocking the way, packets should get from A -> B"
 assert is_true(result.model.eval(out.ctx.send(out.w.z3Node, out.b.z3Node, result.violating_packet))), \
@@ -92,6 +97,7 @@ ResetZ3()
 start = time.time()
 out = TrivialWanOptimizerAndDPI()
 result = out.check.CheckIsolatedIf(out.dpi_policy.packetDPIPredicate(out.ctx), out.a, out.b)
+print result.result
 assert z3.sat == result.result, \
         "Nothing is blocking the way, packets should get from A -> B"
 assert is_true(result.model.eval(out.ctx.send(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \
@@ -272,27 +278,27 @@ assert z3.is_true(ret.model.eval(ret.ctx.send(obj.b.z3Node, obj.e1.z3Node, ret.v
 stop = time.time()
 print stop - start
 
-for sz in xrange(3, 6):
-    print "Running complex LSRR test with size %d"%(sz)
-    ResetZ3()
-    start = time.time()
-    obj = LSRRFwExample (sz)
-    ret = obj.check.CheckIsolationProperty(obj.e0, obj.e1)
-    assert z3.sat == ret.result, \
-            "Satisfiable, no blocks"
-    stop = time.time()
-    print stop - start
+#for sz in xrange(3, 6):
+    #print "Running complex LSRR test with size %d"%(sz)
+    #ResetZ3()
+    #start = time.time()
+    #obj = LSRRFwExample (sz)
+    #ret = obj.check.CheckIsolationProperty(obj.e0, obj.e1)
+    #assert z3.sat == ret.result, \
+            #"Satisfiable, no blocks"
+    #stop = time.time()
+    #print stop - start
 
-for sz in xrange(2, 5):
-    print "Running num node test with size %d"%(sz)
-    ResetZ3()
-    start = time.time()
-    obj = NumNodesTest (sz)
-    ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
-    assert z3.unsat == ret.result, \
-            "No way to go"
-    stop = time.time()
-    print stop - start
+#for sz in xrange(2, 5):
+    #print "Running num node test with size %d"%(sz)
+    #ResetZ3()
+    #start = time.time()
+    #obj = NumNodesTest (sz)
+    #ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
+    #assert z3.unsat == ret.result, \
+            #"No way to go"
+    #stop = time.time()
+    #print stop - start
 
 print "Running simple erroneous proxy test with firewall (Policy version)"
 ResetZ3()

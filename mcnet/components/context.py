@@ -42,10 +42,10 @@ class Context(Core):
 
         # Networks have packets
         packet = z3.Datatype('Packet')
-        self.body_sort = z3.IntSort()
+        self.body_sort = z3.BitVecSort(128)
         self.seq_sort = z3.BitVecSort(32)
         self.port_sort = z3.BitVecSort(8)
-        self.options_sort = z3.BitVecSort(32)
+        self.options_sort = z3.IntSort()
         packet.declare('packet', \
                        ('src', self.address), \
                        ('dest', self.address), \

@@ -25,5 +25,6 @@ def TrivialWanOptimizer ():
             self.a = a
             self.b = b
             self.w = w
+            self.gzip = gzip
             self.check = components.PropertyChecker (ctx, net)
     return TrivialReturn (net, ctx, a, b, w)
