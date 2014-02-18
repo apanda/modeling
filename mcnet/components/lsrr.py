@@ -4,7 +4,7 @@ class LSRROption (Core):
     """The LSRR field primitive adds support for loose source routing to the model"""
     def _init (self, field_name, context):
         self.name = field_name
-        self.options = z3.BitVecSort(32)
+        self.options = z3.IntSort()
         self.ctx = context
         self.constraints = list ()
         self.CreateLSRRField ()

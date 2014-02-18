@@ -10,7 +10,7 @@ class CompressionAlgorithm (Core):
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
-        self.body_sort = z3.BitVecSort(6)
+        self.body_sort = z3.BitVecSort(32)
         self.const = z3.Const('_%s_const'%(self.name), self.body_sort)
         self.constraints = list ()
         self._createCompressionFunction ()
