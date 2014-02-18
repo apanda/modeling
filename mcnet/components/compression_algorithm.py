@@ -10,7 +10,7 @@ class CompressionAlgorithm (Core):
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
-        self.body_sort = z3.BitVecSort(32)
+        self.body_sort = z3.BitVecSort(6)
         self.const = z3.Const('_%s_const'%(self.name), self.body_sort)
         self.constraints = list ()
         self._createCompressionFunction ()
@@ -33,7 +33,6 @@ class CompressionAlgorithm (Core):
                                 self.decompress(self.compress(uncompressed)) == uncompressed))
         self.constraints.append(z3.Exists([uncompressed], \
                                 self.compress(uncompressed) != uncompressed))
-
 
     def packetCompressionPredicate (self, context):
         return lambda p: self.compress(context.packet.body(p))

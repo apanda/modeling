@@ -6,7 +6,7 @@ class DPIPolicy (Core):
     def _init (self, policy_name):
         """Policy name is used to give unique names to the functions in z3"""
         self.name = policy_name
-        self.body_sort = z3.BitVecSort(32)
+        self.body_sort = z3.BitVecSort(6)
         self.dpi_const = z3.Const('_%s_const'%(self.name), self.body_sort)
         self.constraints = list ()
         self._createPolicyFunction ()
