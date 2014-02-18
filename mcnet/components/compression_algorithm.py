@@ -6,7 +6,6 @@ class CompressionAlgorithm (Core):
        - compress
        - decompress
        Decompress is the inverse of compress."""
-    ROL = 2
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
