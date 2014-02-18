@@ -8,11 +8,11 @@ import sys
 def ResetZ3 ():
     z3._main_ctx = None
     z3.main_ctx()
-    z3.set_param('auto_config', False)
-    z3.set_param('smt.mbqi', True)
-    z3.set_param('model.compact', True)
-    z3.set_param('smt.pull_nested_quantifiers', True)
-    z3.set_param('smt.mbqi.max_iterations', 10000)
+    #z3.set_param('auto_config', False)
+    #z3.set_param('smt.mbqi', True)
+    #z3.set_param('model.compact', True)
+    #z3.set_param('smt.pull_nested_quantifiers', True)
+    #z3.set_param('smt.mbqi.max_iterations', 10000)
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 
 print "Running simple trivial test"
@@ -55,7 +55,9 @@ print "Running simple compression test"
 ResetZ3()
 start = time.time()
 out = TrivialWanOptimizer()
-result = out.check.CheckIsolationProperty(out.a, out.b)
+result = out.check.CheckIsolatedIf(lambda p: out.ctx.packet.body(p) != 0, out.a, out.b)
+print result.model[result.violating_packet]
+print result.model.eval(out.ctx.packet.body(result.violating_packet))
 assert z3.sat == result.result, \
         "Nothing is blocking the way, packets should get from A -> B"
 assert is_true(result.model.eval(out.ctx.send(out.w.z3Node, out.b.z3Node, result.violating_packet))), \
@@ -92,6 +94,7 @@ ResetZ3()
 start = time.time()
 out = TrivialWanOptimizerAndDPI()
 result = out.check.CheckIsolatedIf(out.dpi_policy.packetDPIPredicate(out.ctx), out.a, out.b)
+print result.result
 assert z3.sat == result.result, \
         "Nothing is blocking the way, packets should get from A -> B"
 assert is_true(result.model.eval(out.ctx.send(out.w1.z3Node, out.b.z3Node, result.violating_packet))), \

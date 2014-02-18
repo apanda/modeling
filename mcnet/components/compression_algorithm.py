@@ -6,13 +6,12 @@ class CompressionAlgorithm (Core):
        - compress
        - decompress
        Decompress is the inverse of compress."""
-    ROL = 0
+    ROL = 2
     def _init (self, algorithm_name):
         """Algorithm name is used to get unique names"""
         self.name = algorithm_name
-        CompressionAlgorithm.ROL += 1
-        self.const = z3.BitVecVal(CompressionAlgorithm.ROL, 64)
-        self.body_sort = z3.BitVecSort(64)
+        self.body_sort = z3.BitVecSort(32)
+        self.const = z3.Const('_%s_const'%(self.name), self.body_sort)
         self.constraints = list ()
         self._createCompressionFunction ()
 
