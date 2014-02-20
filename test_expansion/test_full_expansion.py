@@ -17,8 +17,8 @@ for i in xrange(iters):
     curr_net.Attach(*map(lambda n: prob.node_map[n], active_nodes))
     solver = PropertyChecker (prob.ctx, curr_net)
     ret = CheckIsPathIndependentIsolatedTime (solver,  \
-                                       prob.node_map[prob.origin], \
-                                       prob.node_map[prob.target], \
+                                       solver.IsolationConstraint(prob.node_map[prob.origin], \
+                                       prob.node_map[prob.target]), \
                                        map(lambda n: prob.node_map[n], active_nodes))
     if ret.overapprox_result.model:
         print "OVERAPPROX RESULT"

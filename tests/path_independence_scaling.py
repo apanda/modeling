@@ -28,7 +28,7 @@ for sz in xrange(1, 100000):
         # Set timeout to some largish number
         obj.check.solver.set(timeout=10000000)
         start = time.time()
-        ret = components.CheckIsPathIndependentIsolatedTime(obj.check, obj.c, obj.a, \
+        ret = components.CheckIsPathIndependentIsolatedTime(obj.check, obj.check.IsolationConstraint(obj.c, obj.a), \
                                                     [obj.a, obj.c, obj.f, obj.p])
         if 2 != ret.judgement:
             bad = True

@@ -31,6 +31,27 @@ class PropertyChecker (object):
             model = self.solver.model ()
         self.solver.pop()
         return result, model
+    
+    def CheckConstraintsCompat (self, constraints):
+        """Check a given set of constraints. This is equivalent to checking a certain condition.
+        Returns a result and a model (which might be None if the constraints cannot be satisfied)"""
+        self.solver.push ()
+        self.AddConstraints()
+        if isinstance(constraints, Constraints):
+            constraints = constraints.constraints
+        self.solver.add(constraints)
+        result = self.solver.check()
+        model = None
+        if result == z3.sat:
+            model = self.solver.model ()
+        self.solver.pop()
+        class CompatResult (object):
+            def __init__ (self, ctx, constraints, result, model):
+                self.constraints = constraints
+                self.result = result
+                self.model = model
+                self.ctx = ctx
+        return CompatResult(self.ctx, constraints, result, model)
 
     def AddExternalConstraints (self, constraints):
         """Add external constraints to the solver."""

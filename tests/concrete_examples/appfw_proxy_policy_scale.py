@@ -34,6 +34,9 @@ def FixedL7ProxyPolicy  (sz):
                     (ctx.ip_p, f)]
 
     net.RoutingTable(a, host_routing)
+    for e in other_endhosts:
+        net.RoutingTable(getattr(ctx, e), host_routing)
+
 
     firewall_routing = [(ctx.ip_a, a), \
                         (ctx.ip_p, p), \

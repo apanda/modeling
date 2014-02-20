@@ -44,7 +44,6 @@ def FindSubgraph (problem):
     active_nodes = [prob.origin, prob.target]
 
     while len(active_nodes) < len(prob.node_map.keys()):
-        ReseedZ3 ()
         prob = problem ()
         curr_net = prob.network
 
@@ -55,8 +54,8 @@ def FindSubgraph (problem):
         curr_net.Attach(*map(lambda n: prob.node_map[n], active_nodes))
         solver = PropertyChecker (prob.ctx, curr_net)
         ret = CheckIsPathIndependentIsolatedTime (solver,  \
-                                           prob.node_map[prob.origin], \
-                                           prob.node_map[prob.target], \
+                                           solver.IsolationConstraint(prob.node_map[prob.origin], \
+                                                                      prob.node_map[prob.target]), \
                                            map(lambda n: prob.node_map[n], active_nodes))
 
         if ret.judgement == VERIFIED_ISOLATION:

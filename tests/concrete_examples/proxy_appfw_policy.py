@@ -33,10 +33,10 @@ def L7FirewallProxyPolicy ():
                          (ctx.ip_c, p), \
                          (ctx.ip_p, p)])
 
-    #net.RoutingTable(b, [(ctx.ip_a, a), \
-                         #(ctx.ip_b, b), \
-                         #(ctx.ip_c, p), \
-                         #(ctx.ip_p, p)])
+    net.RoutingTable(ctx.b, [(ctx.ip_a, a), \
+                         (ctx.ip_b, b), \
+                         (ctx.ip_c, p), \
+                         (ctx.ip_p, p)])
 
     net.RoutingTable(f, [(ctx.ip_a, p), \
                          (ctx.ip_b, p), \

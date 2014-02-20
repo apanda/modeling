@@ -7,7 +7,7 @@ VERIFIED_ISOLATION = 1
 VERIFIED_GLOBAL = 2
 UNKNOWN = 3
 
-def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements):
+def CheckIsPathIndependentIsolatedTime (checker_path, condition, path_elements):
     """Check isolation based on path independence. This is modified so that when things are not isolated it does not
     try to compute the actual result once it knows."""
     class PathIndependenceResult (object):
@@ -18,7 +18,7 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
             self.ctx = overapprox_result.ctx
 
     print "%s Running overapproximate check"%(str(time.time()))
-    result = checker_path.CheckIsolationProperty (psrc, pdest)
+    result = checker_path.CheckConstraintsCompat (condition)
     print "%s Finished overapproximate check"%(str(time.time()))
 
     if result.result == z3.unsat:
@@ -54,7 +54,7 @@ def CheckIsPathIndependentIsolatedTime (checker_path, psrc, pdest, path_elements
                                     z3.Or(map(lambda x: n == x, z3PathElements))))
     checker_path.AddExternalConstraints(constraint)
     print "%s Running under-approximate check"%(str(time.time()))
-    result2 = checker_path.CheckIsolationProperty (psrc, pdest)
+    result2 = checker_path.CheckConstraintsCompat(condition)
     print "%s Done running under-approximate check"%(str(time.time()))
     checker_path.ClearExternalConstraints ()
     if result2.result != result.result:
