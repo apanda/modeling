@@ -24,7 +24,7 @@ def L7FirewallProxyPolicy ():
     net.SetIsolationConstraint (p, [a, b, f])
     f.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_c, ctx.ip_a)])
     net.setAddressMappings([(a, ctx.ip_a), \
-                            #(b, ctx.ip_b), \
+                            (b, ctx.ip_b), \
                             (c, ctx.ip_c), \
                             (p, ctx.ip_p), \
                             (f, ctx.ip_f)])
