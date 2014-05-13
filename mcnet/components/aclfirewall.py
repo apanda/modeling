@@ -30,28 +30,22 @@ class AclFirewall (NetworkObject):
         solver.add(self.constraints)
         if len(self.acls) == 0:
             return
-        p = z3.Const('__firewall_Packet_%s'%(self.fw), self.ctx.packet)
-        eh = z3.Const('__firewall_node1_%s'%(self.fw), self.ctx.node)
+        addrA = z3.Const('__firewall_addra_%s'%(self.fw), self.ctx.address)
+        addrB = z3.Const('__firewall_addrb_%s'%(self.fw), self.ctx.address)
         if len(self.acls) != 0:
             conditions = list()
             # Firewall rules
-            for rule in self.acls:
-                (ada, adb) = rule
-                conditions.append(z3.And(self.ctx.packet.src(p) == ada,
-                                            self.ctx.packet.dest(p) == adb))
-                conditions.append(z3.And(self.ctx.packet.src(p) == adb,
-                                            self.ctx.packet.dest(p) == ada))
-            # Actually enforce firewall rules
-            # Actually enforce firewall rules
-            # \forall e_1, p send(f, e_1, p) \Rightarrow cached(p.src, p.dest) \lor cached(p.dest, p.src) \lor \neg(ACL(p))
-            solver.add(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p),
-                        z3.Not(z3.Or(conditions)))))
+            acl_pairs = map(lambda (a, b): z3.And(addrA == a, addrB == b), self.acls)
+            conditions.append(z3.ForAll([addrA, addrB], \
+                    self.fw_func(addrA, addrB) == z3.Not(z3.Or(acl_pairs))))
+            solver.add(conditions)
 
     def _firewallSendRules (self):
         p = z3.Const('__firewall_Packet_%s'%(self.fw), self.ctx.packet)
         eh = z3.Const('__firewall_node1_%s'%(self.fw), self.ctx.node)
         eh2 = z3.Const('__firewall_node2_%s'%(self.fw), self.ctx.node)
         eh3 = z3.Const('__firewall_node3_%s'%(self.fw), self.ctx.node)
+        self.fw_func = z3.Function('__firewall_acl_%s'%(self.fw), self.ctx.address, self.ctx.address, z3.BoolSort()) 
         # The firewall never invents self.ctx.packets
         # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p), \
@@ -60,3 +54,5 @@ class AclFirewall (NetworkObject):
                                                                         eh3 != eh))), \
                                         self.ctx.etime(self.fw, p, self.ctx.send_event) >\
                                         self.ctx.etime(self.fw, p, self.ctx.recv_event)))))
+        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p),
+                                 self.fw_func(self.ctx.packet.src(p), self.ctx.packet.dest(p)))))

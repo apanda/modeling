@@ -3,7 +3,6 @@ import z3
 # Core component for everything that matters
 class Core(object):
     __metaclass__ = ABCMeta
-    MAX_PORT = 512
     """This is the core object from which all components in the modeling
     framework are derived"""
     def __init__ (self, *args, **kwargs):

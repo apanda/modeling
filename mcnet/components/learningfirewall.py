@@ -17,8 +17,8 @@ class LearningFirewall (NetworkObject):
         port_a = z3.Const('__fw_acl_port_a_%s'%(self.firewall), self.ctx.port_sort)
         addr_b = z3.Const ('__fw_acl_cache_b_%s'%(self.firewall), self.ctx.address)
         port_b = z3.Const('__fw_acl_port_b_%s'%(self.firewall), self.ctx.port_sort)
-        aclConstraints = map(lambda (a, b): z3.And(self.ctx.packet.src(p) == a, \
-                                              self.ctx.packet.dest(p) == b), \
+        aclConstraints = map(lambda (a, b): z3.And(addr_a == a, \
+                                              addr_b == b), \
                                               self.acls)
         eh = z3.Const('__fw_acl_node_%s'%(self.firewall), self.ctx.node)
 
@@ -32,7 +32,8 @@ class LearningFirewall (NetworkObject):
                            z3.And(self.ctx.packet.src (p) == addr_a, self.ctx.packet.dest(p) == addr_b, \
                                    self.ctx.src_port (p) == port_a,  self.ctx.dest_port (p) == port_b, \
                                    self.ctime (addr_a, port_a, addr_b, port_b) == self.ctx.etime(self.firewall, p, self.ctx.recv_event), \
-                                   z3.Not(z3.Or(aclConstraints)))))))
+                                   self.fw_func(addr_a, addr_b))))))
+        solver.add(z3.ForAll([addr_a, addr_b], self.fw_func(addr_a, addr_b) == z3.Or(aclConstraints)))
 
     @property
     def z3Node (self):
@@ -52,6 +53,7 @@ class LearningFirewall (NetworkObject):
         return self.acls
    
     def _firewallFunctions (self):
+        self.fw_func = z3.Function('__firewall_acl_%s'%(self.fw), self.ctx.address, self.ctx.address, z3.BoolSort()) 
         self.cached = z3.Function ('__fw_cached_rules_%s'%(self.firewall), self.ctx.address, self.ctx.port_sort, \
                                                 self.ctx.address, self.ctx.port_sort, z3.BoolSort())
         self.ctime = z3.Function ('__fw_cached_time_%s'%(self.firewall), self.ctx.address, self.ctx.port_sort, \

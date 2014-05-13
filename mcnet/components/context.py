@@ -30,10 +30,15 @@ class Context(Core):
         for ndn, ndv in nodes:
             setattr(self, ndn, ndv)
 
-        # Also addresses for these nodes
-        self.address, self.address_list = z3.EnumSort('Address', addresses)
-        addresses = zip(addresses, self.address_list)
-        for adn, adv in addresses:
+        ## Also addresses for these nodes
+        #self.address, self.address_list = z3.EnumSort('Address', addresses)
+        #addresses = zip(addresses, self.address_list)
+        #for adn, adv in addresses:
+            #setattr(self, adn, adv)
+        self.address = z3.BitVecSort(32)
+        addict = {ad: z3.Const(ad, self.address) for ad in addresses}
+        self.address_list = [addict[ad] for ad in addresses]
+        for adn, adv in addict.iteritems():
             setattr(self, adn, adv)
 
         # Events we care about. Currently we just care about sending and receiving (events at active elements
