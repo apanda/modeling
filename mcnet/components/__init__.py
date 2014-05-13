@@ -17,6 +17,7 @@ __all__ = ['Core', \
            'LoadBalancer', \
            'NetworkCounter', \
            'IPS', \
+           'DpiFW', \
            'CompressionAlgorithm', \
            'LSRROption', \
            'LSRRRouter', \
@@ -52,6 +53,7 @@ from erroneous_aclfull_proxy import ErroneousAclWebProxy
 from aclfull_proxy import AclWebProxy
 from dpi_policy import DPIPolicy
 from ips import IPS
+from dpifw import DpiFW
 from wan_opt import WanOptimizer
 from compression_algorithm import CompressionAlgorithm
 from checker import PropertyChecker

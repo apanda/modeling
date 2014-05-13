@@ -56,3 +56,10 @@ class AclFirewall (NetworkObject):
                                         self.ctx.etime(self.fw, p, self.ctx.recv_event)))))
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p),
                                  self.fw_func(self.ctx.packet.src(p), self.ctx.packet.dest(p)))))
+        self.constraints.append(z3.ForAll([eh, p], \
+          z3.Implies(self.ctx.recv(eh, self.fw, p), \
+            z3.Or(z3.Exists([eh2], self.ctx.send(self.fw, eh2, p)), \
+                  z3.Not(self.fw_func(self.ctx.packet.src(p), self.ctx.packet.dest(p)))))))
+        #self.constraints.append(z3.ForAll([eh, p], self.ctx.recv(self.fw, eh, p) == \
+                                  #z3.Or(z3.Exists([eh2], self.ctx.send(self.fw, eh2, p)), \
+                                         #z3.Not(self.fw_func(self.ctx.packet.src(p), self.ctx.packet.dest(p))))))

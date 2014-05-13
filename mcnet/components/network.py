@@ -8,6 +8,7 @@ class Network (Core):
         self.ctx = context
         self.constraints = list()
         self.elements = list()
+        self.routing_functions = dict()
 
     def Copy (self):
         copy = Network(self.ctx)
@@ -56,6 +57,19 @@ class Network (Core):
                                             addr_clause)))
                 self.constraints.append(self.ctx.addrToHost(addr[0]) ==\
                                     host)
+    def RecoverableRoutingPolicy (self, node):
+       func = z3.Function('RecFuncRoute%s'%(node), \
+                        self.ctx.address, \
+                        self.ctx.address, \
+                        self.ctx.node)
+       self.routing_functions[str(node)] = func
+       p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
+       eh = z3.Const('__node_Routing_%s'%(node), self.ctx.node)
+       node = node.z3Node
+       self.constraints.append(z3.ForAll([eh, p], \
+               z3.Implies(self.ctx.send(node, eh, p), \
+                 eh == func(self.ctx.packet.src(p), \
+                        self.ctx.packet.dest(p)))))
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
