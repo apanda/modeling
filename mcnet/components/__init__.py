@@ -6,6 +6,7 @@ __all__ = ['Core', \
            'NullNode', \
            'EndHost', \
            'AclFirewall', \
+           'OneSidedFirewall', \
            'HTTPFirewall', \
            'DenyHTTPFirewall', \
            'DenyingAclFirewall', \
@@ -41,6 +42,7 @@ from webloadbalancer import WebLoadBalancer
 from loadbalancer import LoadBalancer
 from counter import NetworkCounter
 from aclfirewall import AclFirewall
+from onesidedfirewall import OneSidedFirewall
 from deny_aclfirewall import DenyingAclFirewall
 from learningfirewall import LearningFirewall
 from l7firewall import HTTPFirewall
