@@ -52,7 +52,7 @@ class AclFirewall (NetworkObject):
         eh = z3.Const('__firewall_node1_%s'%(self.fw), self.ctx.node)
         eh2 = z3.Const('__firewall_node2_%s'%(self.fw), self.ctx.node)
         eh3 = z3.Const('__firewall_node3_%s'%(self.fw), self.ctx.node)
-        # The firewall never invents self.ctx.packets
+        # The firewall never invents packets
         # \forall e_1, p\ send (f, e_1, p) \Rightarrow \exists e_2 recv(e_2, f, p)
         self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.fw, eh, p), \
                                  z3.And(z3.Exists([eh2], self.ctx.recv(eh2, self.fw, p)), \

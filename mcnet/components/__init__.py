@@ -12,6 +12,8 @@ __all__ = ['Core', \
            'DenyingAclFirewall', \
            'LearningFirewall', \
            'WebProxy', \
+           'ContentCache', \
+           'PermutationMiddlebox', \
            'ErroneousAclWebProxy', \
            'AclWebProxy', \
            'WebLoadBalancer', \
@@ -48,8 +50,10 @@ from learningfirewall import LearningFirewall
 from l7firewall import HTTPFirewall
 from denyl7firewall import DenyHTTPFirewall
 from webproxy import WebProxy
+from permutation_mbox import PermutationMiddlebox
 from erroneous_aclfull_proxy import ErroneousAclWebProxy
 from aclfull_proxy import AclWebProxy
+from content_cache import ContentCache
 from dpi_policy import DPIPolicy
 from ips import IPS
 from wan_opt import WanOptimizer
