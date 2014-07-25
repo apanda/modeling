@@ -16,35 +16,17 @@ class EndHost (NetworkObject):
         solver.add(self.constraints)
 
     def _endHostRules (self):
-        eh = z3.Const('__nodeRules_Node', self.ctx.node)
-        eh2 = z3.Const('__nodeRules_Node2', self.ctx.node)
-        eh3 = z3.Const('__nodeRules_Node3', self.ctx.node)
-        p = z3.Const('__nodeRules_Packet', self.ctx.packet)
-        # Constraints on packets sent
-        # Packet sent always has source address set to something reasonable
-        self.constraints.append(z3.ForAll([eh, p], z3.Implies(self.ctx.send(self.node, eh, p), \
-            self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p)))))
-
-        self.constraints.append(z3.ForAll([eh, eh2, p], z3.Implies(z3.And(self.ctx.send(eh, eh2, p), \
-                        self.ctx.hostHasAddr(self.node, self.ctx.packet.src(p))), \
-                    z3.Exists([eh3], self.ctx.send(self.node, eh3, p)))))
-        # Packet sent always has origin set correctly
-        self.constraints.append(z3.ForAll([eh, p],
-            z3.Implies(self.ctx.send(self.node, eh, p), \
-                    self.ctx.packet.origin(p) ==\
-                                self.node)))
-        # Body dutifully recorded 
-        self.constraints.append(z3.ForAll([eh, p],
-            z3.Implies(self.ctx.send(self.node, eh, p), \
-                    self.ctx.packet.body(p) ==\
-                                self.ctx.packet.orig_body(p))))
-
-        # Constraints on packet received
-        # Let us assume that packet received always have the right IP address (alternately the network stack can just
-        # drop these).
-        self.constraints.append(z3.ForAll([eh, p], \
-                z3.Implies(self.ctx.recv(eh, self.node, p), \
-                    self.ctx.hostHasAddr(self.node, self.ctx.packet.dest(p)))))
+        n_0 = z3.Const('eh_%s_n_0'%(self.node), self.ctx.node)
+        t_0 = z3.Int('eh_%s_t_0'%(self.node))
+        p_0 = z3.Const('eh_%s_p_0'%(self.node), self.ctx.packet)
+        self.constraints.append(z3.Implies(self.ctx.send(self.node, n_0, p_0, t_0), \
+                self.ctx.nodeHasAddr(self.node, self.ctx.packet.src(p_0))))
+        self.constraints.append(z3.Implies(self.ctx.send(self.node, n_0, p_0, t_0), \
+                self.ctx.packet.origin(p_0) == self.node))
+        self.constraints.append(z3.Implies(self.ctx.send(self.node, n_0, p_0, t_0), \
+                self.ctx.packet.orig_body(p_0) == self.ctx.packet.body(p_0)))
+        self.constraints.append(z3.Implies(self.ctx.recv(n_0, self.node, p_0, t_0), \
+                self.ctx.nodeHasAddr(self.node, self.packet.dest(p_0))))
 
     @property
     def isEndHost (self):
