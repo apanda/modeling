@@ -4,15 +4,13 @@ import z3
 class Core(object):
     __metaclass__ = ABCMeta
     MAX_PORT = 512
-    """This is the core object from which all components in the modeling
-    framework are derived"""
+    """Base class for all objects in the modeling framework"""
     def __init__ (self, *args, **kwargs):
-        """Constructors are useful"""
         self._init(*args, **kwargs)
     @abstractmethod
     def _init(self, *args, **kwargs):
-        """The constructor calls _init. This allows us to set somethings up in
-        the Core"""
+        """Override _init for any constructor initialization. Avoids
+        having to explicitly call super.__init__ every time."""
         pass
     @abstractmethod
     def _addConstraints (self, solver):
@@ -33,7 +31,6 @@ class NetworkObject(Core):
     def isEndHost (self):
         """A simple way to determine the set of endhosts"""
         return False
-
     def SetPolicy (self, policy):
         """Wrap methods to set policy"""
         raise NotImplementedError

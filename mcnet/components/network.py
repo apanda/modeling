@@ -2,8 +2,9 @@
 from . import Core, destAddrPredicate, NetworkObject
 import z3
 import collections
+from collections import defaultdict
 class Network (Core):
-    """Represent a network, this encompases both routing and wiring"""
+    """Model for a network, encompasses routing and wiring"""
     def _init(self,  context):
         self.ctx = context
         self.constraints = list()
@@ -15,35 +16,48 @@ class Network (Core):
     def _addConstraints (self, solver):
         solver.add(self.constraints)
 
-    def SaneSend (self, node):
-        eh = z3.Const('__saneSend_eh_%s'%(node), self.ctx.node)
-        p = z3.Const('__saneSend_p_%s'%(node), self.ctx.packet)
-        # Don't send packets meant for node
-        # \forall e, p:\ send (f, e, p) \Rightarow \neg hostHasAddr (f, p.dest)
-        self.constraints.append(z3.ForAll([eh, p], \
-            z3.Implies(self.ctx.send(node.z3Node, eh, p), \
-                z3.Not(self.ctx.hostHasAddr(node.z3Node, self.ctx.packet.dest(p))))))
-
     def setAddressMappings (self, addrmap):
-        """Constraints to ensure that a host has only the addresses in the map"""
-        tempAddr = z3.Const("__setAdMapExclusive_address", self.ctx.address)
-        for host, addr in addrmap:
-            if isinstance(host, NetworkObject):
-                host = host.z3Node
-            # addrToHost(h) = a_h
-            # \forall a \in address, hostHasAddr(h, a) \iff a = a_h
-            if not isinstance(addr, list) or len(addr) == 0:
-                self.constraints.append(self.ctx.addrToHost(addr) == host)
-                self.constraints.append(z3.ForAll([tempAddr], \
-                            self.ctx.hostHasAddr(host, tempAddr) == (tempAddr == \
-                                            addr)))
+        """Specify host to address mapping"""
+        # Set address mapping for nodes.
+        for node, addr in addrmap:
+            a_0 = z3.Const('%s_address_mapping_a_0'%(node))
+            # Node has a single address
+            if not isinstance(addr, list) or len(addr) = 0:
+                # $$addrToNode(addr) = node$$
+                self.constraints.append(self.ctx.addrToNode(addr) == node)
+                # $$nodeHasAddr(node, a_0) \Rightarrow a_0 = addr$$
+                self.constraints.append(\
+                    z3.Implies(self.ctx.nodeHasAddr(node, a_0), a_0 = addr))
+            # Node has several addresses
             else:
-                addr_clause = z3.Or(map(lambda a: tempAddr == a,  addr))
-                self.constraints.append(z3.ForAll([tempAddr], \
-                        z3.Implies(self.ctx.hostHasAddr(host, tempAddr), \
-                                            addr_clause)))
-                self.constraints.append(self.ctx.addrToHost(addr[0]) ==\
-                                    host)
+                or_clause = []
+                for ad in addr:
+                    # $$addrToNode(addr) = node$$
+                    self.constraints.append(self.ctx.addrToNode(ad) == node)
+                    or_clause.append(a_0 == ad)
+                self.constraints.append(z3.Implies(self.ctx.nodeHasAddr(node, ad), \
+                        z3.Or(or_clause)))
+
+    def SaneSend (self, node):
+        """Don't forward packets addressed to node"""
+        # SaneSend(self, node): Don't forward packets addressed to the node.
+        n_0 = z3.Const('%s_saneSend_n_0'%(node), self.ctx.node)
+        p_0 = z3.Const('%s_saneSend_p_0'%(node), self.ctx.packet)
+        t_0 = z3.Int('%s_saneSend_t_0'%(node))
+        # Constant: node
+        # $$send(node, n_0, p, t_0) \Rightarrow \lneg nodeHasAddr(node, p.dest)$$
+        self.constraints.append(z3.Implies(self.ctx.send(node.z3Node, n_0, p, t_0), \
+                                  z3.Not(self.ctx.nodeHasAddr(node.z3Node, self.ctx.packet.dest(p)))))
+
+    def SetGateway (self, node, gateway):
+        """Node sends all traffic through gateway"""
+        # SetGateway(self, node, gateway): All packets from node are sent through gateway
+        n_0 = z3.Const('%s_gateway_n_0'%(node), self.ctx.node)
+        p_0 = z3.Const('%s_gateway_p_0'%(node), self.ctx.packet)
+        t_0 = z3.Int('%s_gateway_t_0'%(node))
+        # $$send(node, n_0, p_0, t_0) \Rightarrow n_0 = gateway$$
+        self.constraints.append(z3.Implies(self.ctx.send(node.z3Node, n_0, p_0, t_0), \
+                                            n_0 == gateway.z3Node()))
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
@@ -53,55 +67,43 @@ class Network (Core):
     def CompositionPolicy (self, node, policy):
         """ Composition policies steer packets between middleboxes.
             Policy is of the form predicate -> node"""
-        p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
-        eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
-        node = node.z3Node
+        p_0 = z3.Const('%s_composition_p_0'%(node), self.ctx.packet)
+        t_0 = z3.Int('%s_composition_t_0'%(node))
+        collected = defaultdict(list)
+        node_dict = {}
         for (predicate, dnode) in policy:
-            # The implication in this direction allows for the existence of things like firewalls
-            # that might drop the packet instead of forwarding it.
-
-            # \forall p: send(n, e, p) \land p.dest == e[0] \Rightarrow e == e[1]
-            if not isinstance(dnode, collections.Iterable):
-                self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
-                                               predicate(p)), \
-                                               eh == dnode.z3Node)))
-            else:
-                self.constraints.append(z3.ForAll([eh, p], z3.Implies(z3.And(self.ctx.send(node, eh, p),
-                                               predicate(p)), \
-                                                z3.Or(map(lambda dn: eh == dn.z3Node, \
-                                                    dnode)))))
-
-
-        neg_policy = z3.Not(z3.Or(map(lambda (pred, dnode): pred(p), policy)))
-        self.constraints.append(z3.ForAll([p], z3.Implies(neg_policy, \
-                                                        z3.Not(z3.Exists([eh], \
-                                                                self.ctx.send(node, eh, p))))))
-
-    def SetGateway (self, node, gateway):
-        """ Set a node so it sends all packets to gateway"""
-        p = z3.Const('__packet__Routing_%s'%(node), self.ctx.packet)
-        eh = z3.Const('__node__Routing_%s'%(node), self.ctx.node)
-        #self.CompositionPolicy(node, [(lambda p: True, gateway)])
-        self.SetIsolationConstraint(node, gateway)
+            collected[str(dnode)] = predicate
+            node_dict[str(dnode)] = dnode
+        for nk, predicates in collected.iteritems():
+            dnode = node_dict[nk]
+            predicates = z3.Or(map(lambda p: p(p_0), predicates))
+            self.constraints.append(z3.Implies(self.ctx.send(node, dnode, p_0, t_0), \
+                                                    predicates))
 
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but
         useful when interfering policies are in play."""
 
+        n_0 = z3.Const('%s_isolation_n_0'%(node), self.ctx.node)
+        p_0 = z3.Const('%s_isolation_p_0'%(node), self.ctx.packet)
+        t_0 = z3.Int('%s_isolation_t_0'%(node))
         if not isinstance(adjacencies, list):
             adjacencies = [adjacencies]
         node = node.z3Node
-        n = z3.Const ('__node_Isolation_%s'%(node), self.ctx.node)
-        p = z3.Const ('__pkt_Isolation_%s'%(node), self.ctx.packet)
         adjacencies = map(lambda a: a.z3Node if isinstance(a, NetworkObject) \
                                          else a, adjacencies)
-        clause = z3.Or(map(lambda a: n == a, adjacencies))
-        self.constraints.append(z3.ForAll([n, p], \
-                                  z3.Implies(self.ctx.send(node, n, p), \
-                                             clause)))
-        self.constraints.append(z3.ForAll([n, p], \
-                                  z3.Implies(self.ctx.recv(n, node, p), \
-                                             clause)))
+        clause = z3.Or(map(lambda a: n_0 == a, adjacencies))
+
+        self.constraints.append(z3.Implies(self.ctx.send(node, n_0, p, t_0), \
+                                    clause))
+        self.constraints.append(z3.Implies(self.ctx.recv(n_0, node, p, t_0), \
+                                    clause)) 
+        #self.constraints.append(z3.ForAll([n, p], \
+                                  #z3.Implies(self.ctx.send(node, n, p), \
+                                             #clause)))
+        #self.constraints.append(z3.ForAll([n, p], \
+                                  #z3.Implies(self.ctx.recv(n, node, p), \
+                                             #clause)))
 
     @property
     def EndHosts (self):

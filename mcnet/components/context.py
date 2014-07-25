@@ -21,24 +21,28 @@ class Context(Core):
             policy._addConstraints (solver)
 
     def _mkTypes (self, nodes, addresses):
-        # Networks have nodes, nodes are quite important
+        # Nodes in a network
         self.node, self.node_list = z3.EnumSort('Node', nodes)
         self.node_list = map(DumbNode, self.node_list)
         nodes = zip(nodes, self.node_list)
         for ndn, ndv in nodes:
             setattr(self, ndn, ndv)
 
-        # Also addresses for these nodes
+        # Addresses for this network
         self.address, self.address_list = z3.EnumSort('Address', addresses)
         addresses = zip(addresses, self.address_list)
         for adn, adv in addresses:
             setattr(self, adn, adv)
 
-        # Events we care about. Currently we just care about sending and receiving (events at active elements
-        # are handled differently, c.f. learning firewall)
-        self.events, [self.send_event, self.recv_event] = z3.EnumSort('Events', ['__ev_send', '__ev_recv'])
+        # Type for packets, contains (some of these are currently represented as relations):
+        # -   src: Source address
+        # -   dest: Destination address
+        # -   origin: Node where the data originated. (Node)
+        # -   body: Packet contents. (Integer)
+        # -   seq: Sequence number for packets. (Integer)
+        # -   options: A representation for IP options. (Integer)
 
-        # Networks have packets
+        # TODO: Some of these are out, some of these are in.
         packet = z3.Datatype('Packet')
         packet.declare('packet', \
                        ('src', self.address), \
@@ -49,30 +53,72 @@ class Context(Core):
                        ('seq', z3.IntSort()), \
                        ('options', z3.IntSort()))
         self.packet = packet.create()
-
-        # Some functions to keep everything running
-        # hostHasAddr: self.node -> self.address -> boolean
-        self.hostHasAddr = z3.Function('hostHasAddr', self.node, \
-                                            self.address, z3.BoolSort ())
-        # addrToHost: self.address -> self.node
-        self.addrToHost = z3.Function('addrToHost', self.address, self.node)
-        # send := src -> dst -> self.packet -> bool
-        self.send = z3.Function('send', self.node, self.node, self.packet, z3.BoolSort ())
-        # recv := src -> dst -> self.packet ->bool
-        self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.BoolSort ())
-        # Time at which packet is processed
-        # etime := node -> packet -> event -> int
-        self.etime = z3.Function('etime', self.node, self.packet, self.events, z3.IntSort ())
+        # $$src\_port: packet \rightarrow \mathbb{Z}^{+}$$
         self.src_port = z3.Function('sport', self.packet, z3.IntSort())
+        # $$dest\_port: packet \rightarrow \mathbb{Z}^{+}$$
         self.dest_port = z3.Function('dport', self.packet, z3.IntSort())
 
-        # Model failure
-        # fail := node -> bool
-        # TODO: Consider failure time
-        self.failed = z3.Function('failure', self.node, z3.BoolSort())
+        # Some commonly used relations
+        # $$nodeHasAddr: node \rightarrow address \rightarrow boolean$$
+        self.nodeHasAddr = z3.Function('nodeHasAddr', self.node, \
+                                            self.address, z3.BoolSort ())
+        # $$addrToNode: address \rightarrow node$$
+        self.addrToNode = z3.Function('addrToNode', self.address, self.node)
+
+        # Send and receive both have the form:
+        # $$ source\rightarrow destination\rightarrow packet\rightarrow int\rightarrow bool$$
+        # $$send: node \rightarrow node \rightarrow packet\rightarrow int\rightarrow bool$$
+        self.send = z3.Function('send', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort())
+        # $$recv: node \rightarrow node \rightarrow packet\rightarrow int\rightarrow bool$$
+        self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort())
+
+        # Forwarding table for how packets are forwarded.
+        # $$ftable: node\rightarrow packet\rightarrow node$$
+        self.ftable = z3.Function("ftable", self.node, self.packet, self.node)
+
+
+    def _baseCondition (self):
+        """ Set up base conditions for the network"""
+        # Basic constraints for the overall model
+        n_0 = z3.Const('ctx_base_n_0', self.node)
+        n_1 = z3.Const('ctx_base_n_1', self.node)
+        n_2 = z3.Const('ctx_base_n_2', self.node)
+        n_3 = z3.Const('ctx_base_n_3', self.node)
+        n_4 = z3.Const('ctx_base_n_4', self.node)
+        p_0 = z3.Const('ctx_base_p_0', self.packet)
+        t_0 = z3.Int('ctx_base_t_0')
+        t_1 = z3.Int('ctx_base_t_1')
+
+        # $$send(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
+        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), n_0 != n_1))
+
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
+        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), n_0 != n_1))
+
+        # $$send(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
+        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), \
+                                    self.packet.src(p_0) != self.packet.dest(p_0)))
+
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
+        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                    self.packet.src(p_0) != self.packet.dest(p_0)))
+
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow send(n_0, n_1, p_0, t_1) \land t_1 \leq t_0$$
+        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                   z3.And(self.send(n_0, n_1, p_0, t_1), \
+                                          t_1 <= t_0)))
+        # $$send(n_0, n_1, p_0, t_0) \Rightarrow p_0.src\_port > \land p_0.dest\_port < MAX_PORT$$
+        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), \
+                                    z3.And(self.src_port(p_0) >= 0, \
+                                            self.src_port(p_0) < Core.MAX_PORT)))
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow p_0.src\_port > \land p_0.dest\_port < MAX_PORT$$
+        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                    z3.And(self.src_port(p_0) >= 0, \
+                                            self.src_port(p_0) < Core.MAX_PORT)))
+
 
     def PacketsHeadersEqual (self, p1, p2):
-        """Return conditions that two packets have identical headers"""
+        """Two packets have equal headers"""
         return z3.And(\
                 self.packet.src(p1) == self.packet.src(p2), \
                 self.packet.dest(p1) == self.packet.dest(p2), \
@@ -83,63 +129,8 @@ class Context(Core):
                 self.packet.options(p1) == self.packet.options(p2))
 
     def PacketContentEqual (self, p1, p2):
+        """Two packets have equal bodies"""
         return self.packet.body(p1) == self.packet.body(p2)
-
-    def _baseCondition (self):
-        """ Set up base conditions for the network"""
-        # A few temporary nodes
-        eh1 = z3.Const('_base_eh1', self.node)
-        eh2 = z3.Const('_base_eh2', self.node)
-        eh3 = z3.Const('_base_eh3', self.node)
-        eh4 = z3.Const('_base_eh4', self.node)
-        eh5 = z3.Const('_base_eh5', self.node)
-        eh6 = z3.Const('_base_eh6', self.node)
-        # An self.address
-        ad1 = z3.Const('_base_ad1', self.address)
-        # And a self.packet
-        p = z3.Const('__base_packet', self.packet)
-        p2 = z3.Const('__base_packet_2', self.packet)
-
-        # All sent packets are received
-        # \forall e_1, e_2\in Node , p\in Packet: recv(e_1, e_2, p) \iff send(e_1, e_2, p)
-        self.constraints.append (z3.ForAll([eh1, eh2, p], self.recv(eh1, eh2, p) ==  self.send(eh1, eh2, p)))
-
-        # Turn off loopback, loopback makes me sad
-        # \forall e_1, e_2, p send(e_1, e_2, p) \Rightarrow e_1 \neq e_2
-        # \forall e_1, e_2, p recv(e_1, e_2, p) \Rightarrow e_1 \neq e_2
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), eh1 != eh2)))
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), eh1 != eh2)))
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), self.packet.src(p) != self.packet.dest(p))))
-
-        # Rules for time
-        # Received packets have time, don't receive before sent
-        # \forall e_1, e_2, p: recv(e_1, e_2, p) \Rightarrow etime(e_2, p, R) >
-        #                                 0 \land etime(e_2, p, R) > etime(e_1, p, S)
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.recv(eh1, eh2, p), z3.And(\
-                            self.etime(eh2, p, self.recv_event) > 0, \
-                            self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
-        # All sent packets have an event time
-        # \forall e_1, e_2, p: send(e_1, e_2, p) \Rightarrow etime(e_1, p, S) >
-        #                             0 \land etime(e_2, p, R) > etime(e_1, p, S)
-        self.constraints.append(z3.ForAll([eh1, eh2, p], z3.Implies(self.send(eh1, eh2, p),
-                            z3.And(self.etime(eh1, p, self.send_event) > 0, \
-                            self.etime(eh2, p, self.recv_event) > self.etime(eh1, p, self.send_event)))))
-        # Unreceved packets always have recv etime of 0
-        # \forall e_1, p: (\notexists e_2: recv(e_2, e_1, p)) \Rightarrow etime(e_1, p, R) = 0
-        self.constraints.append(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.recv(eh2, eh1, p))), \
-                                    self.etime(eh1, p, self.recv_event) == 0)))
-        # Unsent packets always have send etime of 0
-        # \forall e_1, p: (\notexists e_2: send(e_1, e_2, p)) \Rightarrow etime(e_1, p, S) = 0
-        self.constraints.append(z3.ForAll([eh1, p], z3.Implies(z3.Not(z3.Exists([eh2], self.send(eh1, eh2, p))), \
-                                    self.etime(eh1, p, self.send_event) == 0)))
-
-        self.constraints.append(z3.ForAll([p], z3.And(self.src_port(p) > 0, self.src_port(p) < Core.MAX_PORT)))
-        self.constraints.append(z3.ForAll([p], z3.And(self.dest_port(p) > 0, self.dest_port(p) < Core.MAX_PORT)))
-
-        # No sends or recvs when failed.
-        self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.send(eh1, eh2, p))))))
-        self.constraints.append(z3.ForAll([eh1], z3.Implies(self.failed(eh1), z3.Not(z3.ForAll([eh2, p], self.recv(eh2, eh1, p))))))
 
 def failurePredicate (context):
     return lambda node:  z3.Not(context.failed (node.z3Node))
