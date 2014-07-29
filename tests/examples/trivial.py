@@ -5,8 +5,6 @@ def Trivial ():
     net = components.Network(ctx)
     a = components.EndHost(ctx.a, net, ctx) 
     b = components.EndHost(ctx.b, net, ctx) 
-    gzip = components.CompressionAlgorithm('gzip')
-    ctx.AddPolicy (gzip)
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b)])
     net.RoutingTable(a, [(ctx.ip_a, a), \

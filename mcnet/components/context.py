@@ -90,31 +90,55 @@ class Context(Core):
         t_1 = z3.Int('ctx_base_t_1')
 
         # $$send(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
-        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), n_0 != n_1))
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.send(n_0, n_1, p_0, t_0), n_0 != n_1)))
 
         # $$recv(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
-        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), n_0 != n_1))
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.recv(n_0, n_1, p_0, t_0), n_0 != n_1)))
 
-        # $$send(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
-        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), \
-                                    self.packet.src(p_0) != self.packet.dest(p_0)))
+        # $$send(n_0, n_1, p_0, t_0) \Rightarrow p_0.src \neq p_0.dest$$
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.send(n_0, n_1, p_0, t_0), \
+                                    self.packet.src(p_0) != self.packet.dest(p_0))))
 
-        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow n_0 \neq n_1$$
-        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
-                                    self.packet.src(p_0) != self.packet.dest(p_0)))
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow p_0.src \neq p_0.dest$$
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                    self.packet.src(p_0) != self.packet.dest(p_0))))
 
         # $$recv(n_0, n_1, p_0, t_0) \Rightarrow send(n_0, n_1, p_0, t_1) \land t_1 \leq t_0$$
-        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
                                    z3.And(self.send(n_0, n_1, p_0, t_1), \
-                                          t_1 <= t_0)))
+                                          t_1 <= t_0))))
         # $$send(n_0, n_1, p_0, t_0) \Rightarrow p_0.src\_port > \land p_0.dest\_port < MAX_PORT$$
-        self.constraints.append(z3.Implies(self.send(n_0, n_1, p_0, t_0), \
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.send(n_0, n_1, p_0, t_0), \
                                     z3.And(self.src_port(p_0) >= 0, \
-                                            self.src_port(p_0) < Core.MAX_PORT)))
+                                            self.src_port(p_0) < Core.MAX_PORT))))
         # $$recv(n_0, n_1, p_0, t_0) \Rightarrow p_0.src\_port > \land p_0.dest\_port < MAX_PORT$$
-        self.constraints.append(z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
-                                    z3.And(self.src_port(p_0) >= 0, \
-                                            self.src_port(p_0) < Core.MAX_PORT)))
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                    z3.And(self.dest_port(p_0) >= 0, \
+                                            self.dest_port(p_0) < Core.MAX_PORT))))
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow t_0 > 0$$
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                   t_0 > 0))) 
+        # $$send(n_0, n_1, p_0, t_0) \Rightarrow t_0 > 0$$
+        self.constraints.append(
+                z3.ForAll([n_0, n_1, p_0, t_0], \
+                    z3.Implies(self.send(n_0, n_1, p_0, t_0), \
+                                   t_0 > 0))) 
 
 
     def PacketsHeadersEqual (self, p1, p2):
