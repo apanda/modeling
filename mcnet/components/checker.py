@@ -15,13 +15,14 @@ class PropertyChecker (object):
     # TODO: Just use the NULL predicate
     def CheckIsolationProperty (self, src, dest):
         class IsolationResult (object):
-            def __init__ (self, result, violating_packet, last_hop, last_time, ctx, model = None):
+            def __init__ (self, result, violating_packet, last_hop, last_time, ctx, assertions, model = None):
                 self.ctx = ctx
                 self.result = result
                 self.violating_packet = violating_packet
                 self.last_hop = last_hop
                 self.model = model
                 self.last_time = last_time
+                self.assertions = assertions
 
         assert(src in self.net.elements)
         assert(dest in self.net.elements)
@@ -35,10 +36,60 @@ class PropertyChecker (object):
         self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
         result = self.solver.check()
         model = None
+        assertions = self.solver.assertions()
         if result == z3.sat:
             model = self.solver.model()
         self.solver.pop()
-        return IsolationResult(result, p, n, t, self.ctx, model)
+        return IsolationResult(result, p, n, t, self.ctx, assertions, model)
+
+    def AssertionsToHTML (self, stream, obj):
+        old = z3.in_html_mode()
+        z3.set_html_mode()
+        print >>stream, """
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap-responsive.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/FortAwesome/css/font-awesome.min.css"></link>
+<link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
+<title>Assertions</title>
+</head>
+<body>
+        """
+        for assertion in obj.assertions:
+            print >>stream, z3.obj_to_string(assertion)
+            print >>stream, "<br />"
+        print >>stream, """
+</body>
+</html>
+        """
+        z3.set_html_mode(old)
+
+    def ModelToHTML (self, stream, obj):
+        old = z3.in_html_mode()
+        z3.set_html_mode()
+        print >>stream, """
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap-responsive.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/FortAwesome/css/font-awesome.min.css"></link>
+<link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
+<title>Model</title>
+</head>
+<body>
+        """
+        #print >>stream, z3.obj_to_string(obj.model)
+        model = obj.model
+        for clause in model:
+            print >>stream, "%s = %s <br />"%(z3.obj_to_string(clause), z3.obj_to_string(model[clause]))
+        print >>stream, """
+</body>
+</html>
+        """
+        z3.set_html_mode(old)
 
     ## TODO: Convert to a predicate used by CheckImpliedIsolation
     #def CheckImpliedIsolation (self, srcn, destn, src, dest):

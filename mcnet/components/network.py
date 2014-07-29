@@ -74,6 +74,7 @@ class Network (Core):
         """ Composition policies steer packets between middleboxes.
             Policy is of the form predicate -> node"""
         p_0 = z3.Const('%s_composition_p_0'%(node), self.ctx.packet)
+        n_0 = z3.Const('%s_composition_n_0'%(node), self.ctx.node)
         t_0 = z3.Int('%s_composition_t_0'%(node))
         collected = defaultdict(list)
         node_dict = {}
@@ -83,10 +84,12 @@ class Network (Core):
         for nk, predicates in collected.iteritems():
             dnode = node_dict[nk]
             predicates = z3.Or(map(lambda p: p(p_0), predicates))
-            self.constraints.append(z3.ForAll([p_0, t_0], \
-                    z3.Implies(self.ctx.send(node.z3Node, dnode.z3Node, p_0, t_0), \
-                                                    predicates)))
-
+            #self.constraints.append(z3.ForAll([p_0, t_0], \
+                    #z3.Implies(self.ctx.send(node.z3Node, dnode.z3Node, p_0, t_0), \
+                                                    #predicates)))
+            self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
+                    z3.Implies(z3.And(self.ctx.send(node.z3Node, n_0, p_0, t_0), predicates), \
+                                n_0 == dnode.z3Node)))
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but
         useful when interfering policies are in play."""

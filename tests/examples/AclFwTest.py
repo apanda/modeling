@@ -1,6 +1,6 @@
 import components
-def withoutProxyAclFw ():
-    """No proxy, just a learning firewall"""
+def AclFwTest ():
+    """ACL firewall test"""
     ctx = components.Context (['a', 'b', 'c', 'd', 'fw'],\
                               ['ip_a', 'ip_b', 'ip_c', 'ip_d', 'ip_f'])
     net = components.Network (ctx)
@@ -19,14 +19,26 @@ def withoutProxyAclFw ():
     net.RoutingTable(b, [(x, fw) for x in addresses])
     net.RoutingTable(c, [(x, fw) for x in addresses])
     net.RoutingTable(d, [(x, fw) for x in addresses])
+    #net.SetGateway(a, fw)
+    #net.SetGateway(b, fw)
+    #net.SetGateway(c, fw)
+    #net.SetGateway(d, fw)
 
     net.RoutingTable(fw, [(ctx.ip_a, a), \
                           (ctx.ip_b, b), \
                           (ctx.ip_c, c), \
                           (ctx.ip_d, d)])
-    #fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_c, ctx.ip_a), (ctx.ip_b, ctx.ip_d), (ctx.ip_d, ctx.ip_b)])
-    fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_b, ctx.ip_d)])
+    fw.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
     net.Attach(a, b, c, d, fw)
     endhosts = [a, b, c, d]
-    check = components.PropertyChecker(ctx, net)
-    return (endhosts, check)
+    class AclFwReturn (object):
+        def __init__ (self, net, ctx, a, b, c, d, fw):
+            self.net = net
+            self.ctx = ctx
+            self.a = a
+            self.b = b
+            self.c = c
+            self.d = d
+            self.fw = fw
+            self.check = components.PropertyChecker (ctx, net)
+    return AclFwReturn(net, ctx, a, b, c, d, fw) 
