@@ -57,7 +57,7 @@ class PropertyChecker (object):
 <link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
 <title>Assertions</title>
 </head>
-<body>
+<body style="font-size:12px">
         """
         for assertion in obj.assertions:
             print >>stream, z3.obj_to_string(assertion)
@@ -81,7 +81,7 @@ class PropertyChecker (object):
 <link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
 <title>Model</title>
 </head>
-<body>
+<body style="font-size:12px">
         """
         #print >>stream, z3.obj_to_string(obj.model)
         model = obj.model

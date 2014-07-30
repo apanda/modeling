@@ -72,11 +72,6 @@ class Context(Core):
         # $$recv: node \rightarrow node \rightarrow packet\rightarrow int\rightarrow bool$$
         self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort())
 
-        ## Forwarding table for how packets are forwarded.
-        ## $$ftable: node\rightarrow packet\rightarrow node$$
-        #self.ftable = z3.Function("ftable", self.node, self.packet, self.node)
-
-
     def _baseCondition (self):
         """ Set up base conditions for the network"""
         # Basic constraints for the overall model
