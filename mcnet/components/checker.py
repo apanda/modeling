@@ -12,7 +12,6 @@ class PropertyChecker (object):
         self.solver.reset()
         self.constraints = list()
 
-    # TODO: Just use the NULL predicate
     def CheckIsolationProperty (self, src, dest):
         class IsolationResult (object):
             def __init__ (self, result, violating_packet, last_hop, last_time, ctx, assertions, model = None):
@@ -43,6 +42,35 @@ class PropertyChecker (object):
             model = self.solver.model()
         self.solver.pop()
         return IsolationResult(result, p, n_0, t, self.ctx, assertions, model)
+
+    def CheckDataIsolationProperty (self, src, dest):
+        class DataIsolationResult (object):
+            def __init__ (self, result, violating_packet, last_hop, last_time, ctx, assertions, model = None):
+                self.ctx = ctx
+                self.result = result
+                self.violating_packet = violating_packet
+                self.last_hop = last_hop
+                self.model = model
+                self.last_time = last_time
+                self.assertions = assertions
+
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        self.solver.push ()
+        self.AddConstraints()
+        p = z3.Const('check_isolation_p_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        n_0 = z3.Const('check_isolation_n_0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_1 = z3.Const('check_isolation_n_1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        t = z3.Int('check_isolation_t_%s_%s'%(src.z3Node, dest.z3Node))
+        self.solver.add(self.ctx.recv(n_0, dest.z3Node, p, t))
+        self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
+        result = self.solver.check()
+        model = None
+        assertions = self.solver.assertions()
+        if result == z3.sat:
+            model = self.solver.model()
+        self.solver.pop()
+        return DataIsolationResult(result, p, n_0, t, self.ctx, assertions, model)
 
     def AssertionsToHTML (self, stream, obj):
         old = z3.in_html_mode()

@@ -6,6 +6,7 @@ __all__ = ['Core', \
            'NullNode', \
            'EndHost', \
            'AclFirewall', \
+           'ContentCache', \
            #'OneSidedFirewall', \
            #'HTTPFirewall', \
            #'DenyHTTPFirewall', \
@@ -46,6 +47,7 @@ from aclfirewall import AclFirewall
 #from onesidedfirewall import OneSidedFirewall
 #from deny_aclfirewall import DenyingAclFirewall
 from learningfirewall import LearningFirewall
+from content_cache import ContentCache
 #from l7firewall import HTTPFirewall
 #from denyl7firewall import DenyHTTPFirewall
 #from webproxy import WebProxy

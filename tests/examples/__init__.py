@@ -4,6 +4,7 @@ from twolearningfw import *
 from withProxySat import *
 from AclFwTest import *
 from LearningFwTest import *
+from ContentCacheTest import *
 from dpiFw import *
 from trivial import *
 from trivial_wan_opt import *
