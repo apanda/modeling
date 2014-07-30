@@ -37,11 +37,15 @@ class AclFirewall (NetworkObject):
         t_0 = z3.Int('%s_firewall_send_t_0'%(self.fw))
         t_1 = z3.Int('%s_firewall_send_t_1'%(self.fw))
         self.acl_func = z3.Function('%s_acl_func'%(self.fw), self.ctx.address, self.ctx.address, z3.BoolSort())
-        self.constraints.append(z3.ForAll([n_0, p_0, t_0], z3.Implies(self.ctx.send(self.fw, n_0, p_0, t_0), \
-                                       z3.Exists([n_1, t_1], \
-                                       z3.And(self.ctx.recv(n_1, self.fw, p_0, t_1), \
-                                              t_1 <= t_0, \
-                                              self.acl_func(self.ctx.packet.src(p_0), self.ctx.packet.dest(p_0)))))))
+
+        self.constraints.append(z3.ForAll([n_0, p_0, t_0],
+            z3.Implies(self.ctx.send(self.fw, n_0, p_0, t_0), \
+                    z3.Exists([t_1], \
+                        z3.And(t_1 < t_0, \
+                        z3.Exists([n_1], \
+                            self.ctx.recv(n_1, self.fw, p_0, t_1)), \
+                        self.acl_func(self.ctx.packet.src(p_0), self.ctx.packet.dest(p_0)))))))
+
     def _aclConstraints(self, solver):
         if len(self.acls) == 0:
             return

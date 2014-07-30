@@ -3,7 +3,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 from twolearningfw import *
 from withProxySat import *
 from AclFwTest import *
-from withoutProxyLearning import *
+from LearningFwTest import *
 from dpiFw import *
 from trivial import *
 from trivial_wan_opt import *

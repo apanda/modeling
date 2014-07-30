@@ -1,6 +1,6 @@
 import components
-def withoutProxyLearning ():
-    """No proxy, just a learning firewall"""
+def LearningFwTest ():
+    """Learning firewall test"""
     ctx = components.Context (['a', 'b', 'c', 'd', 'fw'],\
                               ['ip_a', 'ip_b', 'ip_c', 'ip_d', 'ip_f'])
     net = components.Network (ctx)
@@ -24,8 +24,19 @@ def withoutProxyLearning ():
                           (ctx.ip_b, b), \
                           (ctx.ip_c, c), \
                           (ctx.ip_d, d)])
-    fw.AddAcls([(ctx.ip_a, ctx.ip_c), (ctx.ip_c, ctx.ip_a), (ctx.ip_b, ctx.ip_d), (ctx.ip_d, ctx.ip_b)])
     net.Attach(a, b, c, d, fw)
     endhosts = [a, b, c, d]
-    check = components.PropertyChecker(ctx, net)
-    return (endhosts, check)
+    fw.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
+    net.Attach(a, b, c, d, fw)
+    endhosts = [a, b, c, d]
+    class LearnFwReturn (object):
+        def __init__ (self, net, ctx, a, b, c, d, fw):
+            self.net = net
+            self.ctx = ctx
+            self.a = a
+            self.b = b
+            self.c = c
+            self.d = d
+            self.fw = fw
+            self.check = components.PropertyChecker (ctx, net)
+    return LearnFwReturn(net, ctx, a, b, c, d, fw) 

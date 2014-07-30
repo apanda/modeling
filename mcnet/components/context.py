@@ -72,9 +72,9 @@ class Context(Core):
         # $$recv: node \rightarrow node \rightarrow packet\rightarrow int\rightarrow bool$$
         self.recv = z3.Function('recv', self.node, self.node, self.packet, z3.IntSort(), z3.BoolSort())
 
-        # Forwarding table for how packets are forwarded.
-        # $$ftable: node\rightarrow packet\rightarrow node$$
-        self.ftable = z3.Function("ftable", self.node, self.packet, self.node)
+        ## Forwarding table for how packets are forwarded.
+        ## $$ftable: node\rightarrow packet\rightarrow node$$
+        #self.ftable = z3.Function("ftable", self.node, self.packet, self.node)
 
 
     def _baseCondition (self):
@@ -111,12 +111,13 @@ class Context(Core):
                     z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
                                     self.packet.src(p_0) != self.packet.dest(p_0))))
 
-        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow send(n_0, n_1, p_0, t_1) \land t_1 \leq t_0$$
+        # $$recv(n_0, n_1, p_0, t_0) \Rightarrow send(n_0, n_1, p_0, t_1) \land t_1 < t_0$$
         self.constraints.append(
                 z3.ForAll([n_0, n_1, p_0, t_0], \
                     z3.Implies(self.recv(n_0, n_1, p_0, t_0), \
+                                z3.Exists([t_1], \
                                    z3.And(self.send(n_0, n_1, p_0, t_1), \
-                                          t_1 <= t_0))))
+                                        t_1 < t_0)))))
         # $$send(n_0, n_1, p_0, t_0) \Rightarrow p_0.src\_port > \land p_0.dest\_port < MAX_PORT$$
         self.constraints.append(
                 z3.ForAll([n_0, n_1, p_0, t_0], \

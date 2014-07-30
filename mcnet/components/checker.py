@@ -29,9 +29,11 @@ class PropertyChecker (object):
         self.solver.push ()
         self.AddConstraints()
         p = z3.Const('check_isolation_p_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
-        n = z3.Const('check_isolation_n_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_0 = z3.Const('check_isolation_n_0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_1 = z3.Const('check_isolation_n_1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
         t = z3.Int('check_isolation_t_%s_%s'%(src.z3Node, dest.z3Node))
-        self.solver.add(self.ctx.recv(n, dest.z3Node, p, t))
+        self.solver.add(self.ctx.recv(n_0, dest.z3Node, p, t))
+        self.solver.add(self.ctx.send(src.z3Node, n_1, p, t))
         self.solver.add(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
         self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
         result = self.solver.check()
@@ -40,7 +42,7 @@ class PropertyChecker (object):
         if result == z3.sat:
             model = self.solver.model()
         self.solver.pop()
-        return IsolationResult(result, p, n, t, self.ctx, assertions, model)
+        return IsolationResult(result, p, n_0, t, self.ctx, assertions, model)
 
     def AssertionsToHTML (self, stream, obj):
         old = z3.in_html_mode()

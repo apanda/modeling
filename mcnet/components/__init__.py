@@ -10,7 +10,7 @@ __all__ = ['Core', \
            #'HTTPFirewall', \
            #'DenyHTTPFirewall', \
            #'DenyingAclFirewall', \
-           #'LearningFirewall', \
+           'LearningFirewall', \
            #'WebProxy', \
            #'ErroneousAclWebProxy', \
            #'AclWebProxy', \
@@ -45,7 +45,7 @@ from network import Network
 from aclfirewall import AclFirewall
 #from onesidedfirewall import OneSidedFirewall
 #from deny_aclfirewall import DenyingAclFirewall
-#from learningfirewall import LearningFirewall
+from learningfirewall import LearningFirewall
 #from l7firewall import HTTPFirewall
 #from denyl7firewall import DenyHTTPFirewall
 #from webproxy import WebProxy
