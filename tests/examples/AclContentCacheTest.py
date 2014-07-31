@@ -1,6 +1,6 @@
 import components
-def ContentCacheTest2 ():
-    """Learning firewall test"""
+def AclContentCacheTest ():
+    """ACL content cache test"""
     ctx = components.Context (['a', 'b', 'c', 'd', 'cc', 'f'],\
                               ['ip_a', 'ip_b', 'ip_c', 'ip_d', 'ip_cc', 'ip_f'])
     net = components.Network (ctx)
@@ -8,7 +8,7 @@ def ContentCacheTest2 ():
     b = components.EndHost(ctx.b, net, ctx) 
     c = components.EndHost(ctx.c, net, ctx) 
     d = components.EndHost(ctx.d, net, ctx) 
-    cc = components.ContentCache(ctx.cc, net, ctx)
+    cc = components.AclContentCache(ctx.cc, net, ctx)
     f = components.AclFirewall(ctx.f, net, ctx)
     net.setAddressMappings([(a, ctx.ip_a), \
                             (b, ctx.ip_b), \
@@ -29,9 +29,10 @@ def ContentCacheTest2 ():
     net.Attach(a, b, c, d, cc)
     endhosts = [a, b, c, d]
     f.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
+    cc.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
     net.Attach(a, b, c, d, cc, f)
     endhosts = [a, b, c, d]
-    class ContentCacheTest2Return (object):
+    class AclContentCacheReturn (object):
         def __init__ (self, net, ctx, a, b, c, d, cc, f):
             self.net = net
             self.ctx = ctx
@@ -42,4 +43,4 @@ def ContentCacheTest2 ():
             self.cc = cc
             self.f = f
             self.check = components.PropertyChecker (ctx, net)
-    return ContentCacheTest2Return(net, ctx, a, b, c, d, cc, f) 
+    return AclContentCacheReturn(net, ctx, a, b, c, d, cc, f) 

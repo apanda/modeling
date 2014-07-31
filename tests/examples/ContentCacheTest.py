@@ -26,10 +26,9 @@ def ContentCacheTest ():
                           (ctx.ip_d, d)])
     net.Attach(a, b, c, d, cc)
     endhosts = [a, b, c, d]
-    #cc.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
     net.Attach(a, b, c, d, cc)
     endhosts = [a, b, c, d]
-    class LearnFwReturn (object):
+    class ContentCacheTestReturn (object):
         def __init__ (self, net, ctx, a, b, c, d, cc):
             self.net = net
             self.ctx = ctx
@@ -39,4 +38,4 @@ def ContentCacheTest ():
             self.d = d
             self.cc = cc
             self.check = components.PropertyChecker (ctx, net)
-    return LearnFwReturn(net, ctx, a, b, c, d, cc) 
+    return ContentCacheTestReturn(net, ctx, a, b, c, d, cc) 
