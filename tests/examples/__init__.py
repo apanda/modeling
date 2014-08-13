@@ -7,6 +7,7 @@ from LearningFwTest import *
 from ContentCacheTest import *
 from ContentCacheTest2 import *
 from AclContentCacheTest import *
+from AclContentCacheSimpleTest import *
 from dpiFw import *
 from trivial import *
 from trivial_wan_opt import *
