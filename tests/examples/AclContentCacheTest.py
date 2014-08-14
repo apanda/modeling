@@ -21,6 +21,7 @@ def AclContentCacheTest ():
     net.RoutingTable(b, [(x, f) for x in addresses])
     net.RoutingTable(c, [(x, f) for x in addresses])
     net.RoutingTable(d, [(x, f) for x in addresses])
+    net.RoutingTable(f, [(x, cc) for x in addresses])
 
     net.RoutingTable(cc, [(ctx.ip_a, a), \
                           (ctx.ip_b, b), \
