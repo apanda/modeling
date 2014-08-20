@@ -5,6 +5,12 @@ __all__ = ['Core', \
            'Network', \
            'NullNode', \
            'EndHost', \
+           'ModelContext', \
+           'ModelMap', \
+           'If', \
+           'ModelRecv', \
+           'FwModel', \
+           'CacheModel', \
            'AclFirewall', \
            'ContentCache', \
            'AclContentCache', \
@@ -30,9 +36,9 @@ __all__ = ['Core', \
            #'destAddrPredicate', \
            #'CheckIsPathIndependentIsolated', \
            #'CheckIsPathIndependentIsolatedTime', \
-           'VERIFIED_ISOLATION', \
-           'VERIFIED_GLOBAL', \
-           'UNKNOWN', \
+           #'VERIFIED_ISOLATION', \
+           #'VERIFIED_GLOBAL', \
+           #'UNKNOWN', \
            #'srcAddrPredicate'\
            ]
 from core import Core, NetworkObject
@@ -41,6 +47,7 @@ from context import Context, failurePredicate, destAddrPredicate, srcAddrPredica
 from null_node import NullNode
 from endhost import EndHost
 from network import Network
+from conversion import If, ModelContext, ModelMap, ModelRecv, FwModel, CacheModel
 #from webloadbalancer import WebLoadBalancer
 #from loadbalancer import LoadBalancer
 #from counter import NetworkCounter
