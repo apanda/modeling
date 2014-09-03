@@ -3,6 +3,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 from twolearningfw import *
 from withProxySat import *
 from AclFwTest import *
+from ConvertedAclFwTest import *
 from LearningFwTest import *
 from ContentCacheTest import *
 from ContentCacheTest2 import *

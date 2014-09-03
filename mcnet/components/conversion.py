@@ -1,6 +1,7 @@
 import z3
-from . import Context
+from . import Context, NetworkObject
 from collections import Iterable, defaultdict
+from itertools import permutations
 class VariablesAndConstraint(object):
   def __init__(self, var, constraints):
     self.variables = var
@@ -11,14 +12,13 @@ class VariablesAndConstraint(object):
     return self.__repr__()
 
 class ModelContext(object):
-  def __init__(self, name, context, time, node, packet):
-    self.path_so_far = [True]
+  def __init__(self, name, context, time, node):
+    self.path_so_far = []
     self.vars_so_far = []
     self.implied_paths = defaultdict(lambda: [])
     self.implied_constraints = {} 
     self.time = time
     self.node = node
-    self.packet = packet
     self.ctx = context
 
   def addPathConstraint(self, constraint, variables = []):
@@ -51,47 +51,40 @@ class ModelContext(object):
           right_constraint.append(\
             z3.Exists(right_vars, \
                z3.And(right.constraints)))
-        else:
+        elif len(right.constraints) > 0:
           right_constraint.append(z3.And(right.constraints))
-      constraint = z3.ForAll(left_vars, \
-              z3.Implies(v.constraints, \
-                 z3.Or(right_constraint)))
+      if len(right_constraint) > 0:
+        if len(left_vars) > 0:
+          constraint = z3.ForAll(left_vars, \
+                  z3.Implies(v.constraints, \
+                     z3.Or(right_constraint)))
+        else:
+          constraint = z3.Implies(v.constraints, z3.Or(right_constraint))
+      else:
+        if len(left_vars) > 0:
+          constraint = z3.ForAll(left_vars, v.constraints)
+        else:
+          constraint = v.constraints
       constraints.append(constraint)
     return constraints
 
-def ModelForward (mcontext):
+def ModelSend (mcontext, packet):
   fnode = z3.Const('%s_f_n'%(mcontext.node), mcontext.ctx.node)
-  pconstraint = mcontext.ctx.send(mcontext.node.z3Node, \
+  pconstraint = mcontext.ctx.send(mcontext.node, \
                    fnode, \
-                   mcontext.packet,\
+                   packet,\
                    mcontext.time)
-  mcontext.addCurrentImplication(pconstraint, [fnode, mcontext.packet, mcontext.time])
-
-def ModelSend (mcontext, packet_constraints):
-  fnode = z3.Const('%s_s_n'%(mcontext.node), mcontext.ctx.node)
-  packet = z3.Const('%s_s_p'%(mcontext.node), mcontext.ctx.packet)
-  for constraint in packet_constraints:
-    c = constraint(packet)
-    if not isinstance(c, Iterable):
-      c = [c]
-    mcontext.addPathConstraint(*c)
-  pconstraint = mcontext.ctx.send(mcontext.node.z3Node, \
-                                  fnode, \
-                                  packet, \
-                                  mcontext.time)
   mcontext.addCurrentImplication(pconstraint, [fnode, packet, mcontext.time])
-  for constraint in packet_constraints:
-    mcontext.popPathConstraint()
 
-def ModelRecv (mcontext):
+def ModelRecv (mcontext, packet):
   rtime = z3.Int('%s_r_t'%(mcontext.node))
   rnode = z3.Const('%s_r_n'%(mcontext.node), mcontext.ctx.node)
   pconstraint = z3.And(mcontext.ctx.recv(rnode, 
-                   mcontext.node.z3Node, \
-                   mcontext.packet,\
+                   mcontext.node, \
+                   packet,\
                    rtime),
                 rtime < mcontext.time)
-  mcontext.addPathConstraint(pconstraint, [rtime, rnode, mcontext.packet])
+  return [pconstraint, [rtime, rnode, packet]]
 
 class ConfigMap(object):
   def __init__(self, name, mcontext, KTypes, VType):
@@ -109,7 +102,7 @@ class ConfigMap(object):
     else:
       key = list(key)
     return self.map_func(*key)
-  def set (self, key, value):
+  def Set (self, key, value):
     if not isinstance(key, Iterable):
       key = [key]
     else:
@@ -139,42 +132,98 @@ class ModelMap(object):
       key = [key]
     else:
       key = list(key)
-    t = z3.Int('map_%s_t'%(self.name))
-    key.append(t)
-    return lambda : self.mcontext.addCurrentImplication(z3.And(
-                            t > self.mcontext.time, \
-                            self.map_func(*key) == value),
-                            [t])
+    key.append(self.mcontext.time)
+    self.mcontext.addCurrentImplication(self.map_func(*key) == value,\
+                                [self.mcontext.time])
 
-def If(mcontext, cond, body, else_body = None):
-  mcontext.addPathConstraint(cond)
+def Body(mcontext, body):
   if not isinstance(body, Iterable):
     body = [body]
+  pushed = 0
   for statement in body:
-    statement()
+    ret = statement()
+    if ret:
+      if not isinstance(ret, Iterable):
+        ret = [ret]
+      pushed += 1
+      mcontext.addPathConstraint(*ret)
+  for s in xrange(pushed):
+    mcontext.popPathConstraint()
+  
+def If(mcontext, cond, body, else_body = None):
+  mcontext.addPathConstraint(cond)
+  Body(mcontext, body)
   mcontext.popPathConstraint()
   if else_body:
     mcontext.addPathConstraint(z3.Not(cond))
-    if not isinstance(else_body, Iterable):
-      else_body = [else_body]
-    for statement in else_body:
-      mcontext.addCurrentImplication(statement())
+    Body(mcontext, else_body)
     mcontext.popPathConstraint()
 
-def FwModel(mc):
-  acl = ConfigMap('acl', mc, [mc.ctx.address, mc.ctx.address], z3.BoolSort())
-  ModelRecv(mc)
-  If(mc, acl[(mc.ctx.packet.src(mc.packet), mc.ctx.packet.dest(mc.packet))], [lambda : ModelForward(mc)])
-  mc.popPathConstraint() # Done receive
+def AclFwModel(mc, acl):
+  p = z3.Const('p', mc.ctx.packet)
+  #acl = ConfigMap('acl', mc, [mc.ctx.address, mc.ctx.address], z3.BoolSort())
+  Body(mc, \
+  [lambda: ModelRecv(mc, p),
+   lambda: If(mc, acl[(mc.ctx.packet.src(p), mc.ctx.packet.dest(p))] or acl[(mc.ctx.packet.dest(p), mc.ctx.packet.src(p))], [lambda : ModelSend(mc, p)])])
 
+def LearningFwModel(mc):
+  p = z3.Const('p', mc.ctx.packet)
+  acl = ConfigMap('acl', mc, [mc.ctx.address, mc.ctx.address], z3.BoolSort())
+  flows = ModelMap('flows', mc, [mc.ctx.address, mc.ctx.address, z3.IntSort(), z3.IntSort()], z3.BoolSort())
+  Body(mc, \
+   [lambda: ModelRecv(mc, p),
+    lambda: If(mc, acl[(mc.ctx.packet.src(p), mc.ctx.packet.dest(p))], \
+             [lambda: ModelSend(mc, p), \
+              lambda: flows.set((mc.ctx.packet.src(p), mc.ctx.packet.dest(p), mc.ctx.src_port(p),
+                  mc.ctx.dest_port(p)), True)], \
+             [lambda: If(mc, flows[(mc.ctx.packet.dest(p), mc.ctx.packet.src(p), mc.ctx.dest_port(p), \
+                                    mc.ctx.src_port(p))], \
+                      [lambda: ModelSend(mc, p)])])])
 def CacheModel(mc):
   cache = ModelMap('cached', mc, [z3.IntSort()], z3.BoolSort())
   cbody = ModelMap('cbody', mc, [z3.IntSort()], z3.IntSort())
-  ModelRecv(mc)
-  If(mc, cache[mc.ctx.packet.body(mc.packet)], \
-        [lambda : ModelSend(mc, \
-              [lambda p: mc.ctx.packet.body(p) == cbody[mc.ctx.packet.body(mc.packet)], \
-               lambda p: mc.ctx.packet.src(p) == mc.ctx.packet.dest(mc.packet),\
-               lambda p: mc.ctx.src_port(p) == mc.ctx.dest_port(mc.packet),\
-               lambda p: mc.ctx.dest_port(p) == mc.ctx.src_port(mc.packet)])])
-  mc.popPathConstraint() # Done receive
+  p_req = z3.Const('p_req', mc.ctx.packet)
+  p_resp = z3.Const('p_resp', mc.ctx.packet)
+  Body(mc, \
+  [lambda: ModelRecv(mc, p_req), \
+   lambda: If(mc, cache[mc.ctx.packet.body(p_req)], \
+                [lambda: mc.ctx.packet.body(p_resp) == cbody[mc.ctx.packet.body(p_req)], \
+                 lambda: mc.ctx.packet.src(p_resp) == mc.ctx.packet.dest(p_req), \
+                 lambda: mc.ctx.src_port(p_resp) == mc.ctx.dest_port(p_req), \
+                 lambda: mc.ctx.dest_port(p_resp) == mc.ctx.src_port(p_req), \
+                 lambda: ModelSend(mc, p_resp)])])
+
+class ConvertedAclFw (NetworkObject):
+  def _init(self, node, network, context):
+    self.fw = node.z3Node
+    self.ctx = context
+    self.constraints = list ()
+    self.acls = list ()
+    network.SaneSend (self)
+
+  @property
+  def z3Node (self):
+    return self.fw
+
+  def AddAcls(self, acls):
+    if not isinstance(acls, list):
+      acls = [acls]
+    self.acls.extend(acls)
+
+  @property
+  def ACLs(self):
+    return self.acls
+
+  def _addConstraints(self, solver):
+    mc = ModelContext('%s'%(self.fw), self.ctx, z3.Int('%s_t'%(self.fw)), self.fw)
+    acls = ConfigMap('%s_acl'%(self.fw), mc, [self.ctx.address, self.ctx.address], z3.BoolSort())
+    AclFwModel(mc, acls)
+    addr_pairs = list(permutations(self.ctx.address_list, 2))
+    acl_as_text = map(lambda (a, b): '%s:%s'%(a, b), self.acls)
+    for (a, b) in addr_pairs:
+      pair_as_text = '%s:%s'%(a, b)
+      if pair_as_text not in acl_as_text:
+        Body(mc, acls.Set([a, b], False))
+      else:
+        Body(mc, acls.Set([a, b], True))
+    solver.add(mc.getAllConstraints())
