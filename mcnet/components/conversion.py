@@ -164,7 +164,10 @@ def AclFwModel(mc, acl):
   #acl = ConfigMap('acl', mc, [mc.ctx.address, mc.ctx.address], z3.BoolSort())
   Body(mc, \
   [lambda: ModelRecv(mc, p),
-   lambda: If(mc, acl[(mc.ctx.packet.src(p), mc.ctx.packet.dest(p))] or acl[(mc.ctx.packet.dest(p), mc.ctx.packet.src(p))], [lambda : ModelSend(mc, p)])])
+   lambda: If(mc, z3.Or(\
+           acl[(mc.ctx.packet.src(p), mc.ctx.packet.dest(p))], \
+           acl[(mc.ctx.packet.dest(p), mc.ctx.packet.src(p))]), \
+        [lambda : ModelSend(mc, p)])])
 
 def LearningFwModel(mc):
   p = z3.Const('p', mc.ctx.packet)
