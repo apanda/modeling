@@ -52,4 +52,4 @@ class AclFirewall (NetworkObject):
         a_0 = z3.Const('%s_firewall_acl_a_0'%(self.fw), self.ctx.address)
         a_1 = z3.Const('%s_firewall_acl_a_1'%(self.fw), self.ctx.address)
         acl_map = map(lambda (a, b): z3.Or(z3.And(a_0 == a, a_1 == b), z3.And(a_0 == b, a_1 == a)), self.acls)
-        solver.add(z3.ForAll([a_0, a_1], self.acl_func(a_0, a_1) == z3.Not(z3.Or(acl_map))))
+        solver.add(z3.ForAll([a_0, a_1], self.acl_func(a_0, a_1) == z3.Or(acl_map)))

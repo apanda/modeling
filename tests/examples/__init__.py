@@ -5,6 +5,7 @@ from withProxySat import *
 from AclFwTest import *
 from ConvertedAclFwTest import *
 from LearningFwTest import *
+from ConvertedLearningFwTest import *
 from ContentCacheTest import *
 from ContentCacheTest2 import *
 from AclContentCacheTest import *

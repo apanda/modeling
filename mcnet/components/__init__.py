@@ -13,6 +13,7 @@ __all__ = ['Core', \
            'LearningFwModel', \
            'CacheModel', \
            'ConvertedAclFw', \
+           'ConvertedLearningFw', \
            'AclFirewall', \
            'ContentCache', \
            'AclContentCache', \
@@ -49,7 +50,8 @@ from context import Context, failurePredicate, destAddrPredicate, srcAddrPredica
 from null_node import NullNode
 from endhost import EndHost
 from network import Network
-from conversion import If, ModelContext, ModelMap, ModelRecv, AclFwModel, CacheModel, LearningFwModel, ConvertedAclFw
+from conversion import If, ModelContext, ModelMap, ModelRecv, AclFwModel, CacheModel, LearningFwModel, ConvertedAclFw, \
+                       ConvertedLearningFw
 #from webloadbalancer import WebLoadBalancer
 #from loadbalancer import LoadBalancer
 #from counter import NetworkCounter
