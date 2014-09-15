@@ -212,3 +212,7 @@ print "%s should be unsat"%(CheckInvariant(f1_cause(f1_cause(e)) != f1_cause(e))
 print "%s should be unsat"%(CheckInvariant(z3.And(f1_cause(cause(f1_cause(e2))) != f1_cause(cause(e2)),\
     f1_cause(cause(f1_cause(e2))) != cause(f1_cause(e2))))[0])
 print "%s should be sat"%(CheckInvariant(z3.And(f1_cause(cause(f1_cause(e2))) != f1_cause(cause(e2))))[0])
+print "%s should be unsat"%(CheckInvariant(z3.And(f1_cause(f2_cause(e)) != f1_cause(e), f1_cause(f2_cause(e)) !=
+    f2_cause(e)))[0])
+print "%s should be unsat"%(CheckInvariant(z3.And(f2_cause(f1_cause(e)) != f1_cause(e), f2_cause(f1_cause(e)) !=
+    f2_cause(e)))[0])
