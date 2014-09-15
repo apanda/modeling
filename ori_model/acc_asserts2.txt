@@ -1,0 +1,245 @@
+sorts:
+======
+E - events
+N - nodes
+P - packets
+Po - ports
+IP - ips
+B - bodies 
+T - times 
+
+constants:
+==========
+e_0 : E (the first event)
+cc : N  (the cache middlebox node)
+f : N (the firewall middlebox node)
+a, b, c, d : N (other nodes)
+ip_a, ip_b, ip_c, ip_d : IP 
+
+check_isolation_e_a_b : E
+
+functions:
+==========
+src : E -> N
+dst : E -> N
+p : E -> P
+t : E -> T
+
+src_P : E -> IP
+dst_P : E -> IP
+
+sport : E -> Po
+dport : E -> Po
+addrToNode : IP -> N
+
+origin : E -> N
+orig_body : E -> B
+body : E -> B
+
+cc_cached_src : E -> IP
+cc_cached_body : E -> B
+
+cause : E -> E
+cc_cause : E -> E
+f_cause : E -> E
+cached_cause1 : E -> E
+cached_cause2 : E -> E
+
+cause			cause					I
+cause			cc_cause
+cause			f_cause
+cause			cached_cause1
+cause			cached_cause2
+cc_cause		cause
+cc_cause		cc_cause
+cc_cause		f_cause
+cc_cause		cached_cause1
+cc_cause		cached_cause2
+f_cause			cause
+f_cause			cc_cause
+f_cause			f_cause
+f_cause			cached_cause1
+f_cause			cached_cause2
+cached_cause1	cause
+cached_cause1	cc_cause
+cached_cause1	f_cause
+cached_cause1	cached_cause1
+cached_cause1	cached_cause2
+cached_cause2	cause
+cached_cause2	cc_cause
+cached_cause2	f_cause
+cached_cause2	cached_cause1
+cached_cause2	cached_cause2
+
+
+
+relations:
+==========
+snd : E
+rcv : E
+< : T * T
+nodeHasAddr : N * IP
+cc_acl_func : IP * IP
+cc_cached : E
+cc_cached_origin : E
+cc_cached_obody : E
+f_acl_func : IP * IP
+
+Extra axioms:
+=============
+∀ e:E. snd(e) <-> ~ rcv(e)
+
+axioms for < : linear strict order on T with 0 as minimum
+
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ body(e1) = body(e2)    (body is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ orig_body(e1) = orig_body(e2)    (orig_body is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ dport(e1) = dport(e2)    (dport is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ sport(e1) = sport(e2)    (sport is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ origin(e1) = origin(e2)    (origin is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ src_P(e1) = src_P(e2)    (src_P is a function of the packet)
+∀ e1:E,e2:E. p(e1) = p(e2) ⇒ dst_P(e1) = dst_P(e2)    (dst_P is a function of the packet)
+
+
+∀ e1:E,e2:E. body(e1) = body(e2) ∧ t(e1) = t(e2) ⇒ (cc_cached(e1) <-> cc_cached(e2)) (cc_cached is a function of the body and time)
+
+∀ e:E. snd(e) ⇒ cause(e) = e   (there is no cause for snd events)
+
+∀ e:E. rcv(e) ⇒ cc_cause(e) = e   (there is no cc_cause for rcv events)
+∀ e:E. snd(e) ∧ src(e) ≠ cc ⇒ cc_cause(e) = e   (there is no cc_cause for snd events whose src is not cc)
+
+∀ e:E. rcv(e) ⇒ f_cause(e) = e   (there is no f_cause for rcv events)
+∀ e:E. snd(e) ∧ src(e) ≠ f ⇒ f_cause(e) = e   (there is no f_cause for snd events whose src is not f)
+
+Formulas: (first old, and then new)
+===================================
+OLD: ∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : send(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ ctx_base_n_0 ≠ ctx_base_n_1 
+∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : recv(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ ctx_base_n_0 ≠ ctx_base_n_1 
+
+NEW: ∀ e:E. src(e) ≠ dst(e)
+
+OLD: ∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : send(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ src(ctx_base_p_0) ≠ dest(ctx_base_p_0) 
+∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : recv(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ src(ctx_base_p_0) ≠ dest(ctx_base_p_0) 
+
+NEW: ∀ e:E. src_P(e) ≠ dst_P(e)
+
+OLD: ∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : recv(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ (∃ctx_base_t_1 : send(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_1) ∧ ctx_base_t_1 < ctx_base_t_0) 
+
+NEW: ∀ e:E. rcv(e) ⇒ t(cause(e)) < t(e) ∧ snd(cause(e)) ∧ src(cause(e)) = src(e) ∧ dst(cause(e)) = dst(e) ∧ p(e) = p(cause(e))
+
+OLD: ∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : send(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ sport(ctx_base_p_0) ≥ 0 ∧ sport(ctx_base_p_0) < 512 
+∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : recv(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ dport(ctx_base_p_0) ≥ 0 ∧ dport(ctx_base_p_0) < 512 
+
+NEW: ∀ e:E. sport(e) ≥ 0 ∧ sport(e) < 512 
+∀ e:E. dport(e) ≥ 0 ∧ dport(e) < 512 
+ORI: Why do we need these axioms? it seems that there is no reason to have them.
+
+
+OLD: ∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : recv(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ ctx_base_t_0 > 0 
+∀ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0 : send(ctx_base_n_0, ctx_base_n_1, ctx_base_p_0, ctx_base_t_0) ⇒ ctx_base_t_0 > 0 
+
+NEW: none
+
+OLD: ∀cc_saneSend_n_0, cc_saneSend_p_0, cc_saneSend_t_0 : send(cc, cc_saneSend_n_0, cc_saneSend_p_0, cc_saneSend_t_0) ⇒ ¬nodeHasAddr(cc, dest(cc_saneSend_p_0)) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = cc ⇒ ¬nodeHasAddr(cc, dst_P(e)) 
+
+OLD: ∀f_saneSend_n_0, f_saneSend_p_0, f_saneSend_t_0 : send(f, f_saneSend_n_0, f_saneSend_p_0, f_saneSend_t_0) ⇒ ¬nodeHasAddr(f, dest(f_saneSend_p_0)) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ ¬nodeHasAddr(f, dst_P(e)) 
+
+OLD: addrToNode(ip_a) = a 
+	 ∀a_address_mapping_a_0 : (a_address_mapping_a_0 = ip_a) = nodeHasAddr(a, a_address_mapping_a_0) 
+	 addrToNode(ip_b) = b 
+	 ∀b_address_mapping_a_0 : (b_address_mapping_a_0 = ip_b) = nodeHasAddr(b, b_address_mapping_a_0) 
+	 addrToNode(ip_c) = c 
+	 ∀c_address_mapping_a_0 : (c_address_mapping_a_0 = ip_c) = nodeHasAddr(c, c_address_mapping_a_0) 
+	 addrToNode(ip_d) = d 
+	 ∀d_address_mapping_a_0 : (d_address_mapping_a_0 = ip_d) = nodeHasAddr(d, d_address_mapping_a_0) 
+	 addrToNode(ip_f) = f 
+	 ∀f_address_mapping_a_0 : (f_address_mapping_a_0 = ip_f) = nodeHasAddr(f, f_address_mapping_a_0) 
+	 addrToNode(ip_cc) = cc 
+	 ∀cc_address_mapping_a_0 : (cc_address_mapping_a_0 = ip_cc) = nodeHasAddr(cc, cc_address_mapping_a_0) 
+
+NEW: addrToNode(ip_a) = a 
+∀ ip:IP. ip = ip_a <-> nodeHasAddr(a, ip_a) 
+...and so on for b,c,d,f and cc...
+
+OLD: 
+	∀a_composition_n_0, a_composition_p_0, a_composition_t_0 : send(a, a_composition_n_0, a_composition_p_0, a_composition_t_0) ∧ (dest(a_composition_p_0) = ip_a ∨ dest(a_composition_p_0) = ip_b ∨ dest(a_composition_p_0) = ip_c ∨ dest(a_composition_p_0) = ip_d ∨ dest(a_composition_p_0) = ip_cc ∨ dest(a_composition_p_0) = ip_f) ⇒ a_composition_n_0 = f 
+	∀b_composition_n_0, b_composition_p_0, b_composition_t_0 : send(b, b_composition_n_0, b_composition_p_0, b_composition_t_0) ∧ (dest(b_composition_p_0) = ip_a ∨ dest(b_composition_p_0) = ip_b ∨ dest(b_composition_p_0) = ip_c ∨ dest(b_composition_p_0) = ip_d ∨ dest(b_composition_p_0) = ip_cc ∨ dest(b_composition_p_0) = ip_f) ⇒ b_composition_n_0 = f 
+	∀c_composition_n_0, c_composition_p_0, c_composition_t_0 : send(c, c_composition_n_0, c_composition_p_0, c_composition_t_0) ∧ (dest(c_composition_p_0) = ip_a ∨ dest(c_composition_p_0) = ip_b ∨ dest(c_composition_p_0) = ip_c ∨ dest(c_composition_p_0) = ip_d ∨ dest(c_composition_p_0) = ip_cc ∨ dest(c_composition_p_0) = ip_f) ⇒ c_composition_n_0 = f 
+	∀d_composition_n_0, d_composition_p_0, d_composition_t_0 : send(d, d_composition_n_0, d_composition_p_0, d_composition_t_0) ∧ (dest(d_composition_p_0) = ip_a ∨ dest(d_composition_p_0) = ip_b ∨ dest(d_composition_p_0) = ip_c ∨ dest(d_composition_p_0) = ip_d ∨ dest(d_composition_p_0) = ip_cc ∨ dest(d_composition_p_0) = ip_f) ⇒ d_composition_n_0 = f 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = a ∧ (dst_P(e) = ip_a ∨ dst_P(e) = ip_b ∨ dst_P(e) = ip_c ∨ dst_P(e) = ip_d ∨ dst_P(e) = ip_f ∨ dst_P(e) = ip_cc) ⇒ dst(e) = f 
+...and so on for b,c,d...
+
+OLD: 
+	∀cc_composition_n_0, cc_composition_p_0, cc_composition_t_0 : send(cc, cc_composition_n_0, cc_composition_p_0, cc_composition_t_0) ∧ (dest(cc_composition_p_0) = ip_a) ⇒ cc_composition_n_0 = a 
+	∀cc_composition_n_0, cc_composition_p_0, cc_composition_t_0 : send(cc, cc_composition_n_0, cc_composition_p_0, cc_composition_t_0) ∧ (dest(cc_composition_p_0) = ip_c) ⇒ cc_composition_n_0 = c 
+	∀cc_composition_n_0, cc_composition_p_0, cc_composition_t_0 : send(cc, cc_composition_n_0, cc_composition_p_0, cc_composition_t_0) ∧ (dest(cc_composition_p_0) = ip_b) ⇒ cc_composition_n_0 = b 
+	∀cc_composition_n_0, cc_composition_p_0, cc_composition_t_0 : send(cc, cc_composition_n_0, cc_composition_p_0, cc_composition_t_0) ∧ (dest(cc_composition_p_0) = ip_d) ⇒ cc_composition_n_0 = d 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = cc ∧ dst_P(e) = ip_a ⇒ dst(e) = a 
+...and so on for b,c,d...
+
+OLD: ∀eh_a_n_0, eh_a_p_0, eh_a_t_0 : send(a, eh_a_n_0, eh_a_p_0, eh_a_t_0) ⇒ nodeHasAddr(a, src(eh_a_p_0)) 
+OLD: ∀eh_b_n_0, eh_b_p_0, eh_b_t_0 : send(b, eh_b_n_0, eh_b_p_0, eh_b_t_0) ⇒ nodeHasAddr(b, src(eh_b_p_0)) 
+OLD: ∀eh_c_n_0, eh_c_p_0, eh_c_t_0 : send(c, eh_c_n_0, eh_c_p_0, eh_c_t_0) ⇒ nodeHasAddr(c, src(eh_c_p_0)) 
+OLD: ∀eh_d_n_0, eh_d_p_0, eh_d_t_0 : send(d, eh_d_n_0, eh_d_p_0, eh_d_t_0) ⇒ nodeHasAddr(d, src(eh_d_p_0)) 
+OLD: ∀cc_cc_n_0, cc_cc_p_0, cc_cc_t_0 : send(cc, cc_cc_n_0, cc_cc_p_0, cc_cc_t_0) ⇒ nodeHasAddr(cc, src(cc_cc_p_0)) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = a ⇒ nodeHasAddr(a, src_P(e)) 
+...and so on for b,c,d,cc...
+
+OLD: ∀eh_a_n_0, eh_a_p_0, eh_a_t_0 : send(a, eh_a_n_0, eh_a_p_0, eh_a_t_0) ⇒ origin(eh_a_p_0) = a 
+OLD: ∀eh_b_n_0, eh_b_p_0, eh_b_t_0 : send(b, eh_b_n_0, eh_b_p_0, eh_b_t_0) ⇒ origin(eh_b_p_0) = b 
+OLD: ∀eh_c_n_0, eh_c_p_0, eh_c_t_0 : send(c, eh_c_n_0, eh_c_p_0, eh_c_t_0) ⇒ origin(eh_c_p_0) = c 
+OLD: ∀eh_d_n_0, eh_d_p_0, eh_d_t_0 : send(d, eh_d_n_0, eh_d_p_0, eh_d_t_0) ⇒ origin(eh_d_p_0) = d 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = a ⇒ origin(e) = a
+...and so on for b,c,d...
+
+OLD: ∀eh_a_n_0, eh_a_p_0, eh_a_t_0 : send(a, eh_a_n_0, eh_a_p_0, eh_a_t_0) ⇒ orig_body(eh_a_p_0) = body(eh_a_p_0) 
+OLD: ∀eh_b_n_0, eh_b_p_0, eh_b_t_0 : send(b, eh_b_n_0, eh_b_p_0, eh_b_t_0) ⇒ orig_body(eh_b_p_0) = body(eh_b_p_0) 
+OLD: ∀eh_c_n_0, eh_c_p_0, eh_c_t_0 : send(c, eh_c_n_0, eh_c_p_0, eh_c_t_0) ⇒ orig_body(eh_c_p_0) = body(eh_c_p_0) 
+OLD: ∀eh_d_n_0, eh_d_p_0, eh_d_t_0 : send(d, eh_d_n_0, eh_d_p_0, eh_d_t_0) ⇒ orig_body(eh_d_p_0) = body(eh_d_p_0) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = a ⇒ orig_body(e) = body(e) 
+...and so on for b,c,d...
+
+OLD: ∀eh_a_n_0, eh_a_p_0, eh_a_t_0 : recv(eh_a_n_0, a, eh_a_p_0, eh_a_t_0) ⇒ nodeHasAddr(a, dest(eh_a_p_0)) 
+OLD: ∀eh_b_n_0, eh_b_p_0, eh_b_t_0 : recv(eh_b_n_0, b, eh_b_p_0, eh_b_t_0) ⇒ nodeHasAddr(b, dest(eh_b_p_0)) 
+OLD: ∀eh_c_n_0, eh_c_p_0, eh_c_t_0 : recv(eh_c_n_0, c, eh_c_p_0, eh_c_t_0) ⇒ nodeHasAddr(c, dest(eh_c_p_0)) 
+OLD: ∀eh_d_n_0, eh_d_p_0, eh_d_t_0 : recv(eh_d_n_0, d, eh_d_p_0, eh_d_t_0) ⇒ nodeHasAddr(d, dest(eh_d_p_0)) 
+
+NEW: ∀ e:E. rcv(e) ∧ dst(e) = a ⇒ nodeHasAddr(a, dst_P(e)) 
+...and so on for b,c,d...
+
+OLD: ∀cc_cc_n_0, cc_cc_p_0, cc_cc_t_0 : send(cc, cc_cc_n_0, cc_cc_p_0, cc_cc_t_0) ⇒ (∃cc_cc_n_1, cc_cc_p_1, cc_cc_t_1 : recv(cc_cc_n_1, cc, cc_cc_p_1, cc_cc_t_1) ∧ cc_cc_t_1 < cc_cc_t_0 ∧ (body(cc_cc_p_1) = body(cc_cc_p_0) ∧ origin(cc_cc_p_1) = origin(cc_cc_p_0) ∧ orig_body(cc_cc_p_1) = orig_body(cc_cc_p_0) ∧ dport(cc_cc_p_1) = dport(cc_cc_p_0) ∧ dest(cc_cc_p_1) = dest(cc_cc_p_0) ∧ cc_acl_func(src(cc_cc_p_1), dest(cc_cc_p_1)) ∨ cc_cached(body(cc_cc_p_1), cc_cc_t_1) ∧ origin(cc_cc_p_0) = cc_cached_origin(body(cc_cc_p_1), cc_cc_t_1) ∧ orig_body(cc_cc_p_0) = cc_cached_obody(body(cc_cc_p_1), cc_cc_t_1) ∧ dest(cc_cc_p_0) = src(cc_cc_p_1) ∧ dport(cc_cc_p_0) = sport(cc_cc_p_1) ∧ sport(cc_cc_p_0) = dport(cc_cc_p_1) ∧ cc_acl_func(cc_cached_src(body(cc_cc_p_1), cc_cc_t_1), dest(cc_cc_p_0)))) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = cc ⇒ rcv(cc_cause(e)) ∧ t(cc_cause(e)) < t(e) ∧ (body(e) = body(cc_cause(e)) ∧ origin(e) = origin(cc_cause(e)) ∧ orig_body(e) = orig_body(cc_cause(e)) ∧ dport(e) = dport(cc_cause(e)) ∧ dst_P(e) = dst_P(cc_cause(e)) ∧ cc_acl_func(src_P(cc_cause(e)), dst_P(cc_cause(e)))) ∨ (cc_cached(cc_cause(e)) ∧ orig_body(e) = cc_cached_obody(cc_cause(e)) ∧ origin(e) = cc_cached_origin(cc_cause(e)) ∧ dst_P(e) = src_P(cc_cause(e)) ∧ dport(e) = sport(cc_cause(e)) ∧ sport(e) = dport(cc_cause(e)) ∧ cc_acl_func(cc_cached_src(cc_cause(e)), dst_P(e))) 
+
+OLD: ∀cc_cc_b_0, cc_cc_t_0 : cc_cached(cc_cc_b_0, cc_cc_t_0) ⇒ (∃cc_cc_n_0, cc_cc_p_0, cc_cc_t_1 : send(cc, cc_cc_n_0, cc_cc_p_0, cc_cc_t_1) ∧ body(cc_cc_p_0) = cc_cc_b_0 ∧ cc_cc_t_1 < cc_cc_t_0 ∧ (∃cc_cc_n_1, cc_cc_p_1, cc_cc_t_2 : recv(cc_cc_n_1, cc, cc_cc_p_1, cc_cc_t_2) ∧ cc_cc_t_2 > cc_cc_t_1 ∧ cc_cc_t_2 < cc_cc_t_0 ∧ dest(cc_cc_p_1) = src(cc_cc_p_0) ∧ src(cc_cc_p_1) = dest(cc_cc_p_0) ∧ sport(cc_cc_p_1) = dport(cc_cc_p_0) ∧ dport(cc_cc_p_1) = sport(cc_cc_p_0) ∧ cc_cached_body(cc_cc_b_0, cc_cc_t_0) = body(cc_cc_p_1) ∧ cc_cached_origin(cc_cc_b_0, cc_cc_t_0) = origin(cc_cc_p_1) ∧ cc_cached_obody(cc_cc_b_0, cc_cc_t_0) = orig_body(cc_cc_p_1) ∧ cc_cached_src(cc_cc_b_0, cc_cc_t_0) = src(cc_cc_p_1))) 
+
+NEW: ∀ e:E. cc_cached(e) ⇒ snd(cached_cause1(e)) ∧ body(e) = body(cached_cause1(e)) ∧ t(cached_cause1(e)) < t(e) ∧ rcv(cached_cause2(e)) ∧ cached_cause2(e) > cached_cause1(e) ∧ t(cached_cause2(e)) < t(e) ∧ dst_P(cached_cause2(e)) = src_P(cached_cause1(e)) ∧ src_P(cached_cause2(e)) = dst_P(cached_cause1(e)) ∧ sport(cached_cause2(e)) = dport(cached_cause1(e)) ∧ dport(cached_cause2(e)) = sport(cached_cause1(e)) ∧ cc_cached_body(e) = body(cached_cause2(e)) ∧ cc_cached_origin(e) = origin(cached_cause2(e)) ∧ cc_cached_obody(e) = orig_body(cached_cause2(e)) ∧ cc_cached_src(e) = src_P(cached_cause2(e)) 
+
+OLD: ∀cc_cc_acl_a_0, cc_cc_acl_a_1 : cc_acl_func(cc_cc_acl_a_0, cc_cc_acl_a_1) = ¬(cc_cc_acl_a_0 = ip_a ∧ cc_cc_acl_a_1 = ip_b ∨ cc_cc_acl_a_0 = ip_c ∧ cc_cc_acl_a_1 = ip_d) 
+
+NEW: ∀ ip1:IP, ip2:IP. cc_acl_func(ip1, ip2) <-> ¬(ip1 = ip_a ∧ ip2 = ip_b ∨ ip1 = ip_c ∧ ip2 = ip_d) 
+
+OLD: ∀f_firewall_send_n_0, f_firewall_send_p_0, f_firewall_send_t_0 : send(f, f_firewall_send_n_0, f_firewall_send_p_0, f_firewall_send_t_0) ⇒ (∃f_firewall_send_t_1 : f_firewall_send_t_1 < f_firewall_send_t_0 ∧ (∃f_firewall_send_n_1 : recv(f_firewall_send_n_1, f, f_firewall_send_p_0, f_firewall_send_t_1)) ∧ f_acl_func(src(f_firewall_send_p_0), dest(f_firewall_send_p_0))) 
+
+NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ f_acl_func(src_P(e), dst_P(e)) 
+	 ∀ e:E. snd(e) ∧ src(e) = f ⇒ t(f_cause(e)) < t(e) ∧ rcv(f_cause(e)) ∧ dst(f_cause(e)) = f ∧ p(f_cause(e)) = p(e)
+
+OLD: ∀f_firewall_acl_a_0, f_firewall_acl_a_1 : f_acl_func(f_firewall_acl_a_0, f_firewall_acl_a_1) = ¬(f_firewall_acl_a_0 = ip_a ∧ f_firewall_acl_a_1 = ip_b ∨ f_firewall_acl_a_0 = ip_b ∧ f_firewall_acl_a_1 = ip_a ∨ f_firewall_acl_a_0 = ip_c ∧ f_firewall_acl_a_1 = ip_d ∨ f_firewall_acl_a_0 = ip_d ∧ f_firewall_acl_a_1 = ip_c) 
+
+NEW: ∀ ip1:IP, ip2:IP. f_acl_func(ip1, ip2) <-> ¬(ip1 = ip_a ∧ ip2 = ip_b ∨ ip1 = ip_b ∧ ip2 = ip_a ∨ ip1 = ip_c ∧ ip2 = ip_d ∨ ip1 = ip_d ∧ ip2 = ip_c) 
+
+OLD: recv(check_isolation_n_0_a_b, b, check_isolation_p_a_b, check_isolation_t_a_b) 
+
+NEW: rcv(check_isolation_e_a_b) ∧ dst(check_isolation_e_a_b) = b
+
+OLD: origin(check_isolation_p_a_b) = a 
+
+NEW: origin(check_isolation_e_a_b) = a

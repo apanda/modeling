@@ -123,6 +123,16 @@ def ModelRecv (mcontext, packet):
                 rtime < mcontext.time)
   return [pconstraint, [rtime, rnode, packet]]
 
+def DidRecv (mcontext, packet, time):
+  rnode = z3.Const('%s_dr_n'%(mcontext.node), mcontext.ctx.node)
+  pconstraint = mcontext.ctx.recv(rnode, mcontext.node, packet, time)
+  return [pconstraint, [rnode, time, packet]]
+
+def DidSend (mcontext, packet, time):
+  rnode = z3.Const('%s_dr_n'%(mcontext.node), mcontext.ctx.node)
+  pconstraint = mcontext.ctx.send(mcontext.node, rnode, packet, time)
+  return [pconstraint, [rnode, time, packet]]
+
 class ConfigMap(object):
   def __init__(self, name, mcontext, KTypes, VType):
     if not isinstance(KTypes, Iterable):
@@ -193,7 +203,10 @@ def Body(mcontext, body):
     mcontext.popPathConstraint()
   
 def If(mcontext, cond, body, else_body = None):
-  mcontext.addPathConstraint(cond)
+  if not isinstance(cond, Iterable):
+    mcontext.addPathConstraint(cond)
+  else:
+    mcontext.addPathConstraint(*cond)
   Body(mcontext, body)
   mcontext.popPathConstraint()
   if else_body:
@@ -233,6 +246,7 @@ def LearningFwModel(mc, acl):
 def CacheModel(mc):
   cache = ModelMap('cached', mc, [z3.IntSort()], z3.BoolSort())
   cbody = ModelMap('cbody', mc, [z3.IntSort()], z3.IntSort())
+  is_request = ModelMap('is_request', mc, [mc.ctx.address, z3.IntSort(), z3.IntSort()], z3.BoolSort())
   p_req = z3.Const('p_req', mc.ctx.packet)
   p_resp = z3.Const('p_resp', mc.ctx.packet)
   Body(mc, \
@@ -242,8 +256,14 @@ def CacheModel(mc):
                  lambda: mc.ctx.packet.src(p_resp) == mc.ctx.packet.dest(p_req), \
                  lambda: mc.ctx.src_port(p_resp) == mc.ctx.dest_port(p_req), \
                  lambda: mc.ctx.dest_port(p_resp) == mc.ctx.src_port(p_req), \
-                 lambda: ModelSend(mc, p_resp)])])
-
+                 lambda: ModelSend(mc, p_resp)],
+                 [lambda: mc.ctx.packet.body(p_resp) == mc.ctx.packet.body(p_req),
+                  lambda: mc.ctx.packet.dest(p_resp) == mc.ctx.packet.dest(p_req),
+                  lambda: mc.ctx.packet.dest_port(p_resp) == mc.ctx.packet.dest_port(p_req),
+                  lambda: mc.ctx.packet.origin(p_resp) == mc.ctx.packet.origin(p_req),
+                  lambda: mc.ctx.packet.orig_body(p_resp) == mc.ctx.packet.orig_body(p_req),
+                  lambda: mc.ctx.nodeHasAddr(mc.ctx.packet.src(p_resp), mc.node),
+                  lambda: ModelSend(mc, p_resp)])])
 class ConvertedAclFw (NetworkObject):
   def _init(self, node, network, context):
     self.fw = node.z3Node
