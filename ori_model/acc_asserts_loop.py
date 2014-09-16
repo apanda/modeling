@@ -227,11 +227,18 @@ print "%s should be unsat"%(CheckInvariant(z3.And(f2_cause(f1_cause(e)) != f1_ca
 print "%s should be unsat"%(CheckInvariant(z3.And(f1_cause(e) != e, f2_cause(e) != e))[0])
 interesting = cause(f1_cause(cause(f2_cause(e)))) != cause(cause(f1_cause(cause(f2_cause(e)))))
 print '%s should be unsat'%(CheckInvariant(interesting)[0])
+
 interesting2 = (f2_cause(cause(f1_cause(cause(f2_cause(e))))) != cause(f1_cause(cause(f2_cause(e)))))
+
 interesting3 = (f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e))))))) != cause(f2_cause(cause(f1_cause(cause(f2_cause(e)))))))
+
 interesting4 = (f2_cause(cause(f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e))))))))) !=
         cause(f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e)))))))))
+
+interesting5 = (f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e))))))))))) !=
+        cause(f2_cause(cause(f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e)))))))))))
 print 'When no loop %s should be unsat (else SAT)'%(CheckInvariant(interesting4)[0])
+print 'When no loop %s should be unsat (else SAT)'%(CheckInvariant(interesting5)[0])
 def PrintInfo(m, e):
     print 'src: %s'%(m.eval(src(e)))
     print 'dst: %s'%(m.eval(dst(e)))
