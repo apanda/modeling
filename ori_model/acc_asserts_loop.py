@@ -173,14 +173,14 @@ assertions.append(z3.ForAll([e1], \
         z3.Implies(z3.And(snd(e1), src(e1) == b), dst(e1) == f1)))
 assertions.append(z3.ForAll([e1], \
         z3.Implies(z3.And(snd(e1), src(e1) == f1), dst(e1) == f2)))
+assertions.append(z3.ForAll([e1], \
+        z3.Implies(z3.And(snd(e1), src(e1) == f2), dst(e1) == f1)))
 #assertions.append(z3.ForAll([e1], \
-        #z3.Implies(z3.And(snd(e1), src(e1) == f2), dst(e1) == f1)))
-assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_a), dst(e1) == a)))
-assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_b), dst(e1) == b)))
-assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_f1), dst(e1) == f1)))
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_a), dst(e1) == a)))
+#assertions.append(z3.ForAll([e1], \
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_b), dst(e1) == b)))
+#assertions.append(z3.ForAll([e1], \
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_f1), dst(e1) == f1)))
 
 # NEW: ∀ ip1:IP, ip2:IP. f_acl_func(ip1, ip2) <-> ¬(ip1 = ip_a ∧ ip2 = ip_b ∨ ip1 = ip_b ∧ ip2 = ip_a ∨ ip1 = ip_c ∧ ip2 = ip_d ∨ ip1 = ip_d ∧ ip2 = ip_c) 
 assertions.append(z3.ForAll([ip1, ip2], f1_acl_func(ip1, ip2)))
