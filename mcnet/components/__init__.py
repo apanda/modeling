@@ -17,6 +17,7 @@ __all__ = ['Core', \
            'AclFirewall', \
            'ContentCache', \
            'AclContentCache', \
+           'PermutationMiddlebox', \
            #'OneSidedFirewall', \
            #'HTTPFirewall', \
            #'DenyHTTPFirewall', \
@@ -61,6 +62,7 @@ from aclfirewall import AclFirewall
 from learningfirewall import LearningFirewall
 from content_cache import ContentCache
 from acl_content_cache import AclContentCache
+from permutation_mbox import PermutationMiddlebox
 #from l7firewall import HTTPFirewall
 #from denyl7firewall import DenyHTTPFirewall
 #from webproxy import WebProxy

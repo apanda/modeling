@@ -42,3 +42,5 @@ from testl7firewall import *
 from testl7firewallproxy import *
 from policy_test import *
 from policy_branch_test import *
+from permuteTest import *
+from ronoPermuteTest import *
