@@ -10,6 +10,15 @@ nodes = dict(zip(nodes, node_list))
 address, address_list = z3.EnumSort('Address', addresses)
 addresses = dict(zip(addresses, address_list))
 
+a = nodes['a']
+b = nodes['b']
+f1 = nodes['f1']
+f2 = nodes['f2']
+ip_a = addresses['ip_a']
+ip_b = addresses['ip_b']
+ip_f1 = addresses['ip_f1']
+ip_f2 = addresses['ip_f2']
+
 packet = z3.DeclareSort('packets')
 port = z3.DeclareSort('ports')
 body = z3.DeclareSort('body')
@@ -100,9 +109,9 @@ assertions.append(z3.ForAll([e1, e2], z3.Implies(p(e1) == p(e2), src_P(e1) == sr
 assertions.append(z3.ForAll([e1, e2], z3.Implies(p(e1) == p(e2), dst_P(e1) == dst_P(e2))))
 assertions.append(z3.ForAll([e1], z3.Implies(snd(e1), cause(e1) == e1)))
 assertions.append(z3.ForAll([e1], z3.Implies(rcv(e1), f1_cause(e1) == e1)))
-assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) != nodes['f1']), f1_cause(e1) == e1)))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) != f1), f1_cause(e1) == e1)))
 assertions.append(z3.ForAll([e1], z3.Implies(rcv(e1), f2_cause(e1) == e1)))
-assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) != nodes['f2']), f2_cause(e1) == e1)))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) != f2), f2_cause(e1) == e1)))
 
 #NEW: ∀ e:E. src(e) ≠ dst(e)
 #
@@ -119,18 +128,18 @@ assertions.append(z3.ForAll([e1], z3.Implies(rcv(e1), \
                                p(cause(e1)) == p(e1)]))))
 
 # NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ ¬nodeHasAddr(f, dst_P(e)) 
-assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == nodes['f1']), z3.Not(nodeHasAddr(nodes['f1'], dst_P(e1))))))
-assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == nodes['f2']), z3.Not(nodeHasAddr(nodes['f2'], dst_P(e1))))))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), z3.Not(nodeHasAddr(f1, dst_P(e1))))))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f2), z3.Not(nodeHasAddr(f2, dst_P(e1))))))
 
 ip1 = z3.Const('ip1', address)
 ip2 = z3.Const('ip2', address)
 ip3 = z3.Const('ip3', address)
 #NEW: addrToNode(ip_a) = a 
 #∀ ip:IP. ip = ip_a <-> nodeHasAddr(a, ip_a) 
-assertions.append(nodeHasAddr(nodes['a'], addresses['ip_a']))
-assertions.append(nodeHasAddr(nodes['b'], addresses['ip_b']))
-assertions.append(nodeHasAddr(nodes['f1'], addresses['ip_f1']))
-assertions.append(nodeHasAddr(nodes['f2'], addresses['ip_f2']))
+assertions.append(nodeHasAddr(a, ip_a))
+assertions.append(nodeHasAddr(b, ip_b))
+assertions.append(nodeHasAddr(f1, ip_f1))
+assertions.append(nodeHasAddr(f2, ip_f2))
 
 
 #NEW: ∀ e:E. snd(e) ∧ src(e) = a ⇒ nodeHasAddr(a, src_P(e)) 
@@ -138,37 +147,37 @@ assertions.append(nodeHasAddr(nodes['f2'], addresses['ip_f2']))
 #NEW: ∀ e:E. snd(e) ∧ src(e) = a ⇒ origin(e) = a
 #...and so on for b,c,d...
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['a']), \
-            z3.And([nodeHasAddr(nodes['a'], src_P(e1)), \
-                    origin(e1) == nodes['a']]))))
+        z3.Implies(z3.And(snd(e1), src(e1) == a), \
+            z3.And(nodeHasAddr(a, src_P(e1)), \
+                    origin(e1) == a))))
 
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['b']), \
-            z3.And([nodeHasAddr(nodes['b'], src_P(e1)), \
-                    origin(e1) == nodes['b']]))))
+        z3.Implies(z3.And(snd(e1), src(e1) == b), \
+            z3.And([nodeHasAddr(b, src_P(e1)), \
+                    origin(e1) == b]))))
 
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(rcv(e1), dst(e1) == nodes['a']), \
-            z3.And([nodeHasAddr(nodes['a'], dst_P(e1))]))))
+        z3.Implies(z3.And(rcv(e1), dst(e1) == a), \
+            z3.And([nodeHasAddr(a, dst_P(e1))]))))
 
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(rcv(e1), dst(e1) == nodes['b']), \
-            z3.And([nodeHasAddr(nodes['b'], dst_P(e1))]))))
+        z3.Implies(z3.And(rcv(e1), dst(e1) == b), \
+            z3.And([nodeHasAddr(b, dst_P(e1))]))))
 
 # NEW: ∀ e:E. snd(e) ∧ src(e) = a ∧ (dst_P(e) = ip_a ∨ dst_P(e) = ip_b ∨ dst_P(e) = ip_c ∨ dst_P(e) = ip_d ∨ dst_P(e) = ip_f ∨ dst_P(e) = ip_cc) ⇒ dst(e) = f 
 # ...and so on for b,c,d...
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['a']), dst(e1) == nodes['f1'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == a), dst(e1) == f1)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['b']), dst(e1) == nodes['f1'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == b), dst(e1) == f1)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['f1']), dst(e1) == nodes['f2'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == f1), dst(e1) == f2)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['f2'], dst_P(e1) == addresses['ip_a']), dst(e1) == nodes['a'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_a), dst(e1) == a)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['f2'], dst_P(e1) == addresses['ip_b']), dst(e1) == nodes['b'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_b), dst(e1) == b)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == nodes['f2'], dst_P(e1) == addresses['ip_f1']), dst(e1) == nodes['f1'])))
+        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_f1), dst(e1) == f1)))
 
 # NEW: ∀ ip1:IP, ip2:IP. f_acl_func(ip1, ip2) <-> ¬(ip1 = ip_a ∧ ip2 = ip_b ∨ ip1 = ip_b ∧ ip2 = ip_a ∨ ip1 = ip_c ∧ ip2 = ip_d ∨ ip1 = ip_d ∧ ip2 = ip_c) 
 assertions.append(z3.ForAll([ip1, ip2], f1_acl_func(ip1, ip2)))
@@ -179,8 +188,6 @@ assertions.append(z3.ForAll([ip1, ip2], f2_acl_func(ip1, ip2)))
 # 
 # NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ f_acl_func(src_P(e), dst_P(e)) 
 #	 ∀ e:E. snd(e) ∧ src(e) = f ⇒ t(f_cause(e)) < t(e) ∧ rcv(f_cause(e)) ∧ dst(f_cause(e)) = f ∧ p(f_cause(e)) = p(e)
-f1 = nodes['f1']
-f2 = nodes['f2']
 assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), f1_acl_func(src_P(e1), dst_P(e1)))))
 assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), \
                     z3.And(t(f1_cause(e1)) < t(e1), \
@@ -216,3 +223,4 @@ print "%s should be unsat"%(CheckInvariant(z3.And(f1_cause(f2_cause(e)) != f1_ca
     f2_cause(e)))[0])
 print "%s should be unsat"%(CheckInvariant(z3.And(f2_cause(f1_cause(e)) != f1_cause(e), f2_cause(f1_cause(e)) !=
     f2_cause(e)))[0])
+print "%s should be unsat"%(CheckInvariant(z3.And(f1_cause(e) != e, f2_cause(e) != e))[0])
