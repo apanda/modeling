@@ -1,5 +1,63 @@
 # coding=utf-8
 import z3
+
+def PrintInfo(m, e):
+    print 'src: %s'%(m.eval(src(e)))
+    print 'dst: %s'%(m.eval(dst(e)))
+    print 'snd: %s'%(m.eval(snd(e)))
+    print 'rcv: %s'%(m.eval(rcv(e)))
+    print 'src_P: %s'%(m.eval(src_P(e)))
+    print 'dst_P: %s'%(m.eval(dst_P(e)))
+    print 't: %s'%(m.eval(t(e)))
+
+
+def AssertionsToHTML (stream, assertions):
+    old = z3.in_html_mode()
+    z3.set_html_mode()
+    print >>stream, """
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap-responsive.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/FortAwesome/css/font-awesome.min.css"></link>
+<link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
+<title>Assertions</title>
+</head>
+<body style="font-size:12px">
+        """
+    for assertion in assertions:
+        print >>stream, z3.obj_to_string(assertion)
+        print >>stream, "<br />"
+    print >>stream, """
+</body>
+</html>
+        """
+    z3.set_html_mode(old)
+
+def ModelToHTML (stream, model):
+    old = z3.in_html_mode()
+    z3.set_html_mode()
+    print >>stream, """
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/bootstrap/css/bootstrap-responsive.css"></link>
+<link rel="stylesheet" href="https://www.cs.berkeley.edu/~apanda/FortAwesome/css/font-awesome.min.css"></link>
+<link href='https://fonts.googleapis.com/css?family=Raleway:600' rel='stylesheet' type='text/css'></link>
+<title>Model</title>
+</head>
+<body style="font-size:12px">
+    """
+    #print >>stream, z3.obj_to_string(obj.model)
+    for clause in model:
+        print >>stream, "%s = %s <br />"%(z3.obj_to_string(clause), z3.obj_to_string(model[clause]))
+    print >>stream, """
+</body>
+</html>
+    """
+    z3.set_html_mode(old)
 nodes = ['a', 'b', 'f1', 'f2']
 addresses = ['ip_a', 'ip_b', 'ip_f1', 'ip_f2']
 # Nodes in a network
@@ -130,6 +188,8 @@ assertions.append(z3.ForAll([e1], z3.Implies(rcv(e1), \
 # NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ ¬nodeHasAddr(f, dst_P(e)) 
 assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), z3.Not(nodeHasAddr(f1, dst_P(e1))))))
 assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f2), z3.Not(nodeHasAddr(f2, dst_P(e1))))))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), z3.Not(nodeHasAddr(f1, src_P(e1))))))
+assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f2), z3.Not(nodeHasAddr(f2, src_P(e1))))))
 
 ip1 = z3.Const('ip1', address)
 ip2 = z3.Const('ip2', address)
@@ -213,6 +273,14 @@ def CheckInvariant (inv):
     model = solver.model()
   solver.pop()
   return (r, model)
+
+def WriteAsserts (f, inv):
+  masserts = list(assertions)
+  masserts.append(inv)
+  AssertionsToHTML(f, masserts)
+
+def WriteModel(f, model):
+  ModelToHTML(f, model)
 e = e2
 print "Sanity checks"
 print "%s should be unsat"%(CheckInvariant(cause(cause(e2)) != cause(e2))[0])
@@ -238,12 +306,5 @@ interesting5 = (f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(cause(f1_c
         cause(f2_cause(cause(f1_cause(cause(f2_cause(cause(f1_cause(cause(f2_cause(e)))))))))))
 print 'When no loop %s should be unsat (else SAT)'%(CheckInvariant(interesting4)[0])
 print 'When no loop %s should be unsat (else SAT)'%(CheckInvariant(interesting5)[0])
-def PrintInfo(m, e):
-    print 'src: %s'%(m.eval(src(e)))
-    print 'dst: %s'%(m.eval(dst(e)))
-    print 'snd: %s'%(m.eval(snd(e)))
-    print 'rcv: %s'%(m.eval(rcv(e)))
-    print 'src_P: %s'%(m.eval(src_P(e)))
-    print 'dst_P: %s'%(m.eval(dst_P(e)))
-    print 't: %s'%(m.eval(t(e)))
+
 
