@@ -173,19 +173,20 @@ assertions.append(z3.ForAll([e1], \
 assertions.append(z3.ForAll([e1], \
         z3.Implies(z3.And(snd(e1), src(e1) == f1), dst(e1) == f2)))
 assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_a), dst(e1) == a)))
-assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_b), dst(e1) == b)))
-assertions.append(z3.ForAll([e1], \
-        z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_f1), dst(e1) == f1)))
+        z3.Implies(z3.And(snd(e1), src(e1) == f2), dst(e1) == f1)))
+
+#assertions.append(z3.ForAll([e1], \
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_a), dst(e1) == a)))
+#assertions.append(z3.ForAll([e1], \
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_b), dst(e1) == b)))
+#assertions.append(z3.ForAll([e1], \
+        #z3.Implies(z3.And(snd(e1), src(e1) == f2, dst_P(e1) == ip_f1), dst(e1) == f1)))
 
 # NEW: ∀ ip1:IP, ip2:IP. f_acl_func(ip1, ip2) <-> ¬(ip1 = ip_a ∧ ip2 = ip_b ∨ ip1 = ip_b ∧ ip2 = ip_a ∨ ip1 = ip_c ∧ ip2 = ip_d ∨ ip1 = ip_d ∧ ip2 = ip_c) 
 assertions.append(z3.ForAll([ip1, ip2], f1_acl_func(ip1, ip2)))
 assertions.append(z3.ForAll([ip1, ip2], f2_acl_func(ip1, ip2)))
 
 
-# OLD: ∀f_firewall_send_n_0, f_firewall_send_p_0, f_firewall_send_t_0 : send(f, f_firewall_send_n_0, f_firewall_send_p_0, f_firewall_send_t_0) ⇒ (∃f_firewall_send_t_1 : f_firewall_send_t_1 < f_firewall_send_t_0 ∧ (∃f_firewall_send_n_1 : recv(f_firewall_send_n_1, f, f_firewall_send_p_0, f_firewall_send_t_1)) ∧ f_acl_func(src(f_firewall_send_p_0), dest(f_firewall_send_p_0))) 
-# 
 # NEW: ∀ e:E. snd(e) ∧ src(e) = f ⇒ f_acl_func(src_P(e), dst_P(e)) 
 #	 ∀ e:E. snd(e) ∧ src(e) = f ⇒ t(f_cause(e)) < t(e) ∧ rcv(f_cause(e)) ∧ dst(f_cause(e)) = f ∧ p(f_cause(e)) = p(e)
 assertions.append(z3.ForAll([e1], z3.Implies(z3.And(snd(e1), src(e1) == f1), f1_acl_func(src_P(e1), dst_P(e1)))))
