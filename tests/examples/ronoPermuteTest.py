@@ -43,7 +43,7 @@ def ronoPermuteTest (other_nodes):
                             (fw, ctx.ip_f), \
                             (m, main_mb_addresses)])
     net.SetGateway(a, fw)
-    net.SetGateway(b, m)
+    net.SetGateway(b, fw)
 
     other_endhosts = map(lambda eh: getattr(ctx, eh), other_endhosts)
     other_endhosts_eh = map(lambda eh: components.EndHost(eh, net, ctx), other_endhosts)

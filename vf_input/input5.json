@@ -1,0 +1,610 @@
+{
+    "customer_id" : "11111111-1111-1111-1111-111111111111",
+    "snapshot_id" : "11111111-1211-1111-1111-111111111111",
+    "timestamp" : "1",
+    "stage_completed" :"analyzer",
+    "network_info" :
+    {
+        "devices" :
+        [
+            {
+                "id" : "22222222-2222-2222-2222-222222222222",
+                "type" : "router",
+                "name" : "A",
+                "management_address" : "192.168.1.1",
+                "vendor" : "cisco",
+                "model" : "2600",
+                "os_version" : "12.1",
+                "interfaces" : 
+                [
+                    {
+                        "id" : "11111111-1111-1111-1111-111011111111",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "aa:aa:aa:aa:aa:aa",
+                        "network_address" : "192.168.1.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    },
+                    {
+                        "id" : "11111111-1111-1111-1111-111111111101",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "bb:bb:bb:bb:bb:bb",
+                        "network_address" : "192.168.1.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    }
+                ]
+            },
+            {
+                "id" : "33333333-3333-3333-3333-333333333333",
+                "type" : "router",
+                "name" : "B",
+                "management_address" : "192.168.2.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+                        "id" : "33333333-3333-3333-3333-333333333332",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cc:cc:cc:cc:cc:cc",
+                        "network_address" : "192.168.2.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    },
+                    {
+                        "id" : "33333333-3333-3333-3333-333333333334",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dd:dd:dd:dd:dd:dd",
+                        "network_address" : "192.168.2.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    }
+                ]
+            },
+            {
+                "id" : "44444444-4444-4444-4444-444444444444",
+                "type" : "router",
+                "name" : "C",
+                "management_address" : "192.168.3.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+                        "id" : "33333333-3333-3333-3333-333333333335",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cc:cc:cc:cc:cc:cd",
+                        "network_address" : "192.168.3.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    },
+                    {
+                        "id" : "33333333-3333-3333-3333-333333333337",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dd:dd:dd:dd:dd:de",
+                        "network_address" : "192.168.3.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    }
+                ]
+            },
+            {
+                "id" : "55555555-5555-5555-5555-555555555555",
+                "type" : "router",
+                "name" : "D",
+                "management_address" : "192.168.4.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+                        "id" : "55555555-5555-5555-5555-555555555585",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cc:cc:cc:cb:cc:cd",
+                        "network_address" : "192.168.4.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0,
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						}
+                    },
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "55555555-5555-5555-5555-555555505555",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dd:dd:dd:db:dd:de",
+                        "network_address" : "192.168.4.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1
+                    }
+                ]
+            },
+            {
+                "id" : "66666666-6666-6666-6666-666666666666",
+                "type" : "router",
+                "name" : "E",
+                "management_address" : "192.168.5.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "66666666-6666-6666-6666-666666266666",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cc:cc:cc:ec:cc:cd",
+                        "network_address" : "192.168.5.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0
+                    },
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "66666666-6666-6666-6666-666666166666",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dd:dd:dd:df:dd:de",
+                        "network_address" : "192.168.5.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1
+                    }
+                ]
+            },
+            {
+                "id" : "77777777-7777-7777-7777-777777777777",
+                "type" : "router",
+                "name" : "F",
+                "management_address" : "192.168.6.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "77777777-7777-7777-7777-777757777777",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cd:c3:cc:cc:cc:cd",
+                        "network_address" : "192.168.6.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0
+                    },
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "77777777-7777-7777-7777-777777776777",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dc:d2:dd:dd:dd:de",
+                        "network_address" : "192.168.6.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1
+                    }
+                ]
+            },
+            {
+                "id" : "88888888-8888-8888-8888-888888888888",
+                "type" : "router",
+                "name" : "G",
+                "management_address" : "192.168.7.1",
+                "vendor" : "juniper",
+                "model" : "9000",
+                "os_version" : "10.5",
+                "interfaces" : 
+                [
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "88888888-8888-8888-8888-888888828888",
+                        "type" : "ethernet",
+                        "name" : "fe0/0",
+                        "hardware_address" : "cd:c6:cc:cc:cc:cd",
+                        "network_address" : "192.168.7.1",
+                        "vlan_id" : 5,
+                        "speed" : 100,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 0
+                    },
+                    {
+						"link" : 
+						{
+							"bandwidth" : -1,
+							"latency" : -1,
+							"next_hop_device_id" : "",
+							"next_hop_interface_id" : "",
+							"type" : ""
+						},
+                        "id" : "88888888-8888-8888-8888-888888818888",
+                        "type" : "serial",
+                        "name" : "se0/0",
+                        "hardware_address" : "dc:d0:dd:dd:dd:de",
+                        "network_address" : "192.168.7.2",
+                        "vlan_id" : 5,
+                        "speed" : 1000,
+                        "admin_status" : true,
+                        "protocol_status" : true,
+                        "port" : 1
+                    }
+                ]
+            }
+        ],
+        "rules" :
+        [
+            {
+                "id" : 1,
+                "device_id" : "22222222-2222-2222-2222-222222222222",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "0.0.0.0",
+                        "mask" : "0.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.2.1"
+                    }
+                ]
+            },
+            {
+                "id" : 2,
+                "device_id" : "33333333-3333-3333-3333-333333333333",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "0.0.0.0",
+                        "mask" : "0.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.4.1"
+                    }
+                ]
+            },
+            {
+                "id" : 3,
+                "device_id" : "44444444-4444-4444-4444-444444444444",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "0.0.0.0",
+                        "mask" : "0.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.1.1"
+                    }
+                ]
+            },
+            {
+                "id" : 4,
+                "device_id" : "77777777-7777-7777-7777-777777777777",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "0.0.0.0",
+                        "mask" : "0.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 14,
+                        "value" : "drop"
+                    }
+                ]
+            },
+            {
+                "id" : 5,
+                "device_id" : "44444444-4444-4444-4444-444444444444",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "192.168.0.0",
+                        "mask" : "255.255.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.4.1"
+                    }
+                ]
+            },
+            {
+                "id" : 6,
+                "device_id" : "55555555-5555-5555-5555-555555555555",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "128.0.0.0",
+                        "mask" : "128.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.5.1"
+                    }
+                ]
+            },
+            {
+                "id" : 7,
+                "device_id" : "55555555-5555-5555-5555-555555555555",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "128.0.0.0",
+                        "mask" : "128.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 13,
+                        "value" : "local"
+                    }
+                ]
+            },
+            {
+                "id" : 8,
+                "device_id" : "66666666-6666-6666-6666-666666666666",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "10.0.0.0",
+                        "mask" : "255.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.6.1"
+                    }
+                ]
+            },
+            {
+                "id" : 9,
+                "device_id" : "66666666-6666-6666-6666-666666666666",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "dl_src" :
+                    {
+                        "value" : "80:00:00:00:00:00",
+                        "mask" : "80:00:00:00:00:00"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.7.1"
+                    }
+                ]
+            },
+            {
+                "id" : 10,
+                "device_id" : "88888888-8888-8888-8888-888888888888",
+                "priority" : 1,
+                "cost" : 255,
+                "match" : 
+                {
+                    "nw_dst" :
+                    {
+                        "value" : "0.0.0.0",
+                        "mask" : "0.0.0.0"
+                    }
+
+                },
+                "actions" : 
+                [
+                    {
+                        "type" : 0,
+                        "value" : "192.168.4.1"
+                    }
+                ]
+            }
+           
+        ]
+    },
+    "invariants" :
+    [
+        {
+            "id" : 1,
+            "arguments" : null,
+            "name" : "Loop Detection",
+            "type" : 0
+        }
+    ]
+}
+

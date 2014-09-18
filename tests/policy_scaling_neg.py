@@ -1,4 +1,4 @@
-from examples import PolicyScale
+from examples import PolicyScaleNeg
 import z3
 from z3 import is_true, is_false
 import time
@@ -17,11 +17,11 @@ for sz in xrange(2, 500):
     for it in xrange(0, iters):
         bad = False
         ResetZ3()
-        pobj = PolicyScale(sz)
+        pobj = PolicyScaleNeg(sz)
         start = time.time()
         ret = pobj.check.CheckIsolationProperty(pobj.a, pobj.b)
         stop = time.time()
-        if z3.sat != ret.result:
+        if z3.unsat != ret.result:
             bad = True
         if not bad:
             times.append(stop - start)

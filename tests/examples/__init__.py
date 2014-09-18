@@ -30,6 +30,7 @@ from trivial_ctr_example import *
 from lsrr_example import *
 from lsrr_fw_example import *
 from increasing_path_test import *
+from increasing_path_test_neg import *
 from increasing_node_test import *
 from increasing_dumb_node_test import *
 from increasing_policy_node_test import *
@@ -41,6 +42,8 @@ from lsrr_fw_triv import *
 from testl7firewall import *
 from testl7firewallproxy import *
 from policy_test import *
+from policy_test_neg import *
 from policy_branch_test import *
 from permuteTest import *
 from ronoPermuteTest import *
+from single_fw import *

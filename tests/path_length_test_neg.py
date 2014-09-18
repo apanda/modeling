@@ -30,14 +30,14 @@ for sz in xrange(1, 200):
     all_bad = True
     for it in xrange(0, iters):
         ResetZ3()
-        obj = PathLengthTest (sz)
+        obj = PathLengthTestNeg (sz)
         # Set timeout to some largish number
         obj.check.solver.set(timeout=10000000)
         start = time.time()
         ret = obj.check.CheckIsolationProperty(obj.e_0, obj.e_1)
         stop = time.time()
         bad = False
-        if z3.sat != ret.result:
+        if z3.unsat != ret.result:
             bad = True
         if not bad:
             times.append(stop - start)

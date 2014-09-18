@@ -44,7 +44,7 @@ class AclFirewall (NetworkObject):
                         z3.And(t_1 < t_0, \
                         z3.Exists([n_1], \
                             self.ctx.recv(n_1, self.fw, p_0, t_1)), \
-                        self.acl_func(self.ctx.packet.src(p_0), self.ctx.packet.dest(p_0)))))))
+                        z3.Not(self.acl_func(self.ctx.packet.src(p_0), self.ctx.packet.dest(p_0))))))))
 
     def _aclConstraints(self, solver):
         if len(self.acls) == 0:

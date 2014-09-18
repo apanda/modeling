@@ -1,6 +1,6 @@
 import components
 import itertools
-def PolicyScale (naddress):
+def PolicyScaleNeg (naddress):
     nodes = ['a', 'b', 'f']
     
     a_address = ['ip_a%d'%(a) for a in xrange(naddress)]
@@ -30,7 +30,7 @@ def PolicyScale (naddress):
     f_routing_table.extend([(addr, b) for addr in b_addrs])
     net.RoutingTable(f, f_routing_table)
     acls = list(itertools.product(a_addrs, b_addrs))
-    f.AddAcls (acls[:-1])
+    f.AddAcls (acls)
     net.Attach(a, b, f)
     class TrivialReturn (object):
         def __init__ (self, net, ctx, a, b, f):
