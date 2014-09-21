@@ -89,6 +89,91 @@ class PropertyChecker (object):
         self.solver.pop()
         return IsolationResult(result, p, n_0, t_1, t_0, self.ctx, assertions, model)
 
+    def CheckNodeTraversalProperty (self, src, dest, node):
+        class IsolationResult (object):
+            def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
+                self.ctx = ctx
+                self.result = result
+                self.violating_packet = violating_packet
+                self.last_hop = last_hop
+                self.model = model
+                self.last_send_time = last_send_time
+                self.last_recv_time = last_recv_time
+                self.assertions = assertions
+
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        self.solver.push ()
+        self.AddConstraints()
+        p = z3.Const('check_isolation_p_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        n_0 = z3.Const('check_isolation_n_0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_1 = z3.Const('check_isolation_n_1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_2 = z3.Const('check_isolation_n_2_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        t_0 = z3.Int('check_isolation_t0_%s_%s'%(src.z3Node, dest.z3Node))
+        t_1 = z3.Int('check_isolation_t1_%s_%s'%(src.z3Node, dest.z3Node))
+        t_2 = z3.Int('check_isolation_t2_%s_%s'%(src.z3Node, dest.z3Node))
+        self.solver.add(self.ctx.recv(n_0, dest.z3Node, p, t_0))
+        self.solver.add(self.ctx.send(src.z3Node, n_1, p, t_1))
+        self.solver.add(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
+        self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
+        self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
+            z3.And(self.ctx.recv(n_2, node.z3Node, p, t_2), \
+                   t_2 < t_0))))
+        self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
+            z3.And(self.ctx.send(node.z3Node, n_2, p, t_2), \
+                   t_2 < t_0))))
+        result = self.solver.check()
+        model = None
+        assertions = self.solver.assertions()
+        if result == z3.sat:
+            model = self.solver.model()
+        self.solver.pop()
+        return IsolationResult(result, p, n_0, t_1, t_0, self.ctx, assertions, model)
+
+    def CheckLinkTraversalProperty (self, src, dest, le0, le1):
+        class IsolationResult (object):
+            def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
+                self.ctx = ctx
+                self.result = result
+                self.violating_packet = violating_packet
+                self.last_hop = last_hop
+                self.model = model
+                self.last_send_time = last_send_time
+                self.last_recv_time = last_recv_time
+                self.assertions = assertions
+
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        self.solver.push ()
+        self.AddConstraints()
+        p = z3.Const('check_isolation_p_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        n_0 = z3.Const('check_isolation_n_0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_1 = z3.Const('check_isolation_n_1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_2 = z3.Const('check_isolation_n_2_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        t_0 = z3.Int('check_isolation_t0_%s_%s'%(src.z3Node, dest.z3Node))
+        t_1 = z3.Int('check_isolation_t1_%s_%s'%(src.z3Node, dest.z3Node))
+        t_2 = z3.Int('check_isolation_t2_%s_%s'%(src.z3Node, dest.z3Node))
+        self.solver.add(self.ctx.recv(n_0, dest.z3Node, p, t_0))
+        self.solver.add(self.ctx.send(src.z3Node, n_1, p, t_1))
+        self.solver.add(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
+        self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
+        self.solver.add(\
+           z3.Or(z3.Exists([t_1, t_2], z3.And(self.ctx.send(le0.z3Node, le1.z3Node, p, t_1), \
+                        self.ctx.recv(le0.z3Node, le1.z3Node, p, t_2), \
+                        t_1 < t_0, \
+                        t_2 < t_0))))
+                 #z3.And(self.ctx.send(le1.z3Node, le0.z3Node, p, t_1), \
+                        #self.ctx.recv(le1.z3Node, le0.z3Node, p, t_2), \
+                        #t_2 < t_0, \
+                        #t_1 < t_0)))
+        result = self.solver.check()
+        model = None
+        assertions = self.solver.assertions()
+        if result == z3.sat:
+            model = self.solver.model()
+        self.solver.pop()
+        return IsolationResult(result, p, n_0, t_1, t_0, self.ctx, assertions, model)
+
     def CheckDataIsolationPropertyCore (self, src, dest):
         class Result(object):
             def __init__ (self, core):

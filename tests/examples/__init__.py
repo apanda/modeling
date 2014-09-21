@@ -47,3 +47,4 @@ from policy_branch_test import *
 from permuteTest import *
 from ronoPermuteTest import *
 from single_fw import *
+from NodeTraversalTest import *
