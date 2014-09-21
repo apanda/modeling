@@ -66,8 +66,12 @@ class ModelContext(object):
           constraint = z3.ForAll(left_vars, \
                   z3.Implies(v.constraints, \
                      z3.Or(right_constraint)))
+          #constraint = z3.ForAll(left_vars, \
+                  #v.constraints == \
+                     #z3.Or(right_constraint))
         else:
           constraint = z3.Implies(v.constraints, z3.Or(right_constraint))
+          #constraint = (v.constraints == z3.Or(right_constraint))
       else:
         if len(left_vars) > 0:
           constraint = z3.ForAll(left_vars, v.constraints)

@@ -26,7 +26,7 @@ def ConvertedLearningFwTest ():
                           (ctx.ip_d, d)])
     net.Attach(a, b, c, d, fw)
     endhosts = [a, b, c, d]
-    fw.AddAcls([(ctx.ip_a, ctx.ip_b), (ctx.ip_c, ctx.ip_d)])
+    fw.AddAcls([(ctx.ip_a, ctx.ip_b)])
     net.Attach(a, b, c, d, fw)
     endhosts = [a, b, c, d]
     class LearnFwReturn (object):
