@@ -62,7 +62,6 @@ def FlatTenant (ext, internal):
   for (idx, a, fw) in zip(range(internal), host_addresses, firewall_concrete):
     acls = []
     for out in out_addresses:
-      acls.append((getattr(ctx, a), getattr(ctx, out)))
       acls.append((getattr(ctx, out), getattr(ctx, a)))
     fw.AddAcls(acls)
   net.Attach(*host_concrete)
@@ -148,9 +147,10 @@ def RichMultiTenant (tenant, external, internal):
           continue
         tbegin2 = t2 * total_per_tenant
         for out in host_addresses[tbegin2:tbegin2 + total_per_tenant]:
-          #acls.append((getattr(ctx, a), getattr(ctx, out)))
           acls.append((getattr(ctx, out), getattr(ctx, a)))
       fw.AddAcls(acls)
+      
+
   net.Attach(*host_concrete)
   net.Attach(*firewall_concrete)
   class TennantRet (object):
