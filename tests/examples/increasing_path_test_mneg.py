@@ -1,5 +1,5 @@
 import components
-def PathLengthTest (size, extra_rules):
+def PathLengthTestMNeg (size, extra_rules):
     fws = ['f_%d'%(f) for f in xrange(0, size)]
     # Start with 4 end hosts
     end_hosts = ['e_%d'%(e) for e in xrange(0, 2)]
@@ -12,6 +12,7 @@ def PathLengthTest (size, extra_rules):
     additional_addresses = ['ip_d%d'%d for d in xrange(extra_rules)]
     actual_addresses.extend(additional_addresses)
 
+
     ctx = components.Context(all_nodes, actual_addresses)
     net = components.Network(ctx)
     end_hosts = [components.EndHost(getattr(ctx, e), net, ctx) for e in end_hosts]
@@ -23,12 +24,11 @@ def PathLengthTest (size, extra_rules):
     addresses = [getattr(ctx, ad) for ad in addresses]
     address_mappings = [(ob, ad) for (ob, ad) in zip(all_node_objects, addresses)]
     net.setAddressMappings(address_mappings)
+
     acl_policy = [(ctx.ip_e_0, getattr(ctx, ad)) for ad in additional_addresses]
     firewalls[0].AddAcls(acl_policy)
-
-    #acl_policy = [(ctx.ip_e_0, ctx.ip_e_1), (ctx.ip_e_1, ctx.ip_e_0)]
-    #for fw in firewalls:
-        #fw.AddAcls (acl_policy)
+    acl_policy = [(ctx.ip_e_0, ctx.ip_e_1)]
+    firewalls[0].AddAcls (acl_policy)
 
     """Topology
         e0                     e1

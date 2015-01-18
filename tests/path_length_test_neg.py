@@ -11,7 +11,6 @@ def ResetZ3 ():
     z3.main_ctx()
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
     z3.set_param('smt.mbqi.max_iterations', 10000)
-    z3.set_param('smt.mbqi.trace', True)
     z3.set_param('smt.mbqi.max_cexs', 100)
 #def ResetZ3 ():
     #z3._main_ctx = None
@@ -25,12 +24,12 @@ def ResetZ3 ():
 
 iters = 5 
 bad_in_row = 0
-for sz in xrange(1, 200):
+for sz in xrange(1, 50):
     times = []
     all_bad = True
     for it in xrange(0, iters):
         ResetZ3()
-        obj = PathLengthTestNeg (sz)
+        obj = PathLengthTestNeg (sz, 120)
         # Set timeout to some largish number
         obj.check.solver.set(timeout=10000000)
         start = time.time()

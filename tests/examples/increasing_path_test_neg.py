@@ -1,5 +1,5 @@
 import components
-def PathLengthTestNeg (size):
+def PathLengthTestNeg (size, extra_rules):
     fws = ['f_%d'%(f) for f in xrange(0, size)]
     # Start with 4 end hosts
     end_hosts = ['e_%d'%(e) for e in xrange(0, 2)]
@@ -8,11 +8,15 @@ def PathLengthTestNeg (size):
     all_nodes.extend(fws)
 
     addresses = ['ip_%s'%(n) for n in all_nodes]
+    actual_addresses = list(addresses)
+    additional_addresses = ['ip_d%d'%d for d in xrange(extra_rules)]
+    actual_addresses.extend(additional_addresses)
 
-    ctx = components.Context(all_nodes, addresses)
+
+    ctx = components.Context(all_nodes, actual_addresses)
     net = components.Network(ctx)
     end_hosts = [components.EndHost(getattr(ctx, e), net, ctx) for e in end_hosts]
-    firewalls = [components.AclFirewall(getattr(ctx, f), net, ctx) for f in fws]
+    firewalls = [components.LearningFirewall(getattr(ctx, f), net, ctx) for f in fws]
     [e0, e1] = end_hosts
     all_node_objects = []
     all_node_objects.extend(end_hosts)
@@ -22,8 +26,9 @@ def PathLengthTestNeg (size):
     net.setAddressMappings(address_mappings)
 
     acl_policy = [(ctx.ip_e_0, ctx.ip_e_1), (ctx.ip_e_1, ctx.ip_e_0)]
-    for fw in firewalls:
-        fw.AddAcls (acl_policy)
+    firewalls[0].AddAcls (acl_policy)
+    acl_policy = [(ctx.ip_e_0, getattr(ctx, ad)) for ad in additional_addresses]
+    firewalls[0].AddAcls(acl_policy)
 
     """Topology
         e0                     e1

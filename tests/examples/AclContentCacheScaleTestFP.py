@@ -1,13 +1,16 @@
 import components
-def AclContentCacheScaleTest (endhosts):
+def AclContentCacheScaleTestFP (endhosts):
     """ACL content cache test"""
     nodes = ['cc', 'f', 's0', 's1']
-    nodes.extend(['n_%d'%(i) for i in xrange(1, endhosts + 1)])
+    nodes.extend(['n_%d'%(i) for i in xrange(1, 3)])
     addresses = ['ip_%s'%(n) for n in nodes]
-    ctx = components.Context(nodes, addresses)
+    other_addresses = ['ip_n_%d'%(d) for d in xrange(3, endhosts + 1)]
+    act_addresses = list(addresses)
+    act_addresses.extend(other_addresses)
+    ctx = components.Context(nodes, act_addresses)
     net = components.Network (ctx)
     hosts = []
-    for e in ['n_%d'%(i) for i in xrange(1, endhosts + 1)]:
+    for e in ['n_%d'%(i) for i in xrange(1, 3)]:
       hosts.append(components.EndHost(getattr(ctx, e), net, ctx))
     s0 = components.EndHost(ctx.s0, net, ctx)
     s1 = components.EndHost(ctx.s1, net, ctx)

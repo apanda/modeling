@@ -1,4 +1,5 @@
 import components
+from itertools import repeat
 def RonoDMZTest (ndmz, nhosts, nquarantine):
   """Some random real world test"""
   
@@ -268,3 +269,104 @@ def NoRonoTest (ndmz, nhosts, nquarantine):
       self.net = net
       self.check = components.PropertyChecker(ctx, net)
   return AllRet(outside, firewall, quarantine, hosts, dmz, ctx, net)
+
+def NoRonoTestPath (ndmz, nhosts, nquarantine, nrouters):
+  """Some random real world test"""
+  fws = ['f_%d'%(f) for f in xrange(0, nrouters)]
+  fw_addresses = ['ip_%s'%(f) for f in fws]
+  outside = 'o'
+  outside_address = 'ip_o'
+  hosts = ['h%d'%(i) for i in xrange(nhosts)]
+  dmz = ['d%d'%(i) for i in xrange(ndmz)]
+  quarantine = ['q%d'%(i) for i in xrange(nquarantine)]
+  host_addresses = ['ip_%s'%(h) for h in hosts]
+  dmz_addresses = ['ip_%s'%(d) for d in dmz]
+  quarantine_addresses = ['ip_%s'%(q) for q in quarantine]
+  
+  nodes = [outside]
+  nodes.extend(fws)
+  nodes.extend(dmz)
+  nodes.extend(quarantine)
+  nodes.extend(hosts)
+
+  addresses = [outside_address]
+  addresses.extend(fw_addresses)
+  addresses.extend(host_addresses)
+  addresses.extend(dmz_addresses)
+  addresses.extend(quarantine_addresses)
+  
+  ctx = components.Context(nodes, addresses)
+  net = components.Network(ctx)
+
+  outside = components.EndHost(getattr(ctx, outside), net, ctx)
+  outside_address = getattr(ctx, outside_address)
+
+  firewalls = [components.LearningFirewall(getattr(ctx, fw), net, ctx) for fw in fws]
+  fw_addresses = [getattr(ctx, fw_address) for fw_address in fw_addresses]
+
+  hosts = [components.EndHost(getattr(ctx, host), net, ctx) for host in hosts]
+  host_addresses = [getattr(ctx, ha) for ha in host_addresses]
+
+  dmz = [components.EndHost(getattr(ctx, d), net, ctx) for d in dmz]
+  dmz_addresses = [getattr(ctx, da) for da in dmz_addresses]
+
+  quarantine = [components.EndHost(getattr(ctx, q), net, ctx) for q in quarantine]
+  quarantine_addresses = [getattr(ctx, qa) for qa in quarantine_addresses]
+
+  addressMap = [(outside, outside_address)]
+  addressMap.extend(zip(firewalls, fw_addresses))
+  addressMap.extend(zip(hosts, host_addresses))
+  addressMap.extend(zip(dmz, dmz_addresses))
+  addressMap.extend(zip(quarantine, quarantine_addresses))
+  net.setAddressMappings(addressMap)
+
+  for fw_i in xrange(len(firewalls)):
+      fw_routing_table = [(outside_address, outside) if fw_i == 0 else (outside_address, firewalls[fw_i - 1])]
+      if fw_i + 1 == nrouters:
+        fw_routing_table.extend(zip(host_addresses, hosts))
+        fw_routing_table.extend(zip(dmz_addresses, dmz))
+        fw_routing_table.extend(zip(quarantine_addresses, quarantine))
+      else:
+        fw_routing_table.extend(zip(host_addresses, repeat(firewalls[fw_i + 1])))
+        fw_routing_table.extend(zip(dmz_addresses, repeat(firewalls[fw_i + 1])))
+        fw_routing_table.extend(zip(quarantine_addresses, repeat(firewalls[fw_i + 1])))
+      net.RoutingTable(firewalls[fw_i], fw_routing_table)
+
+  other_routing_table = [(outside_address, outside)]
+  other_routing_table.extend([(ad, firewalls[0]) for ad in host_addresses])
+  other_routing_table.extend([(ad, firewalls[0]) for ad in dmz_addresses])
+  other_routing_table.extend([(ad, firewalls[0]) for ad in quarantine_addresses])
+  net.RoutingTable(outside, other_routing_table)
+
+  other_routing_table = [(outside_address, firewalls[-1])]
+  other_routing_table.extend([(ad, firewalls[-1]) for ad in host_addresses])
+  other_routing_table.extend([(ad, firewalls[-1]) for ad in dmz_addresses])
+  other_routing_table.extend([(ad, firewalls[-1]) for ad in quarantine_addresses])
+  for host in hosts:
+    net.RoutingTable(host, other_routing_table)
+  for host in dmz:
+    net.RoutingTable(host, other_routing_table)
+  for host in quarantine:
+    net.RoutingTable(host, other_routing_table)
+  for ad in host_addresses:
+    firewalls[0].AddAcls([(outside_address, ad)])
+  for ad in quarantine_addresses:
+    firewalls[0].AddAcls([(ad, outside_address), (outside_address, ad)])
+  
+  all_nodes = [outside]
+  all_nodes.extend(firewalls)
+  all_nodes.extend(hosts)
+  all_nodes.extend(dmz)
+  all_nodes.extend(quarantine)
+  net.Attach(*all_nodes)
+  class AllRet(object):
+    def __init__ (self, outside, firewalls, quarantine, hosts, dmz, ctx, net):
+      self.outside = outside
+      self.firewall = firewalls
+      self.quarantine = quarantine
+      self.hosts = hosts
+      self.dmz = dmz
+      self.ctx = ctx
+      self.net = net
+      self.check = components.PropertyChecker(ctx, net)
+  return AllRet(outside, firewalls, quarantine, hosts, dmz, ctx, net)

@@ -11,6 +11,7 @@ from ContentCacheTest2 import *
 from AclContentCacheTest import *
 from AclContentCacheSimpleTest import *
 from AclContentCacheScaleTest import *
+from AclContentCacheScaleTestFP import *
 from dpiFw import *
 from trivial import *
 from trivial_wan_opt import *
@@ -31,6 +32,7 @@ from lsrr_example import *
 from lsrr_fw_example import *
 from increasing_path_test import *
 from increasing_path_test_neg import *
+from increasing_path_test_mneg import *
 from increasing_node_test import *
 from increasing_dumb_node_test import *
 from increasing_policy_node_test import *
@@ -48,3 +50,5 @@ from permuteTest import *
 from ronoPermuteTest import *
 from single_fw import *
 from NodeTraversalTest import *
+from LinkTraversalScaling import *
+from fattree_fws import *
