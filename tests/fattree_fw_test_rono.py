@@ -70,14 +70,14 @@ def Rono(tenants, internal, external, seed):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
-    parser.add_argument('iters', type=int, nargs='?', default=10)
-    parser.add_argument('imin', type=int, nargs='?', default=1)
-    parser.add_argument('imax', type=int, nargs='?', default=10)
-    parser.add_argument('emin', type=int, nargs='?', default=1)
-    parser.add_argument('emax', type=int, nargs='?', default=10)
-    parser.add_argument('tmin', type=int, nargs='?', default=2)
-    parser.add_argument('tmax', type=int, nargs='?', default=25)
-    parser.add_argument('seed', type=int, nargs='?', default=42)
+    parser.add_argument('--iters', type=int, nargs='?', default=10)
+    parser.add_argument('--imin', type=int, nargs='?', default=1)
+    parser.add_argument('--imax', type=int, nargs='?', default=10)
+    parser.add_argument('--emin', type=int, nargs='?', default=1)
+    parser.add_argument('--emax', type=int, nargs='?', default=10)
+    parser.add_argument('--tmin', type=int, nargs='?', default=2)
+    parser.add_argument('--tmax', type=int, nargs='?', default=25)
+    parser.add_argument('--seed', type=int, nargs='?', default=42)
     args = parser.parse_args()
     iters = args.iters
     int_min = args.imin
