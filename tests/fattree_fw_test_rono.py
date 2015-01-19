@@ -3,20 +3,21 @@ import z3
 import time
 import random
 import sys
+import argparse
 
-def ResetZ3 ():
+def ResetZ3 (seed):
     z3._main_ctx = None
     z3.main_ctx()
-    z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
+    z3.set_param('smt.random_seed', seed)
 
-def NonRono(tenants, internal, external):
+def Rono(tenants, internal, external, seed):
     # Check all internal unreachable from each other
     total_per_tenant = internal + external
     int_checks = 0
     int_time = 0.0
     for i in xrange(internal):
         for t in xrange(1, tenants):
-            ResetZ3()
+            ResetZ3(seed)
             topo = RichMultiTenantUnattach(tenants, external, internal)
             start = time.time()
             topo.net.Attach(topo.hosts[i], topo.hosts[i + (t * total_per_tenant)], \
@@ -32,7 +33,7 @@ def NonRono(tenants, internal, external):
     ext_int_checks = 0
     for i in xrange(external):
         for t in xrange(1, tenants):
-            ResetZ3()
+            ResetZ3(seed)
             topo = RichMultiTenantUnattach(tenants, external, internal)
             start = time.time()
             topo.net.Attach(topo.hosts[i + (t * total_per_tenant) + internal],\
@@ -51,7 +52,7 @@ def NonRono(tenants, internal, external):
     # Check externals from other tenants are reachable from internal 0
     for i in xrange(external):
         for t in xrange(1, tenants):
-            ResetZ3()
+            ResetZ3(seed)
             topo = RichMultiTenantUnattach(tenants, external, internal)
             start = time.time()
             topo.net.Attach(topo.hosts[0],\
@@ -68,17 +69,28 @@ def NonRono(tenants, internal, external):
     return (int_average, ext_int_average, int_ext_average)
 
 if __name__ == "__main__":
-    iters = 10
-    int_min = 1
-    ext_min = 1
-    tenant_min = 2
-    int_max = 10
-    ext_max = 10
-    tenant_max = 25
+    parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
+    parser.add_argument('iters', type=int, nargs='?', default=10)
+    parser.add_argument('imin', type=int, nargs='?', default=1)
+    parser.add_argument('imax', type=int, nargs='?', default=10)
+    parser.add_argument('emin', type=int, nargs='?', default=1)
+    parser.add_argument('emax', type=int, nargs='?', default=10)
+    parser.add_argument('tmin', type=int, nargs='?', default=2)
+    parser.add_argument('tmax', type=int, nargs='?', default=25)
+    parser.add_argument('seed', type=int, nargs='?', default=42)
+    args = parser.parse_args()
+    iters = args.iters
+    int_min = args.imin
+    ext_min = args.emin
+    tenant_min = args.tmin
+    int_max = args.imax
+    ext_max = args.emax
+    tenant_max = args.tmax
+    seed = args.seed
     print "tenant int ext ia eia iea"
     for iter in xrange(iters):
         for tenant in xrange(tenant_min, tenant_max):
             for i in xrange(int_min, int_max):
                 for e in xrange(ext_min, ext_max):
-                    (ia, eia, iea) = NonRono(tenant, i, e)
+                    (ia, eia, iea) = Rono(tenant, i, e, seed)
                     print "%d %d %d %f %f %f"%(tenant, i, e, ia, eia, iea)
