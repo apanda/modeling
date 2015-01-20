@@ -1,9 +1,8 @@
 import components
 from itertools import repeat
 
-def SimpleIDSShuntTopo ():
-    nhosts = 3
-    nids = 1
+def SimpleIDSShuntTopo (nhosts, nids):
+    # Use different scrubbers for different idses
     nshunts = nids
     nfirewalls = nhosts - nids
 
@@ -58,7 +57,7 @@ def SimpleIDSShuntTopo ():
 
     for (host, ids) in zip(host_concrete, ids_concrete):
         net.SetGateway(host, ids)
-    
+
     # Compute routing tables
     for (host, fw) in zip(host_concrete[len(ids_concrete):], fw_concrete):
         routing_table = []
@@ -103,10 +102,10 @@ def SimpleIDSShuntTopo ():
         #pass
         fw.AddAcls(fw_acls)
 
-    net.Attach(*host_concrete)
-    net.Attach(*ids_concrete)
-    net.Attach(*fw_concrete)
-    net.Attach(*shunt_concrete)
+    #net.Attach(*host_concrete)
+    #net.Attach(*ids_concrete)
+    #net.Attach(*fw_concrete)
+    #net.Attach(*shunt_concrete)
 
     class SimpleIDSShuntRet (object):
         def __init__ (self):
