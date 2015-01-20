@@ -88,6 +88,30 @@ class Network (Core):
                     z3.Implies(z3.And(self.ctx.send(node.z3Node, n_0, p_0, t_0), predicates), \
                                 n_0 == dnode.z3Node)))
 
+    def RoutingTableShunt (self, node, routing_table, shunt_node):
+        """ Routing entries are of the form address -> node. Also allows packet to be sent to another
+        box for further processing"""
+        compositionPolicy = map(lambda (d, n): (destAddrPredicate(self.ctx, d), n), routing_table)
+        self.CompositionPolicyShunt(node, compositionPolicy, shunt_node)
+
+    def CompositionPolicyShunt (self, node, policy, shunt_node):
+        """ Composition policies steer packets between middleboxes.
+            Policy is of the form predicate -> node"""
+        p_0 = z3.Const('%s_composition_p_0'%(node), self.ctx.packet)
+        n_0 = z3.Const('%s_composition_n_0'%(node), self.ctx.node)
+        t_0 = z3.Int('%s_composition_t_0'%(node))
+        collected = defaultdict(list)
+        node_dict = {}
+        for (predicate, dnode) in policy:
+            collected[str(dnode)].append(predicate)
+            node_dict[str(dnode)] = dnode
+        for nk, predicates in collected.iteritems():
+            dnode = node_dict[nk]
+            predicates = z3.Or(map(lambda p: p(p_0), predicates))
+            self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
+                    z3.Implies(z3.And(self.ctx.send(node.z3Node, n_0, p_0, t_0), predicates), \
+                                z3.Or(n_0 == dnode.z3Node, n_0 == shunt_node.z3Node))))
+
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but
         useful when interfering policies are in play."""

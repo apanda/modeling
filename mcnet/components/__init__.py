@@ -44,6 +44,8 @@ __all__ = ['Core', \
            #'VERIFIED_GLOBAL', \
            #'UNKNOWN', \
            #'srcAddrPredicate'\
+           'SpreadIDS', \
+           'Scrubber', \
            ]
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -76,3 +78,5 @@ from checker import PropertyChecker
 #from path_isolation_checker import CheckIsPathIndependentIsolated, VERIFIED_ISOLATION, VERIFIED_GLOBAL, UNKNOWN
 #from path_isolation_time import CheckIsPathIndependentIsolatedTime
 #from lsrr import LSRROption, LSRRRouter
+from spreadids import SpreadIDS
+from scrubber import Scrubber
