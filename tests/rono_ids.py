@@ -15,9 +15,9 @@ def Rono(internal, external, seed, samples):
     total_time = 0.0
     for (idx, i) in zip(xrange(samples), xrange(external)):
         ResetZ3(seed)
-        topo = SimpleIDSShuntTopo ((internal + external), external)
+        topo = SimpleIDSShuntTopo ((internal + external), external, 1)
         start = time.time()
-        topo.net.Attach(topo.hosts[i], topo.ids[i], topo.shunts[i], \
+        topo.net.Attach(topo.hosts[i], topo.ids[i], topo.shunts[0], \
                 topo.fws[0], topo.hosts[external])
         result = topo.checker.CheckIsolationProperty(topo.hosts[i], topo.hosts[external])
         stop = time.time()

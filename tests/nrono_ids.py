@@ -14,7 +14,7 @@ def Rono(internal, external, seed, samples):
     total_checks = 0
     total_time = 0.0
     ResetZ3(seed)
-    topo = SimpleIDSShuntTopo ((internal + external), external)
+    topo = SimpleIDSShuntTopo ((internal + external), external, 1)
     topo.net.Attach(*topo.fws)
     topo.net.Attach(*topo.hosts)
     topo.net.Attach(*topo.shunts)

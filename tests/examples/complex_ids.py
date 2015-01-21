@@ -1,9 +1,8 @@
 import components
-from itertools import repeat
+from itertools import cycle
 
-def SimpleIDSShuntTopo (nhosts, nids):
+def SimpleIDSShuntTopo (nhosts, nids, nshunts):
     # Use different scrubbers for different idses
-    nshunts = nids
     nfirewalls = nhosts - nids
 
     hosts = ['h%d'%(i) for i in xrange(nhosts)]
@@ -44,8 +43,8 @@ def SimpleIDSShuntTopo (nhosts, nids):
         address_mappings.append((shunt_concrete[-1], getattr(ctx, address)))
 
     ids_concrete = []
-    for (index, (ids, address)) in enumerate(zip(idses, ids_addresses)):
-        ids_concrete.append(components.SpreadIDS(getattr(ctx, ids), net, ctx, shunt_concrete[index]))
+    for (ids, address, shunt) in zip(idses, ids_addresses, cycle(shunt_concrete)):
+        ids_concrete.append(components.SpreadIDS(getattr(ctx, ids), net, ctx, shunt))
         address_mappings.append((ids_concrete[-1], getattr(ctx, address)))
 
     fw_concrete = []
@@ -65,7 +64,7 @@ def SimpleIDSShuntTopo (nhosts, nids):
             routing_table.append((getattr(ctx, a), fw))
         net.RoutingTable(host, routing_table)
 
-    for (ids, shunt) in zip(ids_concrete, shunt_concrete):
+    for (ids, shunt) in zip(ids_concrete, cycle(shunt_concrete)):
         routing_table = []
         for (a, i) in zip(host_addresses, ids_concrete):
             if str(i) == str(ids):
