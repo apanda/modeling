@@ -46,6 +46,8 @@ __all__ = ['Core', \
            #'srcAddrPredicate'\
            'SpreadIDS', \
            'Scrubber', \
+           'SecurityGroups', \
+           'PolicyFirewall', \
            ]
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -80,3 +82,5 @@ from checker import PropertyChecker
 #from lsrr import LSRROption, LSRRRouter
 from spreadids import SpreadIDS
 from scrubber import Scrubber
+from security_groups import SecurityGroups
+from policy_firewall import PolicyFirewall
