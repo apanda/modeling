@@ -12,18 +12,20 @@ def ResetZ3 (seed):
 
 def Rono(internal, external, seed, samples):
     total_checks = 0
+    times = []
     total_time = 0.0
     for (idx, i) in zip(xrange(samples), xrange(external)):
         ResetZ3(seed)
         topo = SimpleIDSShuntTopo ((internal + external), external, 1)
-        start = time.time()
         topo.net.Attach(topo.hosts[i], topo.ids[i], topo.shunts[0], \
                 topo.fws[0], topo.hosts[external])
+        start = time.time()
         result = topo.checker.CheckIsolationProperty(topo.hosts[i], topo.hosts[external])
         stop = time.time()
         total_time += (stop - start)
+        times.append(stop - start)
         total_checks += 1 
-    return total_time / float(total_checks)
+    return (total_time / float(total_checks), times)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
@@ -46,5 +48,6 @@ if __name__ == "__main__":
     for iter in xrange(iters):
         for i in xrange(int_min, int_max):
             for e in xrange(ext_min, ext_max):
-                t = Rono(i, e, seed, samples)
-                print "%d %d %f"%(i, e, t)
+                (t, times) = Rono(i, e, seed, samples)
+                times = ' '.join(map(str, times))
+                print "%d %d %f %s"%(i, e, t, times)
