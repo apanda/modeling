@@ -64,6 +64,9 @@ class Network (Core):
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
             z3.Implies(self.ctx.send(node.z3Node, n_0, p_0, t_0), \
                                             n_0 == gateway.z3Node)))
+        #self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
+            #z3.Implies(self.ctx.recv(n_0, node.z3Node,  p_0, t_0), \
+                                            #n_0 == gateway.z3Node)))
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
@@ -111,6 +114,22 @@ class Network (Core):
             self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
                     z3.Implies(z3.And(self.ctx.send(node.z3Node, n_0, p_0, t_0), predicates), \
                                 z3.Or(n_0 == dnode.z3Node, n_0 == shunt_node.z3Node))))
+
+    #def SimpleIsolation (self, node, addresses):
+        #p = z3.Const('%s_s_p'%(node), self.ctx.packet)
+        #n = z3.Const('%s_s_n'%(node), self.ctx.node)
+        #t = z3.Int('%s_s_t'%(node))
+        #a_pred = map(lambda a: z3.Or(self.ctx.packet.src(p) == a, \
+                                     #self.ctx.packet.dest(p) == a), \
+                        #addresses)
+        #self.constraints.append(\
+                #z3.ForAll([p, n, t], \
+                  #z3.Implies(self.ctx.recv(n, node.z3Node, p, t), \
+                            #z3.Or(a_pred))))
+        #self.constraints.append(\
+                #z3.ForAll([p, n, t], \
+                  #z3.Implies(self.ctx.send(node.z3Node, n, p, t), \
+                            #z3.Or(a_pred))))
 
     def SetIsolationConstraint (self, node,  adjacencies):
         """Set isolation constraints on a node. Doesn't need to be set but

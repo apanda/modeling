@@ -48,6 +48,7 @@ __all__ = ['Core', \
            'Scrubber', \
            'SecurityGroups', \
            'PolicyFirewall', \
+           'Fabric', \
            ]
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -84,3 +85,4 @@ from spreadids import SpreadIDS
 from scrubber import Scrubber
 from security_groups import SecurityGroups
 from policy_firewall import PolicyFirewall
+from fabric import Fabric

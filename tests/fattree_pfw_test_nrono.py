@@ -18,6 +18,7 @@ def NonRono(tenants, internal, external, samples):
     total_per_tenant = internal + external
     int_checks = 0
     int_time = 0.0
+    times = []
     for i in xrange(internal):
         if int_checks >= samples:
             break
@@ -28,6 +29,7 @@ def NonRono(tenants, internal, external, samples):
             stop = time.time()
             int_time += (stop - start)
             int_checks += 1
+            times.append(stop - start)
             if int_checks >= samples:
                 break
     int_average = int_time / float(int_checks)
@@ -45,6 +47,7 @@ def NonRono(tenants, internal, external, samples):
             stop = time.time()
             ext_int_time += (stop - start)
             ext_int_checks += 1
+            times.append(stop - start)
             if ext_int_checks >= samples:
                 break
 
@@ -63,10 +66,11 @@ def NonRono(tenants, internal, external, samples):
             stop = time.time()
             int_ext_time += (stop - start)
             int_ext_checks += 1
+            times.append(stop - start)
             if int_ext_checks >= samples:
                 break
     int_ext_average = int_ext_time / float(int_ext_checks)
-    return (int_average, ext_int_average, int_ext_average)
+    return (int_average, ext_int_average, int_ext_average, times)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
@@ -89,11 +93,12 @@ if __name__ == "__main__":
     tenant_max = args.tmax
     seed = args.seed
     samples = args.samples
-    print "tenant int ext ia eia iea"
+    print "tenant int ext ia eia iea times"
     for iter in xrange(iters):
         for tenant in xrange(tenant_min, tenant_max):
             for i in xrange(int_min, int_max):
                 for e in xrange(ext_min, ext_max):
                     ResetZ3(seed)
-                    (ia, eia, iea) = NonRono(tenant, i, e, samples)
-                    print "%d %d %d %f %f %f"%(tenant, i, e, ia, eia, iea)
+                    (ia, eia, iea, times) = NonRono(tenant, i, e, samples)
+                    times = ' '.join(map(str, times))
+                    print "%d %d %d %f %f %f %s"%(tenant, i, e, ia, eia, iea, times)
