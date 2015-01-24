@@ -54,3 +54,4 @@ from LinkTraversalScaling import *
 from fattree_fws import *
 from complex_ids import *
 from fattree_pfws import *
+from complex_ids_policy import *
