@@ -26,7 +26,10 @@ def Rono(internal, external, seed, samples):
       times.append(stop - start)
       total_time += (stop - start)
       assert(result.result == z3.sat)
-    for (pub, peer, i) in zip(cycle(topo.priv), cycle(topo.peers), range(samples)):
+    ResetZ3(seed)
+    topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
+    topo.net.Attach(*topo.nodes)
+    for (pub, peer, i) in zip(cycle(topo.quarantine), cycle(topo.peers), range(samples)):
       start = time.time()
       result = topo.checker.CheckIsolationProperty(peer, pub)
       stop = time.time()
@@ -34,7 +37,10 @@ def Rono(internal, external, seed, samples):
       times.append(stop - start)
       total_time += (stop - start)
       assert(result.result == z3.sat)
-    for (pub, peer, i) in zip(cycle(topo.quarantine), cycle(topo.peers), range(samples)):
+    ResetZ3(seed)
+    topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
+    topo.net.Attach(*topo.nodes)
+    for (pub, peer, i) in zip(cycle(topo.priv), cycle(topo.peers), range(samples)):
       start = time.time()
       result = topo.checker.CheckIsolationProperty(peer, pub)
       stop = time.time()
@@ -52,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument('--emin', type=int, nargs='?', default=1)
     parser.add_argument('--emax', type=int, nargs='?', default=10)
     parser.add_argument('--seed', type=int, nargs='?', default=42)
-    parser.add_argument('--samples', type=int, nargs='?', default=2)
+    parser.add_argument('--samples', type=int, nargs='?', default=5)
     args = parser.parse_args()
     iters = args.iters
     int_min = args.imin

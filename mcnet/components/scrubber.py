@@ -8,7 +8,7 @@ class Scrubber (NetworkObject):
         self.net = network
         self.constraints = []
         self.net.SaneSend(self)
-        self.suspicious = z3.Function('%s_suspicious?'%(self.node), self.ctx.packet, z3.BoolSort())
+        #self.suspicious = z3.Function('%s_suspicious?'%(self.node), self.ctx.packet, z3.BoolSort())
         self._scrubberRules()
 
     @property
@@ -28,5 +28,5 @@ class Scrubber (NetworkObject):
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], z3.Implies(self.ctx.send(self.node, n_0, p_0, t_0), \
                                    z3.Exists([n_1, t_1], \
                                      z3.And(self.ctx.recv(n_1, self.node, p_0, t_1), \
-                                            z3.Not(self.suspicious(p_0)), \
+                                            #z3.Not(self.suspicious(p_0)), \
                                             t_1 < t_0)))))

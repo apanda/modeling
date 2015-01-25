@@ -78,6 +78,10 @@ class PolicyFirewall (NetworkObject):
                 b_part = b
             else:
                 assert(False)
+            if isinstance(a, bool) and isinstance(b, bool):
+                solver.add(z3.ForAll([p], self.acl_func(p) == (a and b)))
+                return
+
 
             conditions.append(z3.And(a_part, b_part))
         solver.add(z3.ForAll([p], self.acl_func(p) == z3.Or(conditions)))

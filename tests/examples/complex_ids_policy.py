@@ -94,8 +94,9 @@ def PolicyIDSShuntTopo (npub, npriv, nquar, nids, nshunts):
         routing_table.append((getattr(ctx, pa), peer)) 
         net.RoutingTableShunt(ids, routing_table, shunt)
         net.SetIsolationConstraint(fw, [ids, fabric_concrete[0]])
-        net.SetIsolationConstraint(shunt, [ids, fabric_concrete[0]])
-
+    shunt_iso = list(ids_concrete)
+    shunt_iso.append(fabric_concrete[0])
+    net.SetIsolationConstraint(shunt, shunt_iso)
     for host in host_concrete:
         net.SetIsolationConstraint(host, [shunt, fabric_concrete[0]])
 
