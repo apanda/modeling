@@ -1,5 +1,6 @@
 import z3
-from examples import AclContentCacheScaleTest
+from examples import AclContentCacheScaleTest, AclContentCacheScaleTestFP
+
 import time
 import mcnet.components as components
 import random
@@ -20,9 +21,9 @@ if __name__ == "__main__":
     iters = args.iters 
     start_size = args.min
     stop_size = args.max
-    print 'size sat unsat'
-    for size in xrange(start_size, stop_size):
-        for it in xrange(iters):
+    print 'size R NR'
+    for it in xrange(iters):
+        for size in xrange(start_size, stop_size):
           ResetZ3()
           model = AclContentCacheScaleTest(size)
           start = time.time()
@@ -33,4 +34,15 @@ if __name__ == "__main__":
           res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[0])
           stop = time.time()
           sat_time = stop - start
-          print '%d %f'%(size, unsat_time + sat_time)
+
+          ResetZ3()
+          model = AclContentCacheScaleTestFP(size)
+          start = time.time()
+          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[1])
+          stop = time.time()
+          unsat_time2 = stop - start
+          start = time.time()
+          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[0])
+          stop = time.time()
+          sat_time2 = stop - start
+          print '%d %f %f'%(size, unsat_time + sat_time, unsat_time2 + sat_time2)
