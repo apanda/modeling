@@ -81,6 +81,7 @@ if __name__ == "__main__":
     parser.add_argument('--emax', type=int, nargs='?', default=10)
     parser.add_argument('--tmin', type=int, nargs='?', default=2)
     parser.add_argument('--tmax', type=int, nargs='?', default=25)
+    parser.add_argument('--tskip', type=int, nargs='?', default=1)
     parser.add_argument('--seed', type=int, nargs='?', default=42)
     parser.add_argument('--samples', type=int, nargs='?', default=5)
     args = parser.parse_args()
@@ -91,11 +92,12 @@ if __name__ == "__main__":
     int_max = args.imax
     ext_max = args.emax
     tenant_max = args.tmax
+    tskip = args.tskip
     seed = args.seed
     samples = args.samples
     print "tenant int ext ia eia iea times"
     for iter in xrange(iters):
-        for tenant in xrange(tenant_min, tenant_max):
+        for tenant in xrange(tenant_min, tenant_max, tskip):
             for i in xrange(int_min, int_max):
                 for e in xrange(ext_min, ext_max):
                     ResetZ3(seed)
