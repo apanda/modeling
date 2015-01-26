@@ -27,25 +27,3 @@ for size in xrange(start_size, stop_size):
       stop = time.time()
       sat_time = stop - start
       print '%d %f %f'%(size, unsat_time, sat_time)
-#print "size ctime time result rono_ctime rono_time rono_result"
-#for it in xrange(1, 20):
-    #for size in xrange(0, 100):
-        #ResetZ3()
-        #start = time.time()
-        #t = permuteTest(size)
-        #stop = time.time()
-        #const_time = stop - start
-        #start = time.time()
-        #r = t.check.CheckIsolationProperty(t.a, t.b)
-        #stop = time.time()
-        #nrtime = stop - start
-        #ResetZ3()
-        #start = time.time()
-        #t2 = permuteTest(0)
-        #stop = time.time()
-        #const_time_rono = stop - start
-        #start = time.time()
-        #r2 = t2.check.CheckIsolationProperty(t2.a, t2.b)
-        #stop = time.time()
-        #rtime = stop - start
-        #print "%d %f %f %s %f %f %s"%(size, const_time, nrtime, r.result, const_time_rono, rtime, r2.result)
