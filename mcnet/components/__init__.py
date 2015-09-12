@@ -49,6 +49,7 @@ __all__ = ['Core', \
            'SecurityGroups', \
            'PolicyFirewall', \
            'Fabric', \
+           'AmznDenyNoLearnFirewall', \
            ]
 from core import Core, NetworkObject
 from dumb_node import DumbNode
@@ -86,3 +87,4 @@ from scrubber import Scrubber
 from security_groups import SecurityGroups
 from policy_firewall import PolicyFirewall
 from fabric import Fabric
+from amazonfw import AmznDenyNoLearnFirewall

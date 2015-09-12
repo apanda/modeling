@@ -46,6 +46,75 @@ class PropertyChecker (object):
         self.solver.pop()
         return IsolationResult(result, p, n_0, t_1, t_0, self.ctx, assertions, model)
 
+    def CheckIsolationPropertyCore (self, src, dest):
+        class IsolationResult (object):
+            def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions,\
+                    model, inv_model):
+                self.ctx = ctx
+                self.result = result
+                self.violating_packet = violating_packet
+                self.last_hop = last_hop
+                self.model = model
+                self.inv_model = inv_model
+                self.last_send_time = last_send_time
+                self.last_recv_time = last_recv_time
+                self.assertions = assertions
+
+        assert(src in self.net.elements)
+        assert(dest in self.net.elements)
+        self.solver.push ()
+        constraints = self.GetConstraints()
+        #self.AddConstraints()
+        p = z3.Const('check_isolation_p_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.packet)
+        n_0 = z3.Const('check_isolation_n_0_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        n_1 = z3.Const('check_isolation_n_1_%s_%s'%(src.z3Node, dest.z3Node), self.ctx.node)
+        t_0 = z3.Int('check_isolation_t0_%s_%s'%(src.z3Node, dest.z3Node))
+        t_1 = z3.Int('check_isolation_t1_%s_%s'%(src.z3Node, dest.z3Node))
+        constraints.append(self.ctx.recv(n_0, dest.z3Node, p, t_0))
+        constraints.append(self.ctx.send(src.z3Node, n_1, p, t_1))
+        constraints.append(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
+        constraints.append(self.ctx.packet.origin(p) == src.z3Node)
+
+        names = []
+        for constraint in constraints:
+            n = z3.Bool('%s'%constraint)
+            names += [n]
+            self.solver.add(z3.Implies(n, constraint))
+        is_sat = self.solver.check(names)
+        ret = None
+        if is_sat == z3.sat:
+            print "SAT"
+            ret =  IsolationResult(is_sat,p, n_0, t_1, t_0, self.ctx, self.solver.assertions(), self.solver.model(),
+                    None)
+        elif is_sat == z3.unsat:
+            print "unsat"
+            ret =  IsolationResult(is_sat,p, n_0, t_1, t_0, self.ctx, self.solver.assertions(),
+                    self.solver.unsat_core(), None)
+        self.solver.pop()
+        self.solver.push ()
+
+        constraints = self.GetConstraints()
+        constraints.append(self.ctx.send(src.z3Node, n_1, p, t_1))
+        constraints.append(z3.Not(self.ctx.recv(n_0, dest.z3Node, p, t_0)))
+        constraints.append(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
+        constraints.append(self.ctx.packet.origin(p) == src.z3Node)
+
+        names = []
+        for constraint in constraints:
+            n = z3.Bool('%s'%constraint)
+            names += [n]
+            self.solver.add(z3.Implies(n, constraint))
+        is_sat = self.solver.check(names)
+        if is_sat == z3.sat:
+            print "SAT"
+            ret.inv_model = self.solver.model()
+        elif is_sat == z3.unsat:
+            print "unsat"
+            ret.inv_model = self.solver.unsat_core()
+        self.solver.pop()
+        
+        return ret
+
     def CheckIsolationFlowProperty (self, src, dest):
         class IsolationResult (object):
             def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
@@ -287,18 +356,19 @@ class PropertyChecker (object):
     def GetConstraints (self):
         class Temp(object):
             def __init__(self):
-                self.constraints = []
+                self.infra_constraints = []
+                self.policy_constraints = []
             def add(self, constraints):
                 if isinstance(constraints, collections.Iterable):
-                    self.constraints.extend(constraints)
+                    self.infra_constraints.extend(constraints)
                 else:
-                    self.constraints.append(constraints)
+                    self.infra_constraints.append(constraints)
         l = Temp()
         self.ctx._addConstraints(l)
         self.net._addConstraints(l)
         for el in self.net.elements:
             el._addConstraints(l)
-        return l.constraints
+        return l.infra_constraints
 
     def AddConstraints (self):
         self.ctx._addConstraints(self.solver)
