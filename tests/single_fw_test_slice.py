@@ -38,7 +38,7 @@ for h in xrange(min_hosts, max_hosts):
     h_time = 0.0
     for i in xrange(h):
       ResetZ3()
-      1ost = RonoHostTest(1, 1, 1)
+      host = RonoHostTest(1, 1, 1)
       start = time.time()
       res = host.check.CheckIsolationProperty(host.outside, host.host)
       res2 = host.check.CheckIsolationFlowProperty(host.outside, host.host)
