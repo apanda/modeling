@@ -1,7 +1,8 @@
 import z3
-from examples import AclContentCacheScaleTest, NAclContentCacheScaleTest
+from examples import NAclContentCacheScaleTestFP, AclContentCacheScaleTestFP
 
 import time
+#import mcnet.components as components
 import random
 import sys
 import argparse
@@ -12,7 +13,7 @@ def ResetZ3 ():
     z3.set_param('smt.random_seed', 42)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
+    parser = argparse.ArgumentParser(description = 'Slice ACL Content scale')
     parser.add_argument('--min', type=int, nargs='?', default=20)
     parser.add_argument('--max', type=int, nargs='?', default=100)
     parser.add_argument('--iters', type=int, nargs='?', default=5)
@@ -20,32 +21,32 @@ if __name__ == "__main__":
     iters = args.iters 
     start_size = args.min
     stop_size = args.max
-    print 'size CCACL NCCACL'
+    print 'size RCCA RNCCA'
     for it in xrange(iters):
         for size in xrange(start_size, stop_size):
           ResetZ3()
-          model = AclContentCacheScaleTest(size)
+          model = AclContentCacheScaleTestFP(size)
           start = time.time()
-          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[1])
+          res = model.check.CheckDataIsolationProperty(model.s0, model.endhosts[1])
           stop = time.time()
-          assert(res.result == z3.unsat)
+          assert(res.result == z3.sat)
           unsat_time = stop - start
           start = time.time()
-          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[0])
+          res = model.check.CheckDataIsolationProperty(model.s0, model.endhosts[0])
           stop = time.time()
+          assert(res.result == z3.unsat)
           sat_time = stop - start
-          assert(res.result == z3.sat)
 
           ResetZ3()
-          model = NAclContentCacheScaleTest(size)
+          model = NAclContentCacheScaleTestFP(size)
           start = time.time()
-          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[1])
+          res = model.check.CheckDataIsolationProperty(model.s0, model.endhosts[1])
           stop = time.time()
           assert(res.result == z3.sat)
           unsat_time2 = stop - start
           start = time.time()
-          res = model.check.CheckDataIsolationProperty(model.s1, model.endhosts[0])
+          res = model.check.CheckDataIsolationProperty(model.s0, model.endhosts[0])
           stop = time.time()
-          sat_time2 = stop - start
           assert(res.result == z3.sat)
+          sat_time2 = stop - start
           print '%d %f %f'%(size, unsat_time + sat_time, unsat_time2 + sat_time2)
