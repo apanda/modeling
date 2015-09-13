@@ -80,6 +80,6 @@ if __name__ == "__main__":
     for iter in xrange(iters):
         for i in xrange(int_min, int_max):
             for e in xrange(ext_min, ext_max):
-                (t, times) = Rono(i, e, seed, samples)
+                (t, times) = Rono(2, 1, seed, samples)
                 times = ' '.join(map(str, times))
                 print "%d %d %f %s"%(i * 3, e, t, times)
