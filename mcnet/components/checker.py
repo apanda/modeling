@@ -13,7 +13,7 @@ class PropertyChecker (object):
         self.solver.reset()
         self.constraints = list()
 
-    def CheckIsolationProperty (self, src, dest):
+    def CheckIsolationProperty (self, src, dest, packet_constraint = None):
         class IsolationResult (object):
             def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
                 self.ctx = ctx
@@ -38,6 +38,8 @@ class PropertyChecker (object):
         self.solver.add(self.ctx.send(src.z3Node, n_1, p, t_1))
         self.solver.add(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
         self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
+        if packet_constraint:
+            self.solver.add(packet_constraint(p))
         result = self.solver.check()
         model = None
         assertions = self.solver.assertions()
@@ -115,7 +117,7 @@ class PropertyChecker (object):
         
         return ret
 
-    def CheckIsolationFlowProperty (self, src, dest):
+    def CheckIsolationFlowProperty (self, src, dest, packet_constraint = None):
         class IsolationResult (object):
             def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
                 self.ctx = ctx
@@ -150,6 +152,8 @@ class PropertyChecker (object):
                        self.ctx.dest_port(p_2) == self.ctx.src_port(p), \
                        self.ctx.packet.dest(p_2) == self.ctx.packet.src(p), \
                        t_2 < t_0))))
+        if packet_constraint:
+            self.solver.add(packet_constraint(p))
         result = self.solver.check()
         model = None
         assertions = self.solver.assertions()

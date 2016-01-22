@@ -23,6 +23,7 @@ __all__ = ['Core', \
            #'DenyHTTPFirewall', \
            #'DenyingAclFirewall', \
            'LearningFirewall', \
+           'DDOSProtection', \
            #'WebProxy', \
            #'ErroneousAclWebProxy', \
            #'AclWebProxy', \
@@ -66,6 +67,7 @@ from aclfirewall import AclFirewall
 #from onesidedfirewall import OneSidedFirewall
 #from deny_aclfirewall import DenyingAclFirewall
 from learningfirewall import LearningFirewall
+from ddosprot import DDOSProtection
 from content_cache import ContentCache
 from acl_content_cache import AclContentCache
 from permutation_mbox import PermutationMiddlebox
