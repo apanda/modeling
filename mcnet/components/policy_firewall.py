@@ -2,6 +2,7 @@ from . import NetworkObject, Core
 import z3
 class PolicyFirewall (NetworkObject):
     def _init (self, node, network, context, sgroup):
+        super(PolicyFirewall, self).init_fail(node)
         self.constraints = list ()
         self.fw = node.z3Node
         self.ctx = context

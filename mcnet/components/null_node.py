@@ -2,6 +2,7 @@ from . import NetworkObject
 import z3
 class NullNode (NetworkObject):
     def _init (self, node, net, ctx):
+        super(NullNode, self).init_fail(node)
         self.net = net
         self.ctx = ctx
         self.node = node.z3Node

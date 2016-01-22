@@ -19,6 +19,8 @@ class Core(object):
 
 class NetworkObject(Core):
     __metaclass__ = ABCMeta
+    def init_fail(self, node):
+        self.failed = z3.Function('%s_failed'%(node), z3.IntSort(), z3.BoolSort())
     @abstractproperty
     def z3Node (self):
         """Get a reference to the z3 node this class wraps around"""

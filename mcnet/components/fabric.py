@@ -2,6 +2,7 @@ from . import NetworkObject, Core
 import z3
 class Fabric (NetworkObject):
     def _init (self, node, network, context):
+        super(Fabric, self).init_fail(node)
         self.constraints = list ()
         self.node = node.z3Node
         self.ctx = context

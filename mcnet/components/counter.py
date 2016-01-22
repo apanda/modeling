@@ -3,6 +3,7 @@ import z3
 class NetworkCounter (NetworkObject):
     """OK cannot count: this is sad"""
     def _init (self, node, net, ctx):
+        super(NetworkCounter, self).init_fail(node)
         self.node = node.z3Node
         self.net = net
         self.ctx = ctx

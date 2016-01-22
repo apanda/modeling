@@ -2,6 +2,7 @@ from . import NetworkObject
 import z3
 class OneSidedFirewall (NetworkObject):
     def _init(self, node, network, context):
+        super(OneSidedFirewall, self).init_fail(node)
         self.fw = node.z3Node
         self.ctx = context
         self.constraints = list ()

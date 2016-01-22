@@ -2,6 +2,7 @@ from . import NetworkObject
 import z3
 class WanOptimizer (NetworkObject):
     def _init(self, transformation, node, network, context):
+        super(WanOptimizer, self).init_fail(node)
         self.opt = node.z3Node
         self.ctx = context
         self.constraints = list ()

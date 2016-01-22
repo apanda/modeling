@@ -3,6 +3,7 @@ import z3
 class WebLoadBalancer (NetworkObject):
     """Load balancers can be used to split traffic among multipler servers"""
     def _init (self, lbalancer, shared_addr, servers, context):
+        super(WebLoadBalancer, self).init_fail(node)
         self.constraints = list ()
         self.ctx = context
         self.lbalancer = lbalancer.z3Node

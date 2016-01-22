@@ -4,6 +4,7 @@ import z3
 class AclContentCache (NetworkObject):
     """A caching web proxy"""
     def _init (self, node, network, context):
+        super(AclContentCache, self).init_fail(node)
         self.proxy = node.z3Node
         self.ctx = context
         self.constraints = list ()

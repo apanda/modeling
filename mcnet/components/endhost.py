@@ -3,6 +3,7 @@ import z3
 class EndHost (NetworkObject):
     """End host objects"""
     def _init (self, node, network, context):
+        super(EndHost, self).init_fail(node)
         self.constraints = list ()
         self.ctx = context
         self.node = node.z3Node

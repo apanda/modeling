@@ -4,6 +4,7 @@ class LoadBalancer (NetworkObject):
     """As opposed to balancing between servers, this load balancer just balances between paths. This both makes it
     simpler and perhaps more interesting. Who knows"""
     def _init (self, balancer, net, context):
+        super(LoadBalancer, self).init_fail(node)
         self.ctx = context
         self.balancer = balancer.z3Node
         self.net = net

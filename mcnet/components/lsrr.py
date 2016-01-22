@@ -23,6 +23,7 @@ class LSRROption (Core):
 class LSRRRouter (NetworkObject):
     """IP router supporting LSRR functions"""
     def _init (self, router, lsrr_option, network, context):
+        super(LSRRRouter, self).init_fail(node)
         self.router = router.z3Node
         self.net = network
         self.ctx = context

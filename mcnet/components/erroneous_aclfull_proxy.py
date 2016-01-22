@@ -5,6 +5,7 @@ class ErroneousAclWebProxy (NetworkObject):
     """A caching web proxy which enforces ACLs erroneously.
        The idea here was to present something that is deliberately not path independent"""
     def _init (self, node, network, context):
+        super(ErroneousAclWebProxy, self).init_fail(node)
         self.proxy = node.z3Node
         self.ctx = context
         self.constraints = list ()

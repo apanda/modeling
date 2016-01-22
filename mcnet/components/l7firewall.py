@@ -3,6 +3,7 @@ import z3
 class HTTPFirewall (NetworkObject):
     """A layer 7 HTTP firewall: this looks at origin to decide whether to drop the packet or not (assuming flow state hasn't previously been established)"""
     def _init (self, node, network, context):
+        super(HTTPFirewall, self).init_fail(node)
         self.constraints = list ()
         self.fw = node.z3Node
         self.ctx = context

@@ -2,6 +2,7 @@ from . import NetworkObject, Core
 import z3
 class DDOSProtection (NetworkObject):
     def _init (self, node, network, context):
+        super(DDOSProtection, self).init_fail(node)
         self.constraints = list ()
         self.dpi = node.z3Node
         self.ctx = context

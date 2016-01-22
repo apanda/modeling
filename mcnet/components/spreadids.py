@@ -2,6 +2,7 @@ from . import NetworkObject, Core
 import z3
 class SpreadIDS (NetworkObject):
     def _init (self, node, network, context, shunt_to):
+        super(SpreadIDS, self).init_fail(node)
         self.constraints = list()
         self.node = node.z3Node
         self.shunt = shunt_to.z3Node

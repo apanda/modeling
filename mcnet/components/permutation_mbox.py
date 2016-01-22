@@ -5,6 +5,7 @@ import z3
 class PermutationMiddlebox (NetworkObject):
     """"""
     def _init (self, node, my_sources, sendable_addresses, network, context):
+        super(PermutationMiddlebox, self).init_fail(node)
         self.sources = my_sources
         self.sendable = sendable_addresses
         self.node = node.z3Node

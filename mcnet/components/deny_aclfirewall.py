@@ -3,6 +3,7 @@ import z3
 class DenyingAclFirewall (NetworkObject):
     """Just a firewall that works the opposite of the normal ACL firewall"""
     def _init(self, node, network, context):
+        super(DenyingAclFirewall, self).init_fail(node)
         self.fw = node.z3Node
         self.ctx = context
         self.constraints = list ()

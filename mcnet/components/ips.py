@@ -4,6 +4,7 @@ class IPS (NetworkObject):
     """ Intrusion prevention system: Just combines a stateful fw with DPI, hooray"""
     def _init (self, policy, node, network, context):
         """Policy is an object of type dpi_policy"""
+        super(IPS, self).init_fail(node)
         self.constraints = list ()
         self.policy = policy
         self.ips = node.z3Node
