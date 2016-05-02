@@ -42,23 +42,14 @@ class AmznDenyNoLearnFirewall (NetworkObject):
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], z3.Implies(self.ctx.send(self.fw, n_0, p_0, t_0), \
                                        z3.Exists([n_1, t_1], \
                                        z3.And(self.ctx.recv(n_1, self.fw, p_0, t_1), \
+                                              z3.Not(self.failed(t_0)), \
+                                              z3.Not(self.failed(t_1)), \
                                               t_1 < t_0)))))
 
         # Let us first try a non-learning firewall
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], z3.Implies(\
                 self.ctx.send(self.fw, n_0, p_0, t_0), \
-                  self.acl_func(p_0))))
-        #self.constraints.append(z3.ForAll([n_0, p_0, t_0], z3.Implies(\
-                #z3.And(self.ctx.send(self.fw, n_0, p_0, t_0), \
-                  #z3.Not(self.acl_func(p_0))), \
-                #z3.Exists([n_1, p_1, t_1], \
-                  #z3.And(self.ctx.send(self.fw, n_1, p_1, t_1), \
-                         #t_1 + 1 <= t_0, \
-                         #self.acl_func(p_1), \
-                         #self.ctx.packet.src(p_0) == self.ctx.packet.dest(p_1), \
-                         #self.ctx.packet.dest(p_0) == self.ctx.packet.src(p_1), \
-                         #self.ctx.src_port(p_0) == self.ctx.dest_port(p_1), \
-                         #self.ctx.dest_port(p_0) == self.ctx.src_port(p_1))))))
+                z3.And(self.acl_func(p_0), z3.Not(self.failed(t_0))))))
 
     def _aclConstraints(self, solver):
         if len(self.acls) == 0:

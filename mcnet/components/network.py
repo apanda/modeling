@@ -67,11 +67,82 @@ class Network (Core):
         #self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
             #z3.Implies(self.ctx.recv(n_0, node.z3Node,  p_0, t_0), \
                                             #n_0 == gateway.z3Node)))
+    def DisallowAddresses (self, addresses):
+        """Disallow sending to certain addresses"""
+        n_0 = z3.Const('disallow_n_0', self.ctx.node)
+        n_1 = z3.Const('disallow_n_1', self.ctx.node)
+        t_0 = z3.Int('disallow_t_0')
+        p_0 = z3.Const('disallow_pkt', self.ctx.packet)
+        constraints = map(lambda a: self.ctx.packet.dest(p_0) == a, addresses)
+        constraints += map(lambda a: self.ctx.packet.src(p_0) == a, addresses)
+        self.constraints.append(z3.ForAll([n_0, n_1, t_0, p_0], \
+                z3.Implies(self.ctx.send(n_0, n_1, p_0, t_0), z3.Not(z3.Or(constraints)))))
 
     def RoutingTable (self, node, routing_table):
         """ Routing entries are of the form address -> node"""
         compositionPolicy = map(lambda (d, n): (destAddrPredicate(self.ctx, d), n), routing_table)
         self.CompositionPolicy(node, compositionPolicy)
+
+    def RoutingTableWithFailure (self, node, routing_table):
+        """Routing table is (address, failure, predicate, node)"""
+        def fail_predicate(d, f):
+            return lambda p, t: z3.And(destAddrPredicate(self.ctx, d)(p), f(t))
+        composition_policy = map(lambda (d, f, n): (fail_predicate(d, f), n), routing_table)
+        self.CompositionPolicyWithFailure(node, composition_policy)
+
+    def SourceRoutingTableWithFailure(self, node, routing_table):
+        """Routing table is (dest, source, failure, predicate, node)"""
+        def source_fail_predicate(d, s, f):
+            def predicate_func(p, t):
+                t_0 = z3.Int('route_t')
+                t_1 = z3.Int('route_t1')
+                n = z3.Const('%s_route_n', self.ctx.node)
+                received = z3.Exists([t_0], z3.And(self.ctx.recv(s.z3Node, node.z3Node, p, t_0), \
+                                                    t_0 < t, \
+                                                    z3.ForAll([t_1, n], \
+                                                      z3.Or(t_1 > t, \
+                                                      z3.Implies(self.ctx.recv(n, node.z3Node, p, t_1), \
+                                                         z3.Or(t_1 < t_0, z3.And(t_1 == t_0, n == s.z3Node)))))))
+                return z3.And(destAddrPredicate(self.ctx, d)(p), f(t), received)
+            return predicate_func
+        composition_policy = map(lambda (d, s, f, n): (source_fail_predicate(d, s, f), n), routing_table)
+        self.CompositionPolicyWithFailure(node, composition_policy)
+
+    def SourceRoutingTable(self, node, routing_table):
+        """Routing table is (dest, source, node)"""
+        def source_predicate(d, s):
+            def predicate(p, t):
+                t_0 = z3.Int('route_t')
+                t_1 = z3.Int('route_t1')
+                n = z3.Const('%s_route_n', self.ctx.node)
+                received = z3.Exists([t_0], z3.And(self.ctx.recv(s.z3Node, node.z3Node, p, t_0), \
+                                                    t_0 < t, \
+                                                    z3.ForAll([t_1, n], \
+                                                      z3.Or(t_1 > t, \
+                                                      z3.Implies(self.ctx.recv(n, node.z3Node, p, t_1), \
+                                                         z3.Or(t_1 < t_0, z3.And(t_1 == t_0, n == s.z3Node)))))))
+                return z3.And(destAddrPredicate(self.ctx, d)(p), received)
+            return predicate
+        composition_policy = map(lambda (d,s, n): (source_predicate(d, s), n), routing_table)        
+        self.CompositionPolicyWithFailure(node, composition_policy)
+
+    def CompositionPolicyWithFailure (self, node, policy):
+        """ Composition policies steer packets between middleboxes.
+            Policy is of the form predicate -> node"""
+        p_0 = z3.Const('%s_composition_p_0'%(node), self.ctx.packet)
+        n_0 = z3.Const('%s_composition_n_0'%(node), self.ctx.node)
+        t_0 = z3.Int('%s_composition_t_0'%(node))
+        collected = defaultdict(list)
+        node_dict = {}
+        for (predicate, dnode) in policy:
+            collected[str(dnode)].append(predicate)
+            node_dict[str(dnode)] = dnode
+        for nk, predicates in collected.iteritems():
+            dnode = node_dict[nk]
+            predicates = z3.Or(map(lambda p: p(p_0, t_0), predicates))
+            self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
+                    z3.Implies(z3.And(self.ctx.send(node.z3Node, n_0, p_0, t_0), predicates), \
+                                n_0 == dnode.z3Node)))
 
     def CompositionPolicy (self, node, policy):
         """ Composition policies steer packets between middleboxes.

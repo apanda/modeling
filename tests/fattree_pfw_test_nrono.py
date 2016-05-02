@@ -19,10 +19,10 @@ def NonRono(tenants, internal, external, samples):
     int_checks = 0
     int_time = 0.0
     times = []
-    for i in xrange(internal):
+    for i in xrange(1):
         if int_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             start = time.time()
             result = topo.checker.CheckIsolationFlowProperty(topo.hosts[i], topo.hosts[i + (t * total_per_tenant)])
             assert result.result == z3.unsat
@@ -36,10 +36,10 @@ def NonRono(tenants, internal, external, samples):
     # Check externals from other tenants cannot reach internal 0
     ext_int_time = 0.0
     ext_int_checks = 0
-    for i in xrange(external):
+    for i in xrange(1):
         if ext_int_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             start = time.time()
             result = topo.checker.CheckIsolationFlowProperty(topo.hosts[i + (t * total_per_tenant) + internal],\
                     topo.hosts[0])
@@ -55,10 +55,10 @@ def NonRono(tenants, internal, external, samples):
     int_ext_checks = 0
     int_ext_time = 0.0
     # Check externals from other tenants are reachable from internal 0
-    for i in xrange(external):
+    for i in xrange(1):
         if int_ext_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             start = time.time()
             result = topo.checker.CheckIsolationFlowProperty(topo.hosts[0],\
                     topo.hosts[i + (t * total_per_tenant) + internal])
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     parser.add_argument('--tmax', type=int, nargs='?', default=25)
     parser.add_argument('--tskip', type=int, nargs='?', default=1)
     parser.add_argument('--seed', type=int, nargs='?', default=42)
-    parser.add_argument('--samples', type=int, nargs='?', default=5)
+    parser.add_argument('--samples', type=int, nargs='?', default=1)
     args = parser.parse_args()
     iters = args.iters
     int_min = args.imin
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     tskip = args.tskip
     seed = args.seed
     samples = args.samples
-    print "tenant int ext ia eia iea times"
+    print "tenant iteration ii ie ei"
     for iter in xrange(iters):
         for tenant in xrange(tenant_min, tenant_max, tskip):
             for i in xrange(int_min, int_max):
@@ -103,4 +103,4 @@ if __name__ == "__main__":
                     ResetZ3(seed)
                     (ia, eia, iea, times) = NonRono(tenant, i, e, samples)
                     times = ' '.join(map(str, times))
-                    print "%d %d %d %f %f %f %s"%(tenant, i, e, ia, eia, iea, times)
+                    print tenant, iter, times

@@ -8,7 +8,6 @@ class LearningFirewall (NetworkObject):
         self.ctx = context
         network.SaneSend(self)
         self.acls = []
-        self.failed = z3.Function('%s_firewall_failed'%(self.fw), z3.IntSort(), z3.BoolSort())
         self._firewallSendRules()
 
     def _addConstraints (self, solver):

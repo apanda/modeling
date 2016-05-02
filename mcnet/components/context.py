@@ -152,11 +152,23 @@ class Context(Core):
         """Two packets have equal bodies"""
         return self.packet.body(p1) == self.packet.body(p2)
 
-def failurePredicate (context):
-    return lambda node:  z3.Not(context.failed (node.z3Node))
-
 def destAddrPredicate (context, address):
     return lambda p: context.packet.dest(p) == address
 
 def srcAddrPredicate (context, address):
     return lambda p: context.packet.src(p) == address
+
+def failed (node):
+    return node.failed
+
+def not_failed(node):
+    return lambda t: z3.Not(node.failed(t))
+
+def and_pred(clause1, clause2):
+    return lambda t: z3.And(clause1(t), clause2(t))
+
+def or_pred(caluse1, clause2):
+    return lambda t: z3.Or(clause1(t), clause2(t))
+
+def not_pred(clause):
+    return lambda t: z3.Not(clause(t))

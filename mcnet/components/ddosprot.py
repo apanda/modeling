@@ -8,7 +8,6 @@ class DDOSProtection (NetworkObject):
         self.ctx = context
         network.SaneSend(self)
         self.acls = []
-        self.failed = z3.Function('%s_dpi_failed'%(self.dpi), z3.IntSort(), z3.BoolSort())
         self.ddos = z3.Function('%s_dpi_trigger'%(self.dpi), self.ctx.address, z3.IntSort(), z3.BoolSort())
         self._ddosSendRules()
 

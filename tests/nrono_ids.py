@@ -12,43 +12,37 @@ def ResetZ3 (seed):
     z3.set_param('smt.random_seed', seed)
 
 def Rono(internal, external, seed, samples):
-    total_checks = 0
-    total_time = 0.0
     times = []
     ResetZ3(seed)
     topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
     topo.net.Attach(*topo.nodes)
-    for (pub, peer, i) in zip(cycle(topo.pub), cycle(topo.peers), range(samples)):
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
+    pub = 0
+    peer = 0
+    i = 0
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(topo.peers[peer], topo.pub[pub])
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+
     ResetZ3(seed)
     topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
     topo.net.Attach(*topo.nodes)
-    for (pub, peer, i) in zip(cycle(topo.quarantine), cycle(topo.peers), range(samples)):
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(topo.peers[peer], topo.pub[pub])
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+
     ResetZ3(seed)
     topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
     topo.net.Attach(*topo.nodes)
-    for (pub, peer, i) in zip(cycle(topo.priv), cycle(topo.peers), range(samples)):
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
-    return (total_time / float(total_checks), times)
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(topo.peers[peer], topo.pub[pub])
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+    return times
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
@@ -68,9 +62,9 @@ if __name__ == "__main__":
     seed = args.seed
     samples = args.samples
     print "external internal time"
-    for iter in xrange(iters):
+    for it in xrange(iters):
         for i in xrange(int_min, int_max):
             for e in xrange(ext_min, ext_max):
-                (t, times) = Rono(i, e, seed, samples)
+                times = Rono(i, e, seed, samples)
                 times = ' '.join(map(str, times))
-                print "%d %d %f %s"%(i * 3, e, t, times)
+                print it, i*3, e, times

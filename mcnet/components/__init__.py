@@ -51,10 +51,17 @@ __all__ = ['Core', \
            'PolicyFirewall', \
            'Fabric', \
            'AmznDenyNoLearnFirewall', \
+           'failed', \
+           'not_failed', \
+           'not_pred', \
+           'and_pred', \
+           'or_pred', \
+           'DropAll', \
+           'AllowAll', \
            ]
 from core import Core, NetworkObject
 from dumb_node import DumbNode
-from context import Context, failurePredicate, destAddrPredicate, srcAddrPredicate
+from context import Context, destAddrPredicate, srcAddrPredicate, failed, not_failed, not_pred, and_pred, or_pred
 from null_node import NullNode
 from endhost import EndHost
 from network import Network
@@ -68,6 +75,8 @@ from aclfirewall import AclFirewall
 #from deny_aclfirewall import DenyingAclFirewall
 from learningfirewall import LearningFirewall
 from ddosprot import DDOSProtection
+from drop_all import DropAll
+from allow_all import AllowAll
 from content_cache import ContentCache
 from acl_content_cache import AclContentCache
 from permutation_mbox import PermutationMiddlebox

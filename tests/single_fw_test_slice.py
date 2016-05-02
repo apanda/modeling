@@ -9,41 +9,43 @@ def ResetZ3 ():
     z3.main_ctx()
     z3.set_param('smt.random_seed', random.SystemRandom().randint(0, sys.maxint))
 
-iters = 10
-min_hosts = 5
-max_hosts = 1000
-print "host dmz_time q_time h_time total"
-for h in xrange(min_hosts, max_hosts):
-  for i in xrange(iters):
+iters = 100
+print "dmz_time q_time h_time total"
+for i in xrange(iters):
+  try:
     dmz_time = 0.0
-    for i in xrange(1):
-      ResetZ3()
-      dmz = RonoDMZTest(1, 1, 1)
-      start = time.time()
-      res = dmz.check.CheckIsolationFlowProperty(dmz.outside, dmz.dmz)
-      assert res.result == z3.sat
-      stop = time.time()
-      dmz_time += (stop - start)
+    ResetZ3()
+    dmz = RonoDMZTest(1, 1, 1)
+    start = time.time()
+    res = dmz.check.CheckIsolationFlowProperty(dmz.outside, dmz.dmz)
+    assert res.result == z3.sat
+    stop = time.time()
+    dmz_time += (stop - start)
+  except:
+    dmz_time = '*'
 
+  try:
     q_time = 0.0
-    for i in xrange(1):
-      ResetZ3()
-      quarantine = RonoQuarantineTest(1, 1, 1)
-      start = time.time()
-      res = quarantine.check.CheckIsolationProperty(quarantine.outside, quarantine.quarantine)
-      assert res.result == z3.unsat
-      stop = time.time()
-      q_time += (stop - start)
+    ResetZ3()
+    quarantine = RonoQuarantineTest(1, 1, 1)
+    start = time.time()
+    res = quarantine.check.CheckIsolationProperty(quarantine.outside, quarantine.quarantine)
+    assert res.result == z3.unsat
+    stop = time.time()
+    q_time += (stop - start)
+  except:
+    q_time = '*'
 
+  try:
     h_time = 0.0
-    for i in xrange(1):
-      ResetZ3()
-      host = RonoHostTest(1, 1, 1)
-      start = time.time()
-      res = host.check.CheckIsolationProperty(host.outside, host.host)
-      res2 = host.check.CheckIsolationFlowProperty(host.outside, host.host)
-      assert res.result == z3.sat and res2.result == z3.unsat
-      stop = time.time()
-      h_time += (stop - start)
-    print "%d %f %f %f %f"%(h, dmz_time, q_time, h_time, dmz_time + q_time + h_time)
-      
+    ResetZ3()
+    host = RonoHostTest(1, 1, 1)
+    start = time.time()
+    res = host.check.CheckIsolationProperty(host.outside, host.host)
+    res2 = host.check.CheckIsolationFlowProperty(host.outside, host.host)
+    assert res.result == z3.sat and res2.result == z3.unsat
+    stop = time.time()
+    h_time += (stop - start)
+  except:
+    h_time = '*'
+  print dmz_time, q_time, h_time

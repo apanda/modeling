@@ -43,6 +43,8 @@ class AclFirewall (NetworkObject):
             z3.Implies(self.ctx.send(self.fw, n_0, p_0, t_0), \
                     z3.Exists([t_1], \
                         z3.And(t_1 < t_0, \
+                        z3.Not(self.failed(t_1)), \
+                        z3.Not(self.failed(t_0)), \
                         z3.Exists([n_1], \
                             self.ctx.recv(n_1, self.fw, p_0, t_1)), \
                         z3.Not(self.acl_func(self.ctx.packet.src(p_0), self.ctx.packet.dest(p_0))))))))

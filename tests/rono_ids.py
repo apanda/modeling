@@ -12,55 +12,52 @@ def ResetZ3 (seed):
     z3.set_param('smt.random_seed', seed)
 
 def Rono(internal, external, seed, samples):
-    total_checks = 0
-    total_time = 0.0
     times = []
-    for (pubI, peerI, i) in zip(cycle(xrange(internal)),\
-            cycle(xrange(external)), range(samples)):
-      ResetZ3(seed)
-      topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
-      pub = topo.pub[pubI]
-      peer = topo.peers[peerI]
-      topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
-    for (pub, peer, i) in zip(cycle(xrange(internal)),\
-            cycle(xrange(external)), range(samples)):
-      ResetZ3(seed)
-      topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
-      pub = topo.priv[pubI]
-      peer = topo.peers[peerI]
-      topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
-    for (pub, peer, i) in zip(cycle(xrange(internal)),\
-            cycle(xrange(external)), range(samples)):
-      ResetZ3(seed)
-      topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
-      pub = topo.quarantine[pubI]
-      peer = topo.peers[peerI]
-      topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
-      start = time.time()
-      result = topo.checker.CheckIsolationProperty(peer, pub)
-      stop = time.time()
-      total_checks += 1
-      times.append(stop - start)
-      total_time += (stop - start)
-      assert(result.result == z3.sat)
-    return (total_time / float(total_checks), times)
+    
+    # for (pubI, peerI, i) in zip(cycle(xrange(internal)),\
+            # cycle(xrange(external)), range(samples)):
+    pubI = 0
+    peerI = 0
+    i = 0
+    ResetZ3(seed)
+    topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
+    pub = topo.pub[pubI]
+    peer = topo.peers[peerI]
+    topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(peer, pub)
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+
+    pub = 0
+    peer = 0
+    i = 0
+    ResetZ3(seed)
+    topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
+    pub = topo.priv[pubI]
+    peer = topo.peers[peerI]
+    topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(peer, pub)
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+
+    ResetZ3(seed)
+    topo = PolicyIDSShuntTopo (internal, internal, internal, external, 1)
+    pub = topo.quarantine[pubI]
+    peer = topo.peers[peerI]
+    topo.net.Attach(pub, peer, topo.ids[peerI], topo.fws[peerI], topo.shunts[0])
+    start = time.time()
+    result = topo.checker.CheckIsolationProperty(peer, pub)
+    stop = time.time()
+    times.append(stop - start)
+    assert(result.result == z3.sat)
+    return times
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description = 'Non-rono fat-tree test')
+    parser = argparse.ArgumentParser(description = 'RONO fat-tree test')
     parser.add_argument('--iters', type=int, nargs='?', default=10)
     parser.add_argument('--imin', type=int, nargs='?', default=1)
     parser.add_argument('--imax', type=int, nargs='?', default=10)
@@ -77,9 +74,9 @@ if __name__ == "__main__":
     seed = args.seed
     samples = args.samples
     print "internal external time"
-    for iter in xrange(iters):
+    for it in xrange(iters):
         for i in xrange(int_min, int_max):
             for e in xrange(ext_min, ext_max):
-                (t, times) = Rono(2, 1, seed, samples)
+                times = Rono(2, 1, seed, samples)
                 times = ' '.join(map(str, times))
-                print "%d %d %f %s"%(i * 3, e, t, times)
+                print it, i*3, e, times

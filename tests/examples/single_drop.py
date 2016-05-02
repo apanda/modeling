@@ -1,7 +1,7 @@
 import components
 import z3
 from itertools import repeat
-def RonoDPITest (ndmz, nhosts, nquarantine):
+def DropEverythingTest (ndmz, nhosts, nquarantine):
   """Some random real world test"""
   
   dpi = 'f'
@@ -24,7 +24,7 @@ def RonoDPITest (ndmz, nhosts, nquarantine):
   
   dmz_test_host = components.EndHost(getattr(ctx, dmz_test_host), net, ctx)
 
-  dpi = components.DDOSProtection(getattr(ctx, dpi), net, ctx)
+  dpi = components.DropAll(getattr(ctx, dpi), net, ctx)
 
   outside_address = getattr(ctx, outside_address)
   fw_address = getattr(ctx, fw_address)

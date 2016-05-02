@@ -20,10 +20,10 @@ def Rono(tenants, internal, external, seed, samples):
     int_checks = 0
     int_time = 0.0
     times = []
-    for i in xrange(internal):
+    for i in xrange(1):
         if int_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             ResetZ3(seed)
             topo = PFWMultiTenantUnattach(tenants, external, internal)
             start = time.time()
@@ -41,10 +41,10 @@ def Rono(tenants, internal, external, seed, samples):
     # Check externals from other tenants cannot reach internal 0
     ext_int_time = 0.0
     ext_int_checks = 0
-    for i in xrange(external):
+    for i in xrange(1):
         if ext_int_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             ResetZ3(seed)
             topo = PFWMultiTenantUnattach(tenants, external, internal)
             start = time.time()
@@ -65,10 +65,10 @@ def Rono(tenants, internal, external, seed, samples):
     int_ext_checks = 0
     int_ext_time = 0.0
     # Check externals from other tenants are reachable from internal 0
-    for i in xrange(external):
+    for i in xrange(1):
         if int_ext_checks >= samples:
             break
-        for t in xrange(1, tenants):
+        for t in xrange(1, 2):
             ResetZ3(seed)
             topo = PFWMultiTenantUnattach(tenants, external, internal)
             start = time.time()
@@ -111,11 +111,11 @@ if __name__ == "__main__":
     tskip = args.tskip
     seed = args.seed
     samples = args.samples
-    print "tenant int ext ia eia iea times"
+    print "ii ie ei"
     for iter in xrange(iters):
-        for tenant in xrange(tenant_min, tenant_max, tskip):
+        for tenant in xrange(2, 3):
             for i in xrange(int_min, int_max):
                 for e in xrange(ext_min, ext_max):
                     (ia, eia, iea, times) = Rono(tenant, i, e, seed, samples)
                     times = ' '.join(map(str, times))
-                    print "%d %d %d %f %f %f %s"%(tenant, i, e, ia, eia, iea, times)
+                    print times

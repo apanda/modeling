@@ -162,7 +162,7 @@ class PropertyChecker (object):
         self.solver.pop()
         return IsolationResult(result, p, n_0, t_1, t_0, self.ctx, assertions, model)
 
-    def CheckNodeTraversalProperty (self, src, dest, node):
+    def CheckNodeTraversalProperty (self, src, dest, nodes):
         class IsolationResult (object):
             def __init__ (self, result, violating_packet, last_hop, last_send_time, last_recv_time, ctx, assertions, model = None):
                 self.ctx = ctx
@@ -189,12 +189,15 @@ class PropertyChecker (object):
         self.solver.add(self.ctx.send(src.z3Node, n_1, p, t_1))
         self.solver.add(self.ctx.nodeHasAddr(src.z3Node, self.ctx.packet.src(p)))
         self.solver.add(self.ctx.packet.origin(p) == src.z3Node)
-        self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
-            z3.And(self.ctx.recv(n_2, node.z3Node, p, t_2), \
-                   t_2 < t_0))))
-        self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
-            z3.And(self.ctx.send(node.z3Node, n_2, p, t_2), \
-                   t_2 < t_0))))
+        if not isinstance(nodes, list):
+            nodes = [nodes]
+        for node in nodes:
+            self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
+                z3.And(self.ctx.recv(n_2, node.z3Node, p, t_2), \
+                       t_2 < t_0))))
+            self.solver.add(z3.Not(z3.Exists([n_2, t_2],\
+                z3.And(self.ctx.send(node.z3Node, n_2, p, t_2), \
+                       t_2 < t_0))))
         result = self.solver.check()
         model = None
         assertions = self.solver.assertions()

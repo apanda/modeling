@@ -31,30 +31,36 @@ class ContentCache (NetworkObject):
         self.cached_origin = z3.Function('%s_cached_origin'%(self.proxy), z3.IntSort(), z3.IntSort(), self.ctx.node)
         self.cached_body = z3.Function('%s_cached_body'%(self.proxy), z3.IntSort(), z3.IntSort(), z3.IntSort())
         self.cached_obody = z3.Function('%s_cached_obody'%(self.proxy), z3.IntSort(), z3.IntSort(), z3.IntSort())
-        
+        self.request = z3.Function('%s_request'%(self.proxy), self.ctx.packet, z3.BoolSort())
+
+        # Anything sent is sent with the caches address
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
              z3.Implies(self.ctx.send(self.proxy, n_0, p_0, t_0), \
                self.ctx.nodeHasAddr(self.proxy, self.ctx.packet.src(p_0)))))
        
         self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
-            z3.Implies(self.ctx.send(self.proxy, n_0, p_0, t_0), \
-              z3.Exists([n_1, p_1, t_1], \
-                z3.And(self.ctx.recv(n_1, self.proxy, p_1, t_1), \
-                       t_1 < t_0, \
-                       z3.Or(
-                         z3.And(self.ctx.packet.body(p_1) == self.ctx.packet.body(p_0), \
-                                self.ctx.packet.origin(p_1) == self.ctx.packet.origin(p_0), \
-                                self.ctx.packet.orig_body(p_1) == self.ctx.packet.orig_body(p_0), \
-                                self.ctx.dest_port(p_1) == self.ctx.dest_port(p_0), \
-                                self.ctx.packet.dest(p_1) == self.ctx.packet.dest(p_0)), \
-                         z3.And(self.cached(self.ctx.packet.body(p_1), t_1), \
-                                self.ctx.packet.origin(p_0) == \
-                                    self.cached_origin(self.ctx.packet.body(p_1), t_1), \
-                                self.ctx.packet.orig_body(p_0) == \
-                                    self.cached_obody(self.ctx.packet.body(p_1), t_1), \
-                                self.ctx.packet.dest(p_0) == self.ctx.packet.src(p_1), \
-                                self.ctx.dest_port(p_0) == self.ctx.src_port(p_1), \
-                                self.ctx.src_port(p_0) == self.ctx.dest_port(p_1))))))))
+                z3.Implies(self.ctx.send(self.proxy, n_0, p_0, t_0), \
+                  z3.Exists([n_1, p_1, t_1], \
+                     z3.And(self.ctx.recv(n_1, self.proxy, p_1, t_1), \
+                            t_1 < t_0, \
+                            self.request(p_1), \
+                            z3.Not(self.ctx.nodeHasAddr(self.proxy, self.ctx.packet.dest(p_1))), \
+                            z3.Or(
+                                z3.And(self.ctx.packet.body(p_1) == self.ctx.packet.body(p_0), \
+                                    self.ctx.packet.origin(p_1) == self.ctx.packet.origin(p_0), \
+                                    self.ctx.packet.orig_body(p_1) == self.ctx.packet.orig_body(p_0), \
+                                    self.ctx.dest_port(p_1) == self.ctx.dest_port(p_0), \
+                                    self.ctx.packet.dest(p_1) == self.ctx.packet.dest(p_0), \
+                                    self.request(p_0)), \
+                                 z3.And(self.cached(self.ctx.packet.body(p_1), t_1), \
+                                        self.ctx.packet.origin(p_0) == \
+                                            self.cached_origin(self.ctx.packet.body(p_1), t_1), \
+                                        self.ctx.packet.orig_body(p_0) == \
+                                            self.cached_obody(self.ctx.packet.body(p_1), t_1), \
+                                        self.ctx.packet.dest(p_0) == self.ctx.packet.src(p_1), \
+                                        self.ctx.dest_port(p_0) == self.ctx.src_port(p_1), \
+                                        self.ctx.src_port(p_0) == self.ctx.dest_port(p_1), \
+                                        z3.Not(self.request(p_0)))))))))
 
         self.constraints.append(z3.ForAll([b_0, t_0], \
             z3.Implies(self.cached(b_0, t_0), 
@@ -62,6 +68,7 @@ class ContentCache (NetworkObject):
                 z3.And(self.ctx.send(self.proxy, n_0, p_0, t_1), \
                    self.ctx.packet.body(p_0) == b_0, \
                    t_1 < t_0, \
+                   self.request(p_0), \
                    z3.Exists([n_1, p_1, t_2], \
                    z3.And(self.ctx.recv(n_1, self.proxy, p_1, t_2), \
                      t_2 > t_1, \
@@ -73,3 +80,42 @@ class ContentCache (NetworkObject):
                      self.cached_body(b_0, t_0) == self.ctx.packet.body(p_1), \
                      self.cached_origin(b_0, t_0) == self.ctx.packet.origin(p_1), \
                      self.cached_obody(b_0, t_0) == self.ctx.packet.orig_body(p_1))))))))
+                                
+
+        # self.constraints.append(z3.ForAll([n_0, p_0, t_0], \
+            # z3.Implies(self.ctx.send(self.proxy, n_0, p_0, t_0), \
+              # z3.Exists([n_1, p_1, t_1], \
+                # z3.And(self.ctx.recv(n_1, self.proxy, p_1, t_1), \
+                       # t_1 < t_0, \
+                       # z3.Or(
+                         # z3.And(self.ctx.packet.body(p_1) == self.ctx.packet.body(p_0), \
+                                # self.ctx.packet.origin(p_1) == self.ctx.packet.origin(p_0), \
+                                # self.ctx.packet.orig_body(p_1) == self.ctx.packet.orig_body(p_0), \
+                                # self.ctx.dest_port(p_1) == self.ctx.dest_port(p_0), \
+                                # self.ctx.packet.dest(p_1) == self.ctx.packet.dest(p_0)), \
+                         # z3.And(self.cached(self.ctx.packet.body(p_1), t_1), \
+                                # self.ctx.packet.origin(p_0) == \
+                                    # self.cached_origin(self.ctx.packet.body(p_1), t_1), \
+                                # self.ctx.packet.orig_body(p_0) == \
+                                    # self.cached_obody(self.ctx.packet.body(p_1), t_1), \
+                                # self.ctx.packet.dest(p_0) == self.ctx.packet.src(p_1), \
+                                # self.ctx.dest_port(p_0) == self.ctx.src_port(p_1), \
+                                # self.ctx.src_port(p_0) == self.ctx.dest_port(p_1))))))))
+
+        # self.constraints.append(z3.ForAll([b_0, t_0], \
+            # z3.Implies(self.cached(b_0, t_0), 
+              # z3.Exists([n_0, p_0, t_1], \
+                # z3.And(self.ctx.send(self.proxy, n_0, p_0, t_1), \
+                   # self.ctx.packet.body(p_0) == b_0, \
+                   # t_1 < t_0, \
+                   # z3.Exists([n_1, p_1, t_2], \
+                   # z3.And(self.ctx.recv(n_1, self.proxy, p_1, t_2), \
+                     # t_2 > t_1, \
+                     # t_2 < t_0, \
+                     # self.ctx.packet.dest(p_1) == self.ctx.packet.src(p_0), \
+                     # self.ctx.packet.src(p_1) == self.ctx.packet.dest(p_0), \
+                     # self.ctx.src_port(p_1) == self.ctx.dest_port(p_0), \
+                     # self.ctx.dest_port(p_1) == self.ctx.src_port(p_0), \
+                     # self.cached_body(b_0, t_0) == self.ctx.packet.body(p_1), \
+                     # self.cached_origin(b_0, t_0) == self.ctx.packet.origin(p_1), \
+                     # self.cached_obody(b_0, t_0) == self.ctx.packet.orig_body(p_1))))))))
